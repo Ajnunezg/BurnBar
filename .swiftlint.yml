@@ -6,20 +6,15 @@ opt_in_rules:
   - explicit_init
   - closure_spacing
   - redundant_nil_coalescing
-  - redundant_return
   - switch_case_on_newline
   - contains_over_first_not_nil
-  - fallenstar
   - empty_string
-  - empty_collection
   - first_where
   - sorted_first_last
   - redundant_type_annotation
   - override_in_extension
   - multiline_parameters
   - unneeded_parentheses_in_closure_argument
-  - attr_objc_block
-  - completion_handler_convention
   - protocol_property_accessors_order
   - sorted_imports
   - is_disjoint
@@ -27,8 +22,14 @@ opt_in_rules:
   - dynamic_inline
 
 excluded:
+  - .derived-data
+  - .spm-cache
   - .build
   - .swiftpm
+  - BurnBarCore/.build
+  - BurnBarCore/.swiftpm
+  - BurnBarDaemon/.build
+  - BurnBar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
   - DerivedSources
   - BurnsMacOS.build
   - BurnsXcode.build
@@ -106,8 +107,7 @@ cyclomatic_complexity:
   error: 25
 
 nesting:
-  type_level_delay: 1
-  statement_level_delay: 0
+  type_level: 1
 
 warning_threshold: 10
 

@@ -14,14 +14,14 @@ Optional: `export BURNBAR_DB_PATH="/path/to/burnbar.sqlite"` if the DB is not un
 ## Cursor
 
 1. Open **Cursor Settings → MCP** (or edit your MCP config JSON).
-2. Add a server (adjust paths if your clone is not at `~/Developer/AgentLens`):
+2. Add a server (adjust the absolute paths for wherever you cloned BurnBar):
 
 ```json
 {
   "mcpServers": {
     "burnbar-local": {
-      "command": "/Users/YOU/Developer/AgentLens/tools/burnbar-mcp/.venv/bin/python",
-      "args": ["/Users/YOU/Developer/AgentLens/tools/burnbar-mcp/server.py"]
+      "command": "/absolute/path/to/BurnBar/tools/burnbar-mcp/.venv/bin/python",
+      "args": ["/absolute/path/to/BurnBar/tools/burnbar-mcp/server.py"]
     }
   }
 }

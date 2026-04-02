@@ -2,7 +2,7 @@
   "name": "burnbar",
   "displayName": "BurnBar",
   "description": "BurnBar sidebar shell for Cursor and VS Code.",
-  "version": "0.0.1",
+  "version": "0.1.0-beta",
   "publisher": "burnbar",
   "icon": "media/app-icon-128.png",
   "license": "MIT",

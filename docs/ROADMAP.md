@@ -65,10 +65,6 @@ This roadmap reflects BurnBar's current product direction: from local-first agen
 - Ship the connector/browser control plane and operator CLI over the daemon
 - Explicitly codify the local-first divergence from BurnBarDist's cloud-canonical memory-sync architecture
 
-Detailed execution plan:
-
-- [PLAN_05_BURNBARDIST_PARITY.md](./plans/PLAN_05_BURNBARDIST_PARITY.md)
-
 ## Later
 
 ### 8. Organization-Level Memory

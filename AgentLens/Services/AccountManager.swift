@@ -9,7 +9,8 @@ import GoogleSignIn
 // MARK: - AccountManager
 
 /// Manages Firebase Authentication and device identity.
-/// Supports Sign in with Apple and Google. Device UUID is persisted in Keychain for cross-reinstall stability.
+/// Supports Sign in with Apple and Google. Device UUID is persisted locally in app defaults
+/// and migrated from legacy BurnBar/AgentLens defaults keys when present.
 @Observable
 @MainActor
 final class AccountManager {
@@ -296,4 +297,3 @@ private final class AppleSignInPresentationCoordinator: NSObject, ASAuthorizatio
         onFinish()
     }
 }
-

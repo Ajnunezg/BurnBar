@@ -15,7 +15,7 @@ Get up and running with BurnBar in 5 minutes.
 
 ```bash
 # Clone the repository
-git clone https://github.com/Ajnunezg/BurnBar.git
+git clone <repository-url>
 cd BurnBar
 
 # Generate the Xcode project (requires XcodeGen)
@@ -149,7 +149,7 @@ swift run --package-path BurnBarDaemon BurnBarDaemon
 
 ## Getting Help
 
-- **Bug reports:** [GitHub Issues](https://github.com/Ajnunezg/BurnBar/issues)
+- **Bug reports:** use the GitHub Issues tab for this repository
 - **Security issues:** See [SECURITY.md](SECURITY.md)
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Support expectations:** See [SUPPORT.md](SUPPORT.md)

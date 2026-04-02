@@ -1506,7 +1506,6 @@ final class SearchService {
 
             var extraHeaders: [String: String] = [:]
             if provider.includesOpenRouterHeaders {
-                extraHeaders["HTTP-Referer"] = "https://github.com/Ajnunezg/BurnBar"
                 extraHeaders["X-Title"] = "BurnBar"
             }
 

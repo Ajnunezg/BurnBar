@@ -9,31 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `QUICKSTART.md` for new contributors
-- `BUG_REPORT.yml` issue template
-- `FEATURE_REQUEST.yml` issue template
+- `bug_report.md` issue template
+- `feature_request.md` issue template
 - `PULL_REQUEST_TEMPLATE.md` for contributors
 - `BurnBarDaemonLogger.warning()` method for proper log level coverage
+- public release scaffolding for support, security, and third-party notices
 
 ### Changed
-- Version updated to `0.1.0-beta` (from `1.0.0`)
-- README updated with beta status
+- project versioning aligned on `0.1.0-beta` for the app, daemon, and extension
+- README and quick start copy updated for experimental-source-release positioning
+- public docs scrubbed to remove stale personal repository URLs and inaccurate storage/version claims
 
 ### Fixed
 - TypeScript build error in `panelViewModel.ts` (`state.workspace` possibly undefined)
 - TypeScript lint warnings (unused variables, missing defaults, empty methods)
 - Silent error handling in `encodeErrorResponse()` with proper logging
 - Swift `try?` in `BurnBarRunService.restorePersistedRunsIfNeeded()` replaced with explicit error handling
-- npm mocha vulnerability (GHSA-5c6j-r48x-rmvq, GHSA-73rr-hh4g-fpgx) resolved by upgrading to mocha@11
 - Removed duplicate `CODEOWNERS` file (keeping `.github/CODEOWNERS`)
 - Removed personal tool configuration from `tools/`
 - Firebase credentials file removed from working tree
+- broken public-doc links and missing implementation-support docs
+- stale OpenRouter `HTTP-Referer` headers pointing at a private repository URL
 
 ### Security
 - Dependabot configured for npm, Swift, and GitHub Actions dependency updates
+- current `npm audit` status is limited to low-severity development-only findings
 
 ### Infrastructure
 - GitHub Actions CI workflow for pull request validation
-- Branch protection and CODEOWNERS for review discipline
+- GitHub Actions release workflow for tagged prereleases
 
 ---
 

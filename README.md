@@ -34,8 +34,6 @@ The current architecture canon lives in [BURNBAR_RELEASE_ARCHITECTURE.md](docs/B
 - [BurnBar + Cursor Agent Onboarding](docs/BURNBAR_CURSOR_AGENT_ONBOARDING.md)
 - [BurnBar Current Release Architecture](docs/BURNBAR_RELEASE_ARCHITECTURE.md)
 
-<!-- TODO: Add screenshot — ideally one popover, one dashboard, one "oh no" spend spike -->
-
 ---
 
 ## What it does
@@ -250,7 +248,7 @@ The Mac app sources live under **`AgentLens/`** because renaming folders is a pe
 ## Build (Mac app)
 
 ```bash
-git clone https://github.com/Ajnunezg/BurnBar.git
+git clone <repository-url>
 cd BurnBar
 open BurnBar.xcodeproj
 ```
@@ -299,7 +297,7 @@ BurnBar is a happy offline hermit by default. Cloud sync is for people who use m
 - **Primary store:** GRDB + SQLite — fast, local, yours
 - **Sync store:** Firestore under `users/{uid}/` — `usage`, `conversations` (optional metadata backup), `session_logs` (+ `chunks` for full log backup when enabled)
 - **Auth:** Firebase Auth — **Google** and/or **Sign in with Apple**
-- **Device identity:** random UUID in Keychain (survives reinstalls, judges silently)
+- **Device identity:** random UUID stored in local app defaults and migrated from legacy BurnBar/AgentLens defaults keys
 - **iCloud mirror (optional):** copies parsed session log files into your **personal** iCloud Drive folder for the app (`Documents/BurnBar/SessionMirror/...`). Independent of Firebase; see below.
 
 **Setup:**

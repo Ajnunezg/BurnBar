@@ -1028,7 +1028,6 @@ private extension UsageAggregator {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         if includeOpenRouterHeaders {
-            request.setValue("https://github.com/Ajnunezg/BurnBar", forHTTPHeaderField: "HTTP-Referer")
             request.setValue("BurnBar", forHTTPHeaderField: "X-Title")
         }
 
