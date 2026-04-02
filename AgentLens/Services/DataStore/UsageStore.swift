@@ -1,0 +1,346 @@
+import Foundation
+import GRDB
+import BurnBarCore
+
+// MARK: - UsageStore
+
+/// Token-usage CRUD, sync helpers, refresh reads, and provider/model summary builders.
+final class UsageStore {
+    private let dbQueue: DatabaseQueue
+
+    init(dbQueue: DatabaseQueue) {
+        self.dbQueue = dbQueue
+    }
+
+    // MARK: - Insert
+
+    func insert(_ usage: TokenUsage) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: """
+                    INSERT INTO token_usage (
+                        id, provider, sessionId, projectName, model,
+                        inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens,
+                        totalTokens, cost, startTime, endTime, createdAt,
+                        sourceDeviceId, sourceDeviceName, isRemote
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(provider, sessionId, model, COALESCE(sourceDeviceId, '')) DO UPDATE SET
+                        projectName = excluded.projectName,
+                        inputTokens = excluded.inputTokens,
+                        outputTokens = excluded.outputTokens,
+                        cacheCreationTokens = excluded.cacheCreationTokens,
+                        cacheReadTokens = excluded.cacheReadTokens,
+                        totalTokens = excluded.totalTokens,
+                        cost = excluded.cost,
+                        startTime = excluded.startTime,
+                        endTime = excluded.endTime,
+                        createdAt = excluded.createdAt,
+                        syncedAt = NULL
+                    WHERE
+                        token_usage.projectName != excluded.projectName
+                        OR token_usage.inputTokens != excluded.inputTokens
+                        OR token_usage.outputTokens != excluded.outputTokens
+                        OR token_usage.cacheCreationTokens != excluded.cacheCreationTokens
+                        OR token_usage.cacheReadTokens != excluded.cacheReadTokens
+                        OR token_usage.totalTokens != excluded.totalTokens
+                        OR token_usage.cost != excluded.cost
+                        OR token_usage.startTime != excluded.startTime
+                        OR token_usage.endTime != excluded.endTime
+                    """,
+                arguments: [
+                    usage.id.uuidString,
+                    usage.provider.rawValue,
+                    usage.sessionId,
+                    usage.projectName,
+                    usage.model,
+                    usage.inputTokens,
+                    usage.outputTokens,
+                    usage.cacheCreationTokens,
+                    usage.cacheReadTokens,
+                    usage.totalTokens,
+                    usage.cost,
+                    usage.startTime,
+                    usage.endTime,
+                    usage.createdAt,
+                    usage.sourceDeviceId,
+                    usage.sourceDeviceName,
+                    usage.isRemote ? 1 : 0
+                ]
+            )
+        }
+    }
+
+    func insert(_ newUsages: [TokenUsage]) throws {
+        for usage in newUsages {
+            try insert(usage)
+        }
+    }
+
+    func insertRemoteUsage(_ usage: TokenUsage) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: """
+                    INSERT OR IGNORE INTO token_usage (
+                        id, provider, sessionId, projectName, model,
+                        inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens,
+                        totalTokens, cost, startTime, endTime, createdAt,
+                        sourceDeviceId, sourceDeviceName, isRemote, syncedAt
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+                    """,
+                arguments: [
+                    usage.id.uuidString, usage.provider.rawValue, usage.sessionId,
+                    usage.projectName, usage.model,
+                    usage.inputTokens, usage.outputTokens, usage.cacheCreationTokens,
+                    usage.cacheReadTokens, usage.totalTokens, usage.cost,
+                    usage.startTime, usage.endTime, usage.createdAt,
+                    usage.sourceDeviceId, usage.sourceDeviceName, Date()
+                ]
+            )
+        }
+    }
+
+    // MARK: - Refresh
+
+    func fetchAllUsage() throws -> [TokenUsage] {
+        try dbQueue.read { db -> [TokenUsage] in
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM token_usage ORDER BY startTime DESC")
+            return rows.compactMap { row -> TokenUsage? in
+                guard let idString = row["id"] as? String,
+                      let id = UUID(uuidString: idString),
+                      let providerString = row["provider"] as? String,
+                      let provider = AgentProvider(rawValue: providerString),
+                      let sessionId = row["sessionId"] as? String,
+                      let projectName = row["projectName"] as? String,
+                      let model = row["model"] as? String else {
+                    return nil
+                }
+
+                let inputTokens = (row["inputTokens"] as? Int) ?? Int(row["inputTokens"] as? Int64 ?? 0)
+                let outputTokens = (row["outputTokens"] as? Int) ?? Int(row["outputTokens"] as? Int64 ?? 0)
+                let cacheCreationTokens = (row["cacheCreationTokens"] as? Int) ?? Int(row["cacheCreationTokens"] as? Int64 ?? 0)
+                let cacheReadTokens = (row["cacheReadTokens"] as? Int) ?? Int(row["cacheReadTokens"] as? Int64 ?? 0)
+
+                let cost = (row["cost"] as? Double)
+                    ?? ((row["cost"] as? NSNumber)?.doubleValue)
+                    ?? 0
+
+                let startTime = BurnBarDatabase.parseDateValue(row["startTime"])
+                let endTime = BurnBarDatabase.parseDateValue(row["endTime"])
+                guard let startTime, let endTime else { return nil }
+
+                return TokenUsage(
+                    id: id,
+                    provider: provider,
+                    sessionId: sessionId,
+                    projectName: projectName,
+                    model: model,
+                    inputTokens: inputTokens,
+                    outputTokens: outputTokens,
+                    cacheCreationTokens: cacheCreationTokens,
+                    cacheReadTokens: cacheReadTokens,
+                    costUSD: cost,
+                    startTime: startTime,
+                    endTime: endTime,
+                    sourceDeviceId: row["sourceDeviceId"] as? String,
+                    sourceDeviceName: row["sourceDeviceName"] as? String,
+                    isRemote: ((row["isRemote"] as? Int) ?? Int(row["isRemote"] as? Int64 ?? 0)) != 0
+                )
+            }
+        }
+    }
+
+    // MARK: - Delete
+
+    func deleteAll() throws {
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM token_usage")
+        }
+    }
+
+    func deleteUsage(sessionIDPrefix: String) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: """
+                    DELETE FROM token_usage
+                    WHERE sessionId LIKE ? AND COALESCE(sourceDeviceId, '') = ''
+                    """,
+                arguments: ["\(sessionIDPrefix)%"]
+            )
+        }
+    }
+
+    // MARK: - Sync
+
+    func fetchUnsynced() throws -> [TokenUsage] {
+        try dbQueue.read { db -> [TokenUsage] in
+            let rows = try Row.fetchAll(
+                db,
+                sql: "SELECT * FROM token_usage WHERE syncedAt IS NULL AND isRemote = 0 ORDER BY startTime ASC LIMIT 400"
+            )
+            return rows.compactMap { row -> TokenUsage? in
+                guard let idString = row["id"] as? String,
+                      let id = UUID(uuidString: idString),
+                      let providerString = row["provider"] as? String,
+                      let provider = AgentProvider(rawValue: providerString),
+                      let sessionId = row["sessionId"] as? String,
+                      let projectName = row["projectName"] as? String,
+                      let model = row["model"] as? String else { return nil }
+
+                let inputTokens = (row["inputTokens"] as? Int) ?? Int(row["inputTokens"] as? Int64 ?? 0)
+                let outputTokens = (row["outputTokens"] as? Int) ?? Int(row["outputTokens"] as? Int64 ?? 0)
+                let cacheCreationTokens = (row["cacheCreationTokens"] as? Int) ?? Int(row["cacheCreationTokens"] as? Int64 ?? 0)
+                let cacheReadTokens = (row["cacheReadTokens"] as? Int) ?? Int(row["cacheReadTokens"] as? Int64 ?? 0)
+                let cost = (row["cost"] as? Double) ?? ((row["cost"] as? NSNumber)?.doubleValue) ?? 0
+                let startTime = BurnBarDatabase.parseDateValue(row["startTime"])
+                let endTime = BurnBarDatabase.parseDateValue(row["endTime"])
+                guard let startTime, let endTime else { return nil }
+
+                return TokenUsage(
+                    id: id,
+                    provider: provider,
+                    sessionId: sessionId,
+                    projectName: projectName,
+                    model: model,
+                    inputTokens: inputTokens,
+                    outputTokens: outputTokens,
+                    cacheCreationTokens: cacheCreationTokens,
+                    cacheReadTokens: cacheReadTokens,
+                    costUSD: cost,
+                    startTime: startTime,
+                    endTime: endTime
+                )
+            }
+        }
+    }
+
+    func markSynced(ids: [UUID]) throws {
+        guard !ids.isEmpty else { return }
+        let placeholders = ids.map { _ in "?" }.joined(separator: ", ")
+        let idStrings: [String] = ids.map { $0.uuidString }
+        try dbQueue.write { db in
+            var args = StatementArguments([Date()])
+            args += StatementArguments(idStrings)
+            try db.execute(
+                sql: "UPDATE token_usage SET syncedAt = ? WHERE id IN (\(placeholders))",
+                arguments: args
+            )
+        }
+    }
+
+    // MARK: - Session Model Lookup
+
+    func sessionModelMap() throws -> [String: String] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT provider, sessionId, model, SUM(cost) AS totalCost
+                FROM token_usage
+                GROUP BY provider, sessionId, model
+                ORDER BY provider, sessionId, totalCost DESC
+                """)
+            var result: [String: String] = [:]
+            for row in rows {
+                guard let provider = row["provider"] as? String,
+                      let sessionId = row["sessionId"] as? String,
+                      let model = row["model"] as? String else { continue }
+                let rootSession: String
+                if let slashIdx = sessionId.firstIndex(of: "/") {
+                    rootSession = String(sessionId[..<slashIdx])
+                } else {
+                    rootSession = sessionId
+                }
+                let key = "\(provider):\(rootSession)"
+                if result[key] == nil {
+                    result[key] = model
+                }
+            }
+            return result
+        }
+    }
+
+    // MARK: - Summary Builders
+
+    static func makeProviderSummaries(from usages: [TokenUsage]) -> [ProviderSummary] {
+        AgentProvider.allCases.compactMap { provider -> ProviderSummary? in
+            let providerUsages = usages.filter { $0.provider == provider }
+            guard !providerUsages.isEmpty else { return nil }
+
+            let totalCost = providerUsages.reduce(0) { $0 + $1.cost }
+            let totalTokens = providerUsages.reduce(0) { $0 + $1.totalTokens }
+            let totalInputTokens = providerUsages.reduce(0) { $0 + $1.inputTokens }
+            let totalOutputTokens = providerUsages.reduce(0) { $0 + $1.outputTokens }
+
+            var modelData: [String: (input: Int, output: Int, cacheCreation: Int, cacheRead: Int, cost: Double)] = [:]
+            for usage in providerUsages {
+                let existing = modelData[usage.model] ?? (0, 0, 0, 0, 0)
+                modelData[usage.model] = (
+                    existing.0 + usage.inputTokens,
+                    existing.1 + usage.outputTokens,
+                    existing.2 + usage.cacheCreationTokens,
+                    existing.3 + usage.cacheReadTokens,
+                    existing.4 + usage.cost
+                )
+            }
+
+            let modelBreakdown = modelData.map { modelName, data in
+                let totalModelTokens = data.input + data.output + data.cacheCreation + data.cacheRead
+                return ModelUsage(
+                    modelName: modelName,
+                    inputTokens: data.input,
+                    outputTokens: data.output,
+                    cacheCreationTokens: data.cacheCreation,
+                    cacheReadTokens: data.cacheRead,
+                    totalTokens: totalModelTokens,
+                    cost: data.cost,
+                    percentage: totalCost > 0 ? (data.cost / totalCost) * 100 : 0
+                )
+            }.sorted { $0.cost > $1.cost }
+
+            return ProviderSummary(
+                provider: provider,
+                totalCost: totalCost,
+                totalTokens: totalTokens,
+                totalInputTokens: totalInputTokens,
+                totalOutputTokens: totalOutputTokens,
+                sessionCount: providerUsages.count,
+                modelBreakdown: modelBreakdown
+            )
+        }.sorted { $0.totalCost > $1.totalCost }
+    }
+
+    static func makeModelSummaries(from usages: [TokenUsage]) -> [ModelSummary] {
+        let grouped = Dictionary(grouping: usages) {
+            TokenExtractionUtility.normalizeModelKey($0.model)
+        }
+        return grouped.compactMap { key, modelUsages -> ModelSummary? in
+            guard !modelUsages.isEmpty else { return nil }
+            let totalCost = modelUsages.reduce(0) { $0 + $1.cost }
+            let totalTokens = modelUsages.reduce(0) { $0 + $1.totalTokens }
+            let totalInputTokens = modelUsages.reduce(0) { $0 + $1.inputTokens }
+            let totalOutputTokens = modelUsages.reduce(0) { $0 + $1.outputTokens }
+
+            let byProvider = Dictionary(grouping: modelUsages) { $0.provider }
+            let providerBreakdown = byProvider.map { provider, pUsages -> ProviderUsage in
+                let pCost = pUsages.reduce(0) { $0 + $1.cost }
+                let pTokens = pUsages.reduce(0) { $0 + $1.totalTokens }
+                return ProviderUsage(
+                    provider: provider,
+                    sessionCount: pUsages.count,
+                    totalTokens: pTokens,
+                    cost: pCost,
+                    percentage: totalCost > 0 ? (pCost / totalCost) * 100 : 0
+                )
+            }.sorted { $0.cost > $1.cost }
+
+            return ModelSummary(
+                modelName: key,
+                displayName: TokenExtractionUtility.displayNameForModel(modelUsages.first?.model ?? key),
+                totalCost: totalCost,
+                totalTokens: totalTokens,
+                totalInputTokens: totalInputTokens,
+                totalOutputTokens: totalOutputTokens,
+                sessionCount: modelUsages.count,
+                providerBreakdown: providerBreakdown
+            )
+        }.sorted { $0.totalCost > $1.totalCost }
+    }
+}

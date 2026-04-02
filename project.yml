@@ -1,0 +1,157 @@
+name: BurnBar
+options:
+  bundleIdPrefix: com.burnbar
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_PREVIEWS: YES
+    MARKETING_VERSION: "0.1.0-beta"
+    CURRENT_PROJECT_VERSION: 1
+    CODE_SIGN_STYLE: Automatic
+    INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
+    INFOPLIST_KEY_LSUIElement: true
+    GENERATE_INFOPLIST_FILE: YES
+
+# macOS Debug: the BurnBar target uses keychain-access-groups (Firebase Auth). Xcode must sign with a
+# development identity. Under targets.BurnBar.settings.base add:
+#   DEVELOPMENT_TEAM: <your 10-character Team ID>
+# (Xcode → Settings → Accounts → your Apple ID → Team ID; or developer.apple.com → Membership.)
+
+packages:
+  BurnBarCore:
+    path: BurnBarCore
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "7.0.0"
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "11.0.0"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: "8.0.0"
+  ViewInspector:
+    url: https://github.com/nalexn/ViewInspector
+    from: "0.10.0"
+
+targets:
+  BurnBar:
+    type: application
+    platform: macOS
+    # CFBundleURLTypes does not reliably merge via INFOPLIST_KEY_* with GENERATE_INFOPLIST_FILE.
+    # XcodeGen regenerates this plist on `xcodegen generate`, so keep it aligned with
+    # AgentLens/Resources/BurnBar-Info.plist.
+    info:
+      path: AgentLens/Resources/BurnBar-Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.burnbar.app
+            CFBundleURLSchemes:
+              - burnbar
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.burnbar.app.google-sign-in
+            CFBundleURLSchemes:
+              # IMPORTANT: Replace YOUR_CLIENT_ID_SUFFIX with your actual reversed Firebase client ID suffix.
+              # Obtain from: GoogleService-Info.plist -> REVERSED_CLIENT_ID
+              - com.googleusercontent.apps.YOUR_CLIENT_ID_SUFFIX
+    sources:
+      - path: AgentLens
+        excludes:
+          - "**/.DS_Store"
+          - "Services/BurnBarOperatingLayer.swift"
+    settings:
+      base:
+        PRODUCT_NAME: BurnBar
+        PRODUCT_BUNDLE_IDENTIFIER: com.burnbar.app
+        CODE_SIGN_ENTITLEMENTS: AgentLens/Resources/BurnBar.entitlements
+        INFOPLIST_KEY_CFBundleDisplayName: BurnBar
+        INFOPLIST_KEY_CFBundleName: BurnBar
+    dependencies:
+      - target: BurnBarDaemonExecutable
+        link: false
+        embed: false
+      - package: BurnBarCore
+        product: BurnBarCore
+      - package: GRDB
+        product: GRDB
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    scheme:
+      testTargets:
+        - BurnBarTests
+        - BurnBarDaemonTests
+
+  BurnBarDaemon:
+    type: library.static
+    platform: macOS
+    sources:
+      - path: BurnBarDaemon/Sources/BurnBarDaemon
+    settings:
+      base:
+        PRODUCT_NAME: BurnBarDaemon
+    dependencies:
+      - package: BurnBarCore
+        product: BurnBarCore
+
+  BurnBarDaemonExecutable:
+    type: tool
+    platform: macOS
+    sources:
+      - path: BurnBarDaemon/Sources/BurnBarDaemonExecutable/BurnBarDaemonMain.swift
+    settings:
+      base:
+        PRODUCT_NAME: BurnBarDaemon
+        PRODUCT_MODULE_NAME: BurnBarDaemonExecutable
+        PRODUCT_BUNDLE_IDENTIFIER: com.burnbar.daemon
+    dependencies:
+      - target: BurnBarDaemon
+      - package: BurnBarCore
+        product: BurnBarCore
+
+  BurnBarTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      # Keep the active Xcode test target focused on the replay/eval harness that
+      # ships in public CI. Older app-specific XCTest files remain in the repo but
+      # are not compiled here until they are brought back in sync with the current app APIs.
+      - path: AgentLensTests/AgentLensTests.swift
+      - path: AgentLensTests/BurnBarSearchIntegrationHarness.swift
+    settings:
+      base:
+        PRODUCT_NAME: BurnBarTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.burnbar.tests
+        BUNDLE_LOADER: "$(BUILT_PRODUCTS_DIR)/BurnBar.app/Contents/MacOS/BurnBar"
+        TEST_HOST: "$(BUNDLE_LOADER)"
+    dependencies:
+      - target: BurnBar
+      - package: ViewInspector
+        product: ViewInspector
+
+  BurnBarDaemonTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: BurnBarDaemon/Tests/BurnBarDaemonTests
+    settings:
+      base:
+        PRODUCT_NAME: BurnBarDaemonTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.burnbar.daemon.tests
+    dependencies:
+      - target: BurnBarDaemon
+      - target: BurnBarDaemonExecutable
+        link: false
+        embed: false
+      - package: BurnBarCore
+        product: BurnBarCore

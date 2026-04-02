@@ -1,0 +1,651 @@
+import Foundation
+import GRDB
+import BurnBarCore
+
+// MARK: - SearchIndexStore
+
+/// Search documents, chunks, FTS-based lexical search, and document-level deletion.
+final class SearchIndexStore {
+    private let dbQueue: DatabaseQueue
+
+    init(dbQueue: DatabaseQueue) {
+        self.dbQueue = dbQueue
+    }
+
+    // MARK: - Documents
+
+    func upsertDocument(_ document: SearchDocumentRecord) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO search_documents (
+                    id, sourceKind, sourceID, sourceVersionID, provider, projectName, title, subtitle,
+                    bodyPreview, sourceUpdatedAt, indexedAt, contentHash, createdAt, updatedAt
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    sourceKind = excluded.sourceKind,
+                    sourceID = excluded.sourceID,
+                    sourceVersionID = excluded.sourceVersionID,
+                    provider = excluded.provider,
+                    projectName = excluded.projectName,
+                    title = excluded.title,
+                    subtitle = excluded.subtitle,
+                    bodyPreview = excluded.bodyPreview,
+                    sourceUpdatedAt = excluded.sourceUpdatedAt,
+                    indexedAt = excluded.indexedAt,
+                    contentHash = excluded.contentHash,
+                    updatedAt = excluded.updatedAt
+                """,
+                arguments: [
+                    document.id,
+                    document.sourceKind.rawValue,
+                    document.sourceID,
+                    document.sourceVersionID,
+                    document.provider,
+                    document.projectName,
+                    document.title,
+                    document.subtitle,
+                    document.bodyPreview,
+                    document.sourceUpdatedAt,
+                    document.indexedAt,
+                    document.contentHash,
+                    document.createdAt,
+                    document.updatedAt
+                ]
+            )
+        }
+    }
+
+    func fetchDocuments(limit: Int) throws -> [SearchDocumentRecord] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_documents
+                ORDER BY indexedAt DESC, createdAt DESC
+                LIMIT ?
+                """,
+                arguments: [limit]
+            )
+            return rows.compactMap(Self.document(from:))
+        }
+    }
+
+    func fetchDocuments(
+        limit: Int,
+        provider: String?,
+        projectName: String?,
+        sourceKinds: [SearchSourceKind]?,
+        dateRange: ClosedRange<Date>?
+    ) throws -> [SearchDocumentRecord] {
+        let (whereSQL, args) = Self.filteredDocumentClause(
+            provider: provider,
+            projectName: projectName,
+            sourceKinds: sourceKinds,
+            dateRange: dateRange
+        )
+        var queryArgs = args
+        queryArgs.append(max(1, limit))
+
+        return try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_documents
+                \(whereSQL)
+                ORDER BY COALESCE(sourceUpdatedAt, indexedAt) DESC, indexedAt DESC, createdAt DESC
+                LIMIT ?
+                """,
+                arguments: StatementArguments(queryArgs)
+            )
+            return rows.compactMap(Self.document(from:))
+        }
+    }
+
+    func fetchDocuments(ids: [String]) throws -> [SearchDocumentRecord] {
+        let uniqueIDs = Array(Set(ids)).sorted()
+        guard uniqueIDs.isEmpty == false else { return [] }
+
+        return try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_documents
+                WHERE id IN (\(BurnBarDatabase.sqlPlaceholders(count: uniqueIDs.count)))
+                ORDER BY indexedAt DESC, createdAt DESC
+                """,
+                arguments: StatementArguments(uniqueIDs)
+            )
+            return rows.compactMap(Self.document(from:))
+        }
+    }
+
+    func fetchDocument(id: String) throws -> SearchDocumentRecord? {
+        try fetchDocuments(ids: [id]).first
+    }
+
+    func fetchDocuments(sourceKind: SearchSourceKind, sourceID: String) throws -> [SearchDocumentRecord] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_documents
+                WHERE sourceKind = ? AND sourceID = ?
+                ORDER BY indexedAt DESC, createdAt DESC
+                """,
+                arguments: [sourceKind.rawValue, sourceID]
+            )
+            return rows.compactMap(Self.document(from:))
+        }
+    }
+
+    func countDocuments(
+        provider: String?,
+        projectName: String?,
+        sourceKinds: [SearchSourceKind]?,
+        dateRange: ClosedRange<Date>?
+    ) throws -> Int {
+        let (whereSQL, args) = Self.filteredDocumentClause(
+            provider: provider,
+            projectName: projectName,
+            sourceKinds: sourceKinds,
+            dateRange: dateRange
+        )
+
+        return try dbQueue.read { db in
+            try Int.fetchOne(
+                db,
+                sql: """
+                SELECT COUNT(*)
+                FROM search_documents
+                \(whereSQL)
+                """,
+                arguments: StatementArguments(args)
+            ) ?? 0
+        }
+    }
+
+    func deleteDocuments(sourceKind: SearchSourceKind, sourceID: String) throws {
+        try dbQueue.write { db in
+            let documentIDs = try String.fetchAll(
+                db,
+                sql: """
+                SELECT id
+                FROM search_documents
+                WHERE sourceKind = ? AND sourceID = ?
+                """,
+                arguments: [sourceKind.rawValue, sourceID]
+            )
+
+            for documentID in documentIDs {
+                try db.execute(
+                    sql: "DELETE FROM search_chunks_fts WHERE documentID = ?",
+                    arguments: [documentID]
+                )
+            }
+
+            try db.execute(
+                sql: """
+                DELETE FROM search_documents
+                WHERE sourceKind = ? AND sourceID = ?
+                """,
+                arguments: [sourceKind.rawValue, sourceID]
+            )
+        }
+    }
+
+    // MARK: - Chunks
+
+    func countChunks(
+        sourceKinds: [SearchSourceKind]?,
+        dateRange: ClosedRange<Date>?
+    ) throws -> Int {
+        let normalizedSourceKinds = Array(Set(sourceKinds ?? [])).sorted { $0.rawValue < $1.rawValue }
+        var clauses: [String] = []
+        var args: [any DatabaseValueConvertible] = []
+
+        if normalizedSourceKinds.isEmpty == false {
+            clauses.append("d.sourceKind IN (\(BurnBarDatabase.sqlPlaceholders(count: normalizedSourceKinds.count)))")
+            args.append(contentsOf: normalizedSourceKinds.map(\.rawValue))
+        }
+
+        if let dateRange {
+            clauses.append("COALESCE(d.sourceUpdatedAt, d.indexedAt) >= ?")
+            clauses.append("COALESCE(d.sourceUpdatedAt, d.indexedAt) <= ?")
+            args.append(dateRange.lowerBound)
+            args.append(dateRange.upperBound)
+        }
+
+        let whereSQL = clauses.isEmpty ? "" : "WHERE " + clauses.joined(separator: " AND ")
+        return try dbQueue.read { db in
+            try Int.fetchOne(
+                db,
+                sql: """
+                SELECT COUNT(*)
+                FROM search_chunks AS c
+                JOIN search_documents AS d ON d.id = c.documentID
+                \(whereSQL)
+                """,
+                arguments: StatementArguments(args)
+            ) ?? 0
+        }
+    }
+
+    func countChunks(documentID: String) throws -> Int {
+        try dbQueue.read { db in
+            try Int.fetchOne(
+                db,
+                sql: """
+                SELECT COUNT(*)
+                FROM search_chunks
+                WHERE documentID = ?
+                """,
+                arguments: [documentID]
+            ) ?? 0
+        }
+    }
+
+    func replaceChunks(documentID: String, title: String, chunks: [SearchChunkRecord]) throws {
+        try dbQueue.write { db in
+            let documentRow = try Row.fetchOne(
+                db,
+                sql: "SELECT projectName, provider FROM search_documents WHERE id = ?",
+                arguments: [documentID]
+            )
+            let projectName = documentRow?["projectName"] as? String ?? ""
+            let provider = documentRow?["provider"] as? String ?? ""
+
+            try db.execute(
+                sql: "DELETE FROM search_chunks_fts WHERE documentID = ?",
+                arguments: [documentID]
+            )
+            try db.execute(
+                sql: "DELETE FROM search_chunks WHERE documentID = ?",
+                arguments: [documentID]
+            )
+
+            for chunk in chunks.sorted(by: { $0.ordinal < $1.ordinal }) {
+                try db.execute(
+                    sql: """
+                    INSERT INTO search_chunks (
+                        id, documentID, sourceKind, sourceID, sourceVersionID, ordinal,
+                        startOffset, endOffset, messageStartOffset, messageEndOffset,
+                        sectionPath, text, createdAt, updatedAt
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    arguments: [
+                        chunk.id,
+                        chunk.documentID,
+                        chunk.sourceKind.rawValue,
+                        chunk.sourceID,
+                        chunk.sourceVersionID,
+                        chunk.ordinal,
+                        chunk.startOffset,
+                        chunk.endOffset,
+                        chunk.messageStartOffset,
+                        chunk.messageEndOffset,
+                        chunk.sectionPath,
+                        chunk.text,
+                        chunk.createdAt,
+                        chunk.updatedAt
+                    ]
+                )
+
+                try db.execute(
+                    sql: """
+                    INSERT INTO search_chunks_fts (chunkID, documentID, title, chunkText, projectName, provider)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    arguments: [chunk.id, chunk.documentID, title, chunk.text, projectName, provider]
+                )
+            }
+        }
+    }
+
+    func fetchChunks(documentID: String) throws -> [SearchChunkRecord] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_chunks
+                WHERE documentID = ?
+                ORDER BY ordinal ASC
+                """,
+                arguments: [documentID]
+            )
+            return rows.compactMap(Self.chunk(from:))
+        }
+    }
+
+    func fetchChunks(ids: [String]) throws -> [SearchChunkRecord] {
+        let uniqueIDs = Array(Set(ids)).sorted()
+        guard uniqueIDs.isEmpty == false else { return [] }
+
+        return try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_chunks
+                WHERE id IN (\(BurnBarDatabase.sqlPlaceholders(count: uniqueIDs.count)))
+                ORDER BY documentID ASC, ordinal ASC
+                """,
+                arguments: StatementArguments(uniqueIDs)
+            )
+            return rows.compactMap(Self.chunk(from:))
+        }
+    }
+
+    func fetchChunks(sourceKind: SearchSourceKind, sourceID: String) throws -> [SearchChunkRecord] {
+        try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT * FROM search_chunks
+                WHERE sourceKind = ? AND sourceID = ?
+                ORDER BY documentID ASC, ordinal ASC
+                """,
+                arguments: [sourceKind.rawValue, sourceID]
+            )
+            return rows.compactMap(Self.chunk(from:))
+        }
+    }
+
+    // MARK: - Lexical Search
+
+    func searchLexicalChunks(
+        ftsQuery: String,
+        provider: String?,
+        projectName: String?,
+        sourceKinds: [SearchSourceKind]?,
+        dateRange: ClosedRange<Date>?,
+        visibility: SearchVisibilityScope,
+        sharedArtifactAccessContext: SharedArtifactAccessContext?,
+        sourceIDs: [String]?,
+        limit: Int
+    ) throws -> [SearchChunkLexicalMatch] {
+        guard ftsQuery.isEmpty == false, limit > 0 else { return [] }
+
+        let normalizedSourceKinds = Array(Set(sourceKinds ?? [])).sorted { $0.rawValue < $1.rawValue }
+        let normalizedSourceIDs = Array(Set((sourceIDs ?? []).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })).sorted()
+        let normalizedProject = projectName?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var clauses: [String] = ["search_chunks_fts MATCH ?"]
+        var args: [any DatabaseValueConvertible] = [ftsQuery]
+
+        if let provider, provider.isEmpty == false {
+            clauses.append("d.provider = ?")
+            args.append(provider)
+        }
+
+        if let normalizedProject, normalizedProject.isEmpty == false {
+            clauses.append("d.projectName = ?")
+            args.append(normalizedProject)
+        }
+
+        if normalizedSourceKinds.isEmpty == false {
+            clauses.append("d.sourceKind IN (\(BurnBarDatabase.sqlPlaceholders(count: normalizedSourceKinds.count)))")
+            args.append(contentsOf: normalizedSourceKinds.map(\.rawValue))
+        }
+
+        if normalizedSourceIDs.isEmpty == false {
+            clauses.append("d.sourceID IN (\(BurnBarDatabase.sqlPlaceholders(count: normalizedSourceIDs.count)))")
+            args.append(contentsOf: normalizedSourceIDs)
+        }
+
+        if let dateRange {
+            clauses.append("COALESCE(d.sourceUpdatedAt, d.indexedAt) >= ?")
+            clauses.append("COALESCE(d.sourceUpdatedAt, d.indexedAt) <= ?")
+            args.append(dateRange.lowerBound)
+            args.append(dateRange.upperBound)
+        }
+
+        switch visibility {
+        case .all:
+            break
+        case .personalOnly:
+            clauses.append("d.sourceKind != ?")
+            args.append(SearchSourceKind.sharedArtifact.rawValue)
+        case .sharedOnly:
+            clauses.append("d.sourceKind = ?")
+            args.append(SearchSourceKind.sharedArtifact.rawValue)
+        }
+
+        if visibility != .personalOnly {
+            if let access = sharedArtifactAccessContext {
+                clauses.append(
+                    """
+                    (
+                        d.sourceKind != ?
+                        OR EXISTS (
+                            SELECT 1
+                            FROM artifact_permissions AS ap
+                            WHERE ap.sourceArtifactID = d.sourceID
+                              AND ap.canRead = 1
+                              AND ap.workspaceID = ?
+                              AND (
+                                  (ap.principalType = ? AND ap.principalID = ?)
+                                  OR (ap.principalType = ? AND ap.principalID = ? AND ap.teamID = ?)
+                                  OR (ap.principalType = ? AND ap.principalID = ?)
+                              )
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM shared_artifact_sync_state AS sas
+                            WHERE sas.sourceArtifactID = d.sourceID
+                              AND sas.workspaceID = ?
+                              AND sas.teamID = ?
+                              AND sas.ownerUserID = ?
+                        )
+                    )
+                    """
+                )
+                args.append(SearchSourceKind.sharedArtifact.rawValue)
+                args.append(access.workspaceID)
+                args.append(SharedArtifactPrincipalType.user.rawValue)
+                args.append(access.userID)
+                args.append(SharedArtifactPrincipalType.team.rawValue)
+                args.append(access.teamID)
+                args.append(access.teamID)
+                args.append(SharedArtifactPrincipalType.workspace.rawValue)
+                args.append(access.workspaceID)
+                args.append(access.workspaceID)
+                args.append(access.teamID)
+                args.append(access.userID)
+            } else {
+                clauses.append("d.sourceKind != ?")
+                args.append(SearchSourceKind.sharedArtifact.rawValue)
+            }
+        }
+
+        let whereSQL = clauses.joined(separator: " AND ")
+        args.append(limit)
+
+        return try dbQueue.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT
+                    search_chunks_fts.chunkID AS chunkID,
+                    search_chunks_fts.documentID AS documentID,
+                    bm25(search_chunks_fts) AS lexicalRank,
+                    snippet(search_chunks_fts, 3, '<b>', '</b>', '…', 16) AS snippet,
+                    d.sourceKind AS sourceKind,
+                    d.sourceID AS sourceID,
+                    d.sourceVersionID AS sourceVersionID,
+                    d.provider AS provider,
+                    d.projectName AS projectName,
+                    d.title AS title,
+                    d.subtitle AS subtitle,
+                    d.bodyPreview AS bodyPreview,
+                    d.sourceUpdatedAt AS sourceUpdatedAt,
+                    d.indexedAt AS indexedAt,
+                    c.ordinal AS chunkOrdinal,
+                    c.startOffset AS startOffset,
+                    c.endOffset AS endOffset,
+                    c.sectionPath AS sectionPath,
+                    c.text AS chunkText
+                FROM search_chunks_fts
+                JOIN search_chunks AS c ON c.id = search_chunks_fts.chunkID
+                JOIN search_documents AS d ON d.id = search_chunks_fts.documentID
+                WHERE \(whereSQL)
+                ORDER BY lexicalRank ASC, d.indexedAt DESC, c.ordinal ASC
+                LIMIT ?
+                """,
+                arguments: StatementArguments(args)
+            )
+            return rows.compactMap(Self.lexicalMatch(from:))
+        }
+    }
+
+    // MARK: - Row Decoding
+
+    static func document(from row: Row) -> SearchDocumentRecord? {
+        guard
+            let id = row["id"] as? String,
+            let sourceKindRaw = row["sourceKind"] as? String,
+            let sourceKind = SearchSourceKind(rawValue: sourceKindRaw),
+            let sourceID = row["sourceID"] as? String,
+            let title = row["title"] as? String
+        else {
+            return nil
+        }
+        let indexedAt = BurnBarDatabase.parseDateValue(row["indexedAt"]) ?? Date()
+        let createdAt = BurnBarDatabase.parseDateValue(row["createdAt"]) ?? indexedAt
+        let updatedAt = BurnBarDatabase.parseDateValue(row["updatedAt"]) ?? createdAt
+        return SearchDocumentRecord(
+            id: id,
+            sourceKind: sourceKind,
+            sourceID: sourceID,
+            sourceVersionID: (row["sourceVersionID"] as? String) ?? "",
+            provider: row["provider"] as? String,
+            projectName: row["projectName"] as? String,
+            title: title,
+            subtitle: row["subtitle"] as? String,
+            bodyPreview: row["bodyPreview"] as? String,
+            sourceUpdatedAt: BurnBarDatabase.parseDateValue(row["sourceUpdatedAt"]),
+            indexedAt: indexedAt,
+            contentHash: row["contentHash"] as? String,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    static func chunk(from row: Row) -> SearchChunkRecord? {
+        guard
+            let id = row["id"] as? String,
+            let documentID = row["documentID"] as? String,
+            let sourceKindRaw = row["sourceKind"] as? String,
+            let sourceKind = SearchSourceKind(rawValue: sourceKindRaw),
+            let sourceID = row["sourceID"] as? String
+        else {
+            return nil
+        }
+
+        let ordinal = (row["ordinal"] as? Int) ?? Int(row["ordinal"] as? Int64 ?? 0)
+        let startOffset = (row["startOffset"] as? Int) ?? Int(row["startOffset"] as? Int64 ?? 0)
+        let endOffset = (row["endOffset"] as? Int) ?? Int(row["endOffset"] as? Int64 ?? 0)
+        let messageStartOffset = (row["messageStartOffset"] as? Int) ?? Int(row["messageStartOffset"] as? Int64 ?? -1)
+        let messageEndOffset = (row["messageEndOffset"] as? Int) ?? Int(row["messageEndOffset"] as? Int64 ?? -1)
+        let createdAt = BurnBarDatabase.parseDateValue(row["createdAt"]) ?? Date.distantPast
+        let updatedAt = BurnBarDatabase.parseDateValue(row["updatedAt"]) ?? createdAt
+        let text = (row["text"] as? String) ?? ""
+        return SearchChunkRecord(
+            id: id,
+            documentID: documentID,
+            sourceKind: sourceKind,
+            sourceID: sourceID,
+            sourceVersionID: (row["sourceVersionID"] as? String) ?? "",
+            ordinal: ordinal,
+            startOffset: startOffset,
+            endOffset: endOffset,
+            messageStartOffset: messageStartOffset >= 0 ? messageStartOffset : nil,
+            messageEndOffset: messageEndOffset >= 0 ? messageEndOffset : nil,
+            sectionPath: row["sectionPath"] as? String,
+            text: text,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+
+    static func lexicalMatch(from row: Row) -> SearchChunkLexicalMatch? {
+        guard
+            let chunkID = row["chunkID"] as? String,
+            let documentID = row["documentID"] as? String,
+            let sourceKindRaw = row["sourceKind"] as? String,
+            let sourceKind = SearchSourceKind(rawValue: sourceKindRaw),
+            let sourceID = row["sourceID"] as? String,
+            let title = row["title"] as? String
+        else {
+            return nil
+        }
+
+        let lexicalRankRaw = (row["lexicalRank"] as? Double) ?? Double(row["lexicalRank"] as? Int64 ?? 0)
+        let chunkOrdinal = (row["chunkOrdinal"] as? Int) ?? Int(row["chunkOrdinal"] as? Int64 ?? 0)
+        let startOffset = (row["startOffset"] as? Int) ?? Int(row["startOffset"] as? Int64 ?? 0)
+        let endOffset = (row["endOffset"] as? Int) ?? Int(row["endOffset"] as? Int64 ?? 0)
+
+        return SearchChunkLexicalMatch(
+            chunkID: chunkID,
+            documentID: documentID,
+            sourceKind: sourceKind,
+            sourceID: sourceID,
+            sourceVersionID: (row["sourceVersionID"] as? String) ?? "",
+            provider: row["provider"] as? String,
+            projectName: row["projectName"] as? String,
+            title: title,
+            subtitle: row["subtitle"] as? String,
+            bodyPreview: row["bodyPreview"] as? String,
+            sourceUpdatedAt: BurnBarDatabase.parseDateValue(row["sourceUpdatedAt"]),
+            indexedAt: BurnBarDatabase.parseDateValue(row["indexedAt"]) ?? Date.distantPast,
+            chunkOrdinal: chunkOrdinal,
+            startOffset: startOffset,
+            endOffset: endOffset,
+            sectionPath: row["sectionPath"] as? String,
+            chunkText: (row["chunkText"] as? String) ?? "",
+            snippet: (row["snippet"] as? String) ?? "",
+            lexicalRank: lexicalRankRaw
+        )
+    }
+
+    // MARK: - Private Helpers
+
+    private static func filteredDocumentClause(
+        provider: String?,
+        projectName: String?,
+        sourceKinds: [SearchSourceKind]?,
+        dateRange: ClosedRange<Date>?
+    ) -> (String, [any DatabaseValueConvertible]) {
+        let trimmedProjectName = projectName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedProjectName = (trimmedProjectName?.isEmpty == false) ? trimmedProjectName : nil
+        let normalizedSourceKinds = Array(Set(sourceKinds ?? []))
+            .sorted { $0.rawValue < $1.rawValue }
+
+        var clauses: [String] = []
+        var args: [any DatabaseValueConvertible] = []
+
+        if let provider, provider.isEmpty == false {
+            clauses.append("provider = ?")
+            args.append(provider)
+        }
+
+        if let normalizedProjectName {
+            clauses.append("projectName = ?")
+            args.append(normalizedProjectName)
+        }
+
+        if normalizedSourceKinds.isEmpty == false {
+            clauses.append("sourceKind IN (\(BurnBarDatabase.sqlPlaceholders(count: normalizedSourceKinds.count)))")
+            args.append(contentsOf: normalizedSourceKinds.map(\.rawValue))
+        }
+
+        if let dateRange {
+            clauses.append("COALESCE(sourceUpdatedAt, indexedAt) >= ?")
+            clauses.append("COALESCE(sourceUpdatedAt, indexedAt) <= ?")
+            args.append(dateRange.lowerBound)
+            args.append(dateRange.upperBound)
+        }
+
+        let whereSQL = clauses.isEmpty ? "" : "WHERE " + clauses.joined(separator: " AND ")
+        return (whereSQL, args)
+    }
+}

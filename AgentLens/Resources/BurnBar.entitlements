@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	App Sandbox is intentionally disabled because BurnBar requires filesystem access to read
+	AI agent log files from various locations in the user's home directory:
+	- ~/.claude/projects/ (Claude Code sessions)
+	- ~/.factory/sessions/ (Factory/Droid sessions)
+	- ~/.codex/ (Codex sessions)
+	- ~/.kimi/sessions/ (Kimi sessions)
+	- And other agent-specific directories
+
+	Enabling sandbox would require either:
+	1. User to grant access to each directory individually via security-scoped bookmarks
+	2. Limiting support to only bundled/default log locations
+
+	The app is distributed via Developer ID signing (not App Store) which provides
+	an alternative security boundary through Gatekeeper and notarization.
+
+	See: https://developer.apple.com/documentation/security/app-sandbox
+	-->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+	<!-- Firebase Auth (and other Firebase SDKs) use kSecUseDataProtectionKeychain on macOS; Keychain Sharing is required so the app can use that access group. https://firebase.google.com/docs/ios/troubleshooting-faq -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.burnbar.app</string>
+	</array>
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.burnbar.app</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+	</array>
+</dict>
+</plist>

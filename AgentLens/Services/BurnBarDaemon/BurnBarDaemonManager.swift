@@ -1,0 +1,2084 @@
+import BurnBarCore
+import CryptoKit
+import Foundation
+import Observation
+
+struct BurnBarDaemonRuntimePaths: Hashable {
+    static let launchAgentLabel = "com.burnbar.daemon"
+
+    let supportDirectory: URL
+    let daemonDirectory: URL
+    let installedBinaryURL: URL
+    let socketURL: URL
+    let logURL: URL
+    let launchAgentPlistURL: URL
+
+    var providerConfigURL: URL {
+        supportDirectory.appendingPathComponent("provider-config.json", isDirectory: false)
+    }
+
+    var usageLedgerURL: URL {
+        supportDirectory.appendingPathComponent("usage-events.jsonl", isDirectory: false)
+    }
+
+    var controllerActivitySnapshotURL: URL {
+        supportDirectory.appendingPathComponent("controller-activity-snapshot.json", isDirectory: false)
+    }
+
+    static func live(fileManager: FileManager = .default) -> BurnBarDaemonRuntimePaths {
+        let supportDirectory = (try? BurnBarMigration.prepareSupportDirectory(fileManager: fileManager))
+            ?? BurnBarAppPaths.live(fileManager: fileManager).supportDirectory
+        let daemonDirectory = supportDirectory.appendingPathComponent("daemon", isDirectory: true)
+        let homeDirectory = fileManager.homeDirectoryForCurrentUser
+
+        return BurnBarDaemonRuntimePaths(
+            supportDirectory: supportDirectory,
+            daemonDirectory: daemonDirectory,
+            installedBinaryURL: daemonDirectory.appendingPathComponent("BurnBarDaemon", isDirectory: false),
+            socketURL: supportDirectory.appendingPathComponent("burnbar-daemon.sock", isDirectory: false),
+            logURL: daemonDirectory.appendingPathComponent("burnbar-daemon.log", isDirectory: false),
+            launchAgentPlistURL: homeDirectory
+                .appendingPathComponent("Library/LaunchAgents", isDirectory: true)
+                .appendingPathComponent("\(launchAgentLabel).plist", isDirectory: false)
+        )
+    }
+}
+
+struct BurnBarDaemonHealthSnapshot: Equatable {
+    let isHealthy: Bool
+    let daemonVersion: String
+    let protocolVersion: Int
+    let socketPath: String
+    let versionMismatch: Bool
+
+    init(
+        response: BurnBarHealthResponse,
+        expectedProtocolVersion: Int = BurnBarProtocolVersion.current
+    ) {
+        self.isHealthy = response.ok && response.protocolVersion == expectedProtocolVersion
+        self.daemonVersion = response.daemonVersion
+        self.protocolVersion = response.protocolVersion
+        self.socketPath = response.socketPath ?? ""
+        self.versionMismatch = response.protocolVersion != expectedProtocolVersion
+    }
+}
+
+enum BurnBarDaemonStatus: Equatable {
+    case checking
+    case notInstalled
+    case healthy(BurnBarDaemonHealthSnapshot)
+    case unhealthy(String)
+
+    var label: String {
+        switch self {
+        case .checking:
+            return "Checking daemon"
+        case .notInstalled:
+            return "Not installed"
+        case .healthy:
+            return "Healthy"
+        case .unhealthy:
+            return "Needs repair"
+        }
+    }
+}
+
+enum BurnBarDaemonRuntimeStateSource: Equatable {
+    case daemonRPC
+    case localFallback
+
+    var detailText: String {
+        switch self {
+        case .daemonRPC:
+            return "Live daemon state over BurnBar RPC."
+        case .localFallback:
+            return "Using the local BurnBar mirror because the daemon is unavailable."
+        }
+    }
+}
+
+struct BurnBarDaemonDependencies {
+    let fileManager: FileManager
+    let runProcess: (String, [String]) throws -> String
+    let resolveDaemonBinary: () -> URL?
+    let requestHealth: (URL) throws -> BurnBarHealthResponse
+    let requestConfig: (URL) throws -> BurnBarProviderConfigurationSnapshot
+    let updateConfig: (URL, BurnBarProviderConfigurationSnapshot) throws -> BurnBarProviderConfigurationSnapshot
+    let requestRecentUsage: (URL, Int) throws -> [BurnBarUsageEvent]
+    let requestControllerProjects: (URL) throws -> [BurnBarReviewProjectSnapshot]
+    let upsertControllerProject: (URL, BurnBarReviewProjectSnapshot) throws -> BurnBarReviewProjectSnapshot?
+    let recordControllerReviewRun: (URL, BurnBarReviewRunSnapshot) throws -> BurnBarControllerReviewRunRecordResponse
+
+    static func live(fileManager: FileManager = .default) -> BurnBarDaemonDependencies {
+        BurnBarDaemonDependencies(
+            fileManager: fileManager,
+            runProcess: BurnBarDaemonProcessRunner.run,
+            resolveDaemonBinary: {
+                BurnBarDaemonBinaryResolver.resolve(
+                    appBundleURL: Bundle.main.bundleURL,
+                    fileManager: fileManager
+                )
+            },
+            requestHealth: { socketURL in
+                try BurnBarDaemonSocketClient.health(at: socketURL)
+            },
+            requestConfig: { socketURL in
+                try BurnBarDaemonSocketClient.config(at: socketURL)
+            },
+            updateConfig: { socketURL, snapshot in
+                try BurnBarDaemonSocketClient.updateConfig(snapshot, at: socketURL)
+            },
+            requestRecentUsage: { socketURL, limit in
+                try BurnBarDaemonSocketClient.recentUsage(at: socketURL, limit: limit)
+            },
+            requestControllerProjects: { socketURL in
+                try BurnBarDaemonSocketClient.controllerProjects(at: socketURL)
+            },
+            upsertControllerProject: { socketURL, project in
+                try BurnBarDaemonSocketClient.upsertControllerProject(project, at: socketURL)
+            },
+            recordControllerReviewRun: { socketURL, run in
+                try BurnBarDaemonSocketClient.recordControllerReviewRun(run, at: socketURL)
+            }
+        )
+    }
+}
+
+enum BurnBarDaemonManagerError: Error, LocalizedError {
+    case daemonBinaryUnavailable
+    case daemonResourceBundleUnavailable(expectedPath: String)
+    case launchctlFailed(String)
+    case timedOutWaitingForHealth(logTail: String?, logFilePath: String)
+    case emptyResponse
+    case rpcError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .daemonBinaryUnavailable:
+            return "BurnBarDaemon binary is not available in the current build products."
+        case .daemonResourceBundleUnavailable(let expectedPath):
+            return """
+            BurnBarDaemon resources are missing (BurnBarCore_BurnBarCore.bundle).
+            Expected bundle at: \(expectedPath)
+            Rebuild BurnBar and run Install again.
+            """
+        case .launchctlFailed(let message):
+            return "launchctl failed: \(message)"
+        case .timedOutWaitingForHealth(let logTail, let logFilePath):
+            var message = "Timed out waiting for BurnBarDaemon to become healthy."
+            if let tail = logTail?.trimmingCharacters(in: .whitespacesAndNewlines), !tail.isEmpty {
+                message += "\n\n\(tail)"
+            } else {
+                message += " Rebuild the BurnBar scheme (BurnBarDaemon helper must exist), or check \(logFilePath)."
+            }
+            return message
+        case .emptyResponse:
+            return "BurnBarDaemon returned an empty response."
+        case .rpcError(let message):
+            return "BurnBarDaemon RPC error: \(message)"
+        }
+    }
+}
+
+@Observable
+@MainActor
+final class BurnBarDaemonManager {
+    static let shared = BurnBarDaemonManager()
+    private static let controllerRuntimeSecrets = KeychainStore(
+        service: BurnBarIdentity.controllerRuntimeKeychainService,
+        legacyServices: []
+    )
+
+    private let paths: BurnBarDaemonRuntimePaths
+    private let dependencies: BurnBarDaemonDependencies
+    private let usageSyncService: BurnBarDaemonUsageSyncService
+    private weak var dataStore: DataStore?
+
+    private(set) var status: BurnBarDaemonStatus = .checking
+    private(set) var lastError: String?
+    private(set) var isBusy = false
+    private(set) var providerConfigurations: [BurnBarDaemonProviderConfiguration] = []
+    private(set) var recentUsage: [BurnBarDaemonRecentUsage] = []
+    private(set) var recentEvents: [String] = []
+    private(set) var usageLedgerCount = 0
+    private(set) var runtimeStateSource: BurnBarDaemonRuntimeStateSource = .localFallback
+    private(set) var controllerProjects: [BurnBarReviewProjectSnapshot] = []
+    private(set) var connectorPlaneSnapshot: BurnBarConnectorPlaneSnapshot?
+    private(set) var browserToolingSnapshot: BurnBarBrowserToolingSnapshot?
+
+    init(
+        paths: BurnBarDaemonRuntimePaths = .live(),
+        dependencies: BurnBarDaemonDependencies = .live(),
+        usageSyncService: BurnBarDaemonUsageSyncService? = nil
+    ) {
+        self.paths = paths
+        self.dependencies = dependencies
+        self.usageSyncService = usageSyncService ?? BurnBarDaemonUsageSyncService(paths: paths)
+    }
+
+    var socketPathDisplay: String {
+        paths.socketURL.path
+    }
+
+    var detailText: String {
+        switch status {
+        case .checking:
+            return "Checking the local BurnBar daemon over its Unix socket."
+        case .notInstalled:
+            return "Install the per-user daemon so BurnBar has a long-lived local control plane."
+        case .healthy(let snapshot):
+            let protocolNote = snapshot.versionMismatch ? "Protocol mismatch" : "Protocol \(snapshot.protocolVersion)"
+            return "Daemon \(snapshot.daemonVersion) is responding on \(snapshot.socketPath). \(protocolNote)."
+        case .unhealthy(let message):
+            return message
+        }
+    }
+
+    func attach(dataStore: DataStore) {
+        self.dataStore = dataStore
+        exportControllerActivitySnapshot()
+        refreshRuntimeSnapshot()
+    }
+
+    func updateProviderConfiguration(
+        providerID: String,
+        isEnabled: Bool? = nil,
+        baseURL: String? = nil,
+        preferredModelIDs: [String]? = nil
+    ) async {
+        guard case .healthy = status else {
+            lastError = "BurnBar daemon must be healthy before provider settings can be updated."
+            return
+        }
+
+        await performBusyWork {
+            var snapshot = try dependencies.requestConfig(paths.socketURL)
+            guard let index = snapshot.providers.firstIndex(where: { $0.providerID == providerID }) else {
+                throw BurnBarDaemonManagerError.rpcError("Provider '\(providerID)' is not available in daemon config.")
+            }
+
+            var settings = snapshot.providers[index]
+            if let isEnabled {
+                settings.isEnabled = isEnabled
+            }
+            if let baseURL {
+                settings.baseURL = baseURL
+            }
+            if let preferredModelIDs {
+                settings.preferredModelIDs = preferredModelIDs
+            }
+            snapshot.providers[index] = settings
+
+            _ = try dependencies.updateConfig(paths.socketURL, snapshot)
+        }
+    }
+
+    func refreshHealth() async {
+        exportControllerActivitySnapshot()
+        status = .checking
+        do {
+            let response = try dependencies.requestHealth(paths.socketURL)
+            let snapshot = BurnBarDaemonHealthSnapshot(response: response)
+            if snapshot.versionMismatch {
+                status = .unhealthy("Daemon protocol version \(snapshot.protocolVersion) does not match BurnBarCore \(BurnBarProtocolVersion.current).")
+            } else {
+                status = .healthy(snapshot)
+            }
+            lastError = nil
+        } catch {
+            if isInstalled {
+                status = .unhealthy(error.localizedDescription)
+                lastError = error.localizedDescription
+            } else {
+                status = .notInstalled
+                lastError = nil
+            }
+        }
+        refreshRuntimeSnapshot()
+    }
+
+    func installAndStart() async {
+        await performBusyWork {
+            try installFilesIfNeeded()
+            try writeLaunchAgentPlist()
+            try bootoutIfNeeded()
+            try runLaunchctl(["bootstrap", launchctlDomain, paths.launchAgentPlistURL.path])
+            try runLaunchctl(["kickstart", "-k", "\(launchctlDomain)/\(BurnBarDaemonRuntimePaths.launchAgentLabel)"])
+            try await awaitHealthy()
+        }
+    }
+
+    func repair() async {
+        await performBusyWork {
+            try installFilesIfNeeded()
+            try writeLaunchAgentPlist()
+            try bootoutIfNeeded()
+            try runLaunchctl(["bootstrap", launchctlDomain, paths.launchAgentPlistURL.path])
+            try runLaunchctl(["kickstart", "-k", "\(launchctlDomain)/\(BurnBarDaemonRuntimePaths.launchAgentLabel)"])
+            try await awaitHealthy()
+        }
+    }
+
+    func uninstall() async {
+        await performBusyWork {
+            try bootoutIfNeeded()
+            if dependencies.fileManager.fileExists(atPath: paths.launchAgentPlistURL.path) {
+                try dependencies.fileManager.removeItem(at: paths.launchAgentPlistURL)
+            }
+            if dependencies.fileManager.fileExists(atPath: paths.installedBinaryURL.path) {
+                try dependencies.fileManager.removeItem(at: paths.installedBinaryURL)
+            }
+            if dependencies.fileManager.fileExists(atPath: paths.socketURL.path) {
+                try dependencies.fileManager.removeItem(at: paths.socketURL)
+            }
+            status = .notInstalled
+            lastError = nil
+        }
+    }
+
+    private var launchctlDomain: String {
+        "gui/\(getuid())"
+    }
+
+    private var isInstalled: Bool {
+        dependencies.fileManager.fileExists(atPath: paths.launchAgentPlistURL.path)
+            || dependencies.fileManager.fileExists(atPath: paths.installedBinaryURL.path)
+    }
+
+    private func performBusyWork(_ operation: () async throws -> Void) async {
+        guard !isBusy else { return }
+        isBusy = true
+        defer { isBusy = false }
+
+        do {
+            try await operation()
+            await refreshHealth()
+        } catch {
+            status = .unhealthy(error.localizedDescription)
+            lastError = error.localizedDescription
+            refreshRuntimeSnapshot()
+        }
+    }
+
+    private func refreshRuntimeSnapshot() {
+        if case .healthy = status {
+            do {
+                let configSnapshot = try dependencies.requestConfig(paths.socketURL)
+                let usageEvents = try dependencies.requestRecentUsage(paths.socketURL, 20)
+                let projects = try dependencies.requestControllerProjects(paths.socketURL)
+                let snapshot = usageSyncService.runtimeSnapshot(
+                    from: configSnapshot,
+                    usageEvents: usageEvents,
+                    insertUsage: dataStore.map { store in
+                        { usage in
+                            try store.insert(usage)
+                        }
+                    },
+                    refreshUsageCache: dataStore.map { store in
+                        { store.refresh() }
+                    }
+                )
+
+                providerConfigurations = snapshot.providerConfigurations
+                recentUsage = snapshot.recentUsage
+                usageLedgerCount = snapshot.ledgerRecordCount
+                recentEvents = loadRecentDaemonEvents()
+                controllerProjects = projects
+                runtimeStateSource = .daemonRPC
+                return
+            } catch {
+                runtimeStateSource = .localFallback
+            }
+        }
+
+        let snapshot = usageSyncService.refreshState(
+            insertUsage: dataStore.map { store in
+                { usage in
+                    try store.insert(usage)
+                }
+            },
+            refreshUsageCache: dataStore.map { store in
+                { store.refresh() }
+            }
+        )
+
+        providerConfigurations = snapshot.providerConfigurations
+        recentUsage = snapshot.recentUsage
+        usageLedgerCount = snapshot.ledgerRecordCount
+        recentEvents = loadRecentDaemonEvents()
+        controllerProjects = []
+        runtimeStateSource = .localFallback
+    }
+
+    private func loadRecentDaemonEvents(limit: Int = 6) -> [String] {
+        guard let content = try? String(contentsOf: paths.logURL, encoding: .utf8) else {
+            return []
+        }
+
+        return content
+            .split(whereSeparator: \.isNewline)
+            .map(String.init)
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .suffix(limit)
+            .reversed()
+    }
+
+    /// Last portion of the launchd daemon log (stdout/stderr) for install/repair diagnostics.
+    private func daemonLogTailForDiagnostics(maxCharacters: Int = 2000) -> String? {
+        guard let content = try? String(contentsOf: paths.logURL, encoding: .utf8) else {
+            return nil
+        }
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if trimmed.count <= maxCharacters {
+            return trimmed
+        }
+        return String(trimmed.suffix(maxCharacters))
+    }
+
+    private static let resourceBundleName = "BurnBarCore_BurnBarCore.bundle"
+
+    private func installFilesIfNeeded() throws {
+        try dependencies.fileManager.createDirectory(at: paths.daemonDirectory, withIntermediateDirectories: true)
+        try dependencies.fileManager.createDirectory(
+            at: paths.launchAgentPlistURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+
+        let sourceBinaryURL = dependencies.resolveDaemonBinary() ?? paths.installedBinaryURL
+        guard dependencies.fileManager.isExecutableFile(atPath: sourceBinaryURL.path) else {
+            throw BurnBarDaemonManagerError.daemonBinaryUnavailable
+        }
+
+        if sourceBinaryURL.standardizedFileURL != paths.installedBinaryURL.standardizedFileURL {
+            if dependencies.fileManager.fileExists(atPath: paths.installedBinaryURL.path) {
+                try dependencies.fileManager.removeItem(at: paths.installedBinaryURL)
+            }
+            try dependencies.fileManager.copyItem(at: sourceBinaryURL, to: paths.installedBinaryURL)
+            try dependencies.fileManager.setAttributes(
+                [.posixPermissions: 0o755],
+                ofItemAtPath: paths.installedBinaryURL.path
+            )
+        }
+
+        // Copy the BurnBarCore resource bundle next to the daemon binary so that
+        // SPM's Bundle.module (which checks Bundle.main.bundleURL for CLI tools)
+        // can find it at runtime.
+        let installedBundleURL = paths.daemonDirectory.appendingPathComponent(Self.resourceBundleName)
+        if let sourceBundleURL = BurnBarDaemonBinaryResolver.resolveResourceBundle(
+            nearBinaryURL: sourceBinaryURL,
+            appBundleURL: Bundle.main.bundleURL,
+            fileManager: dependencies.fileManager
+        ), sourceBundleURL.standardizedFileURL != installedBundleURL.standardizedFileURL {
+            if dependencies.fileManager.fileExists(atPath: installedBundleURL.path) {
+                try dependencies.fileManager.removeItem(at: installedBundleURL)
+            }
+            try dependencies.fileManager.copyItem(at: sourceBundleURL, to: installedBundleURL)
+        }
+
+        guard dependencies.fileManager.fileExists(atPath: installedBundleURL.path) else {
+            throw BurnBarDaemonManagerError.daemonResourceBundleUnavailable(
+                expectedPath: installedBundleURL.path
+            )
+        }
+    }
+
+    private func writeLaunchAgentPlist() throws {
+        let indexDbPath = BurnBarAppPaths.live(fileManager: dependencies.fileManager).databaseURL.path
+        let plist: [String: Any] = [
+            "Label": BurnBarDaemonRuntimePaths.launchAgentLabel,
+            "ProgramArguments": [
+                paths.installedBinaryURL.path,
+                "--socket-path", paths.socketURL.path,
+                "--index-database-path", indexDbPath
+            ],
+            "RunAtLoad": true,
+            "KeepAlive": true,
+            "WorkingDirectory": paths.daemonDirectory.path,
+            "StandardOutPath": paths.logURL.path,
+            "StandardErrorPath": paths.logURL.path
+        ]
+
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: plist,
+            format: .xml,
+            options: 0
+        )
+        try data.write(to: paths.launchAgentPlistURL, options: .atomic)
+    }
+
+    private func bootoutIfNeeded() throws {
+        do {
+            _ = try dependencies.runProcess("/bin/launchctl", ["bootout", launchctlDomain, paths.launchAgentPlistURL.path])
+        } catch {
+            // Ignore if the service was not loaded yet.
+        }
+    }
+
+    private func runLaunchctl(_ arguments: [String]) throws {
+        do {
+            _ = try dependencies.runProcess("/bin/launchctl", arguments)
+        } catch {
+            throw BurnBarDaemonManagerError.launchctlFailed(error.localizedDescription)
+        }
+    }
+
+    private func awaitHealthy(timeoutSeconds: TimeInterval = 10) async throws {
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        while Date() < deadline {
+            if let response = try? dependencies.requestHealth(paths.socketURL),
+               response.ok,
+               response.protocolVersion == BurnBarProtocolVersion.current {
+                return
+            }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        throw BurnBarDaemonManagerError.timedOutWaitingForHealth(
+            logTail: daemonLogTailForDiagnostics(),
+            logFilePath: paths.logURL.path
+        )
+    }
+
+    func fetchControllerRuntimeSnapshot() async throws -> BurnBarControllerRuntimeSnapshot {
+        try BurnBarDaemonSocketClient.controllerRuntimeSnapshot(at: paths.socketURL)
+    }
+
+    func answerControllerQuestion(
+        questionID: String,
+        answer: String,
+        selectedOptionID: String? = nil
+    ) async throws -> BurnBarControllerRuntimeSnapshot? {
+        try BurnBarDaemonSocketClient.answerControllerQuestion(
+            questionID: questionID,
+            answer: answer,
+            selectedOptionID: selectedOptionID,
+            at: paths.socketURL
+        )
+    }
+
+    func completeControllerFollowup(
+        followupID: String
+    ) async throws -> BurnBarControllerRuntimeSnapshot? {
+        try BurnBarDaemonSocketClient.completeControllerFollowup(
+            followupID: followupID,
+            at: paths.socketURL
+        )
+    }
+
+    func snoozeControllerFollowup(
+        followupID: String,
+        until: Date
+    ) async throws -> BurnBarControllerRuntimeSnapshot? {
+        try BurnBarDaemonSocketClient.snoozeControllerFollowup(
+            followupID: followupID,
+            until: until,
+            at: paths.socketURL
+        )
+    }
+
+    func scheduleControllerFollowupCalendar(
+        followupID: String,
+        title: String?,
+        start: Date,
+        durationMinutes: Int
+    ) async throws -> BurnBarControllerRuntimeSnapshot? {
+        try BurnBarDaemonSocketClient.scheduleControllerFollowupCalendar(
+            followupID: followupID,
+            title: title,
+            start: start,
+            durationMinutes: durationMinutes,
+            at: paths.socketURL
+        )
+    }
+
+    func refreshControllerProjects() async throws -> [BurnBarReviewProjectSnapshot] {
+        guard case .healthy = status else {
+            controllerProjects = []
+            return []
+        }
+
+        exportControllerActivitySnapshot()
+        let projects = try dependencies.requestControllerProjects(paths.socketURL)
+        controllerProjects = projects
+        return projects
+    }
+
+    func refreshOperationalToolPlane() async {
+        guard case .healthy = status else {
+            connectorPlaneSnapshot = nil
+            browserToolingSnapshot = nil
+            return
+        }
+
+        do {
+            connectorPlaneSnapshot = try BurnBarDaemonSocketClient.connectorPlane(at: paths.socketURL)
+            browserToolingSnapshot = try BurnBarDaemonSocketClient.browserTooling(at: paths.socketURL)
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    func updateConnectorConfig(
+        _ config: BurnBarConnectorConfigMutation,
+        secret: String? = nil,
+        replaceSecret: Bool = false
+    ) async throws -> BurnBarConnectorPlaneSnapshot {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before updating connectors.")
+        }
+
+        let snapshot = try BurnBarDaemonSocketClient.updateConnectorConfig(
+            BurnBarConnectorConfigUpdateRequest(
+                config: config,
+                secret: secret,
+                replaceSecret: replaceSecret
+            ),
+            at: paths.socketURL
+        )
+        connectorPlaneSnapshot = snapshot
+        return snapshot
+    }
+
+    func performConnectorAction(
+        kind: BurnBarConnectorKind,
+        action: BurnBarConnectorActionKind = .testConnection
+    ) async throws -> BurnBarConnectorActionResponse {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before testing connectors.")
+        }
+
+        let response = try BurnBarDaemonSocketClient.performConnectorAction(
+            BurnBarConnectorActionRequest(kind: kind, action: action),
+            at: paths.socketURL
+        )
+        connectorPlaneSnapshot = try? BurnBarDaemonSocketClient.connectorPlane(at: paths.socketURL)
+        return response
+    }
+
+    func updateBrowserTooling(
+        _ request: BurnBarBrowserToolingUpdateRequest
+    ) async throws -> BurnBarBrowserToolingSnapshot {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before updating browser tooling.")
+        }
+
+        let snapshot = try BurnBarDaemonSocketClient.updateBrowserTooling(request, at: paths.socketURL)
+        browserToolingSnapshot = snapshot
+        return snapshot
+    }
+
+    func performBrowserAction(
+        _ request: BurnBarBrowserActionRequest
+    ) async throws -> BurnBarBrowserActionResponse {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before using browser tooling.")
+        }
+
+        let response = try BurnBarDaemonSocketClient.performBrowserAction(request, at: paths.socketURL)
+        browserToolingSnapshot = try? BurnBarDaemonSocketClient.browserTooling(at: paths.socketURL)
+        return response
+    }
+
+    func saveControllerProject(
+        _ project: BurnBarReviewProjectSnapshot
+    ) async throws -> BurnBarReviewProjectSnapshot? {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before saving controller projects.")
+        }
+
+        let saved = try dependencies.upsertControllerProject(paths.socketURL, project)
+        _ = try await refreshControllerProjects()
+        return saved
+    }
+
+    func launchControllerReview(
+        projectSlug: String,
+        cadence: BurnBarControllerReviewCadence,
+        origin: BurnBarControllerReviewRunOrigin = .projects,
+        triggeredBy: String = "operator"
+    ) async throws -> BurnBarControllerReviewRunRecordResponse {
+        guard case .healthy = status else {
+            throw BurnBarDaemonManagerError.rpcError("BurnBar daemon must be healthy before launching controller reviews.")
+        }
+
+        let summary: String
+        switch origin {
+        case .dashboard:
+            summary = "Triggered from the BurnBar dashboard."
+        case .projects:
+            summary = "Triggered from the BurnBar projects registry."
+        case .telegram:
+            summary = "Triggered from the BurnBar Telegram bridge."
+        case .scheduled:
+            summary = "Triggered from BurnBar's scheduled review loop."
+        case .ingestion:
+            summary = "Triggered while ingesting BurnBar activity."
+        case .manual:
+            summary = "Triggered manually from BurnBar."
+        }
+
+        let response = try dependencies.recordControllerReviewRun(
+            paths.socketURL,
+            BurnBarReviewRunSnapshot(
+                id: "review-\(UUID().uuidString)",
+                projectSlug: projectSlug,
+                cadence: cadence,
+                recordedAt: Date(),
+                summary: summary,
+                questionCount: 0,
+                followupCount: 0,
+                missionCount: 0,
+                origin: origin,
+                triggeredBy: triggeredBy
+            )
+        )
+        _ = try await refreshControllerProjects()
+        return response
+    }
+
+    func syncControllerNotificationConfiguration(
+        from settingsManager: SettingsManager
+    ) async throws {
+        let trimmedToken = settingsManager.controllerTelegramBotToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedChatID = settingsManager.controllerTelegramChatID.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmedToken.isEmpty {
+            try Self.controllerRuntimeSecrets.delete(account: BurnBarIdentity.controllerTelegramBotTokenAccount)
+        } else {
+            try Self.controllerRuntimeSecrets.set(
+                trimmedToken,
+                for: BurnBarIdentity.controllerTelegramBotTokenAccount
+            )
+        }
+
+        guard case .healthy = status else { return }
+
+        let config = BurnBarNotificationConfig(
+            defaultSnoozeMinutes: settingsManager.controllerDefaultSnoozeMinutes,
+            nudgeHoursLocal: [9, 13, 17],
+            local: BurnBarLocalNotificationConfig(
+                isEnabled: settingsManager.controllerLocalNotificationsEnabled,
+                quietHoursStart: 22,
+                quietHoursEnd: 7
+            ),
+            telegram: BurnBarTelegramNotificationConfig(
+                isEnabled: settingsManager.controllerTelegramEnabled,
+                botTokenConfigured: trimmedToken.isEmpty == false,
+                botToken: trimmedToken.isEmpty ? nil : trimmedToken,
+                botTokenHint: trimmedToken.isEmpty ? nil : Self.telegramTokenHint(for: trimmedToken),
+                chatID: trimmedChatID.isEmpty ? nil : trimmedChatID
+            ),
+            calendar: BurnBarCalendarNotificationConfig(
+                isEnabled: settingsManager.controllerCalendarIntegrationEnabled,
+                defaultDurationMinutes: settingsManager.controllerCalendarDefaultMinutes,
+                defaultCalendarName: "BurnBar Ops"
+            )
+        )
+
+        _ = try BurnBarDaemonSocketClient.updateNotificationConfig(config, at: paths.socketURL)
+    }
+
+    private func exportControllerActivitySnapshot() {
+        guard let dataStore else { return }
+
+        do {
+            let snapshot = try makeControllerActivitySnapshot(from: dataStore)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys]
+            let data = try encoder.encode(snapshot)
+            try dependencies.fileManager.createDirectory(
+                at: paths.controllerActivitySnapshotURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try data.write(to: paths.controllerActivitySnapshotURL, options: .atomic)
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    private func makeControllerActivitySnapshot(
+        from dataStore: DataStore
+    ) throws -> BurnBarControllerActivitySnapshot {
+        let conversations = try dataStore.fetchConversations(limit: 250)
+        let start = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date().addingTimeInterval(-7 * 24 * 60 * 60)
+        let recentUsages = dataStore.usages(in: start...Date())
+
+        let allProjectNames = Set(
+            conversations.map(\.projectName).filter { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
+            + recentUsages.map(\.projectName).filter { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
+        )
+
+        let projects = allProjectNames.compactMap { projectName -> BurnBarControllerActivityProject? in
+            let slug = Self.slug(for: projectName)
+            guard slug.isEmpty == false else { return nil }
+
+            let projectConversations = conversations
+                .filter { Self.slug(for: $0.projectName) == slug }
+                .sorted { Self.activityDate(for: $0) > Self.activityDate(for: $1) }
+            let projectUsages = recentUsages
+                .filter { Self.slug(for: $0.projectName) == slug }
+                .sorted { $0.endTime > $1.endTime }
+
+            let latestConversation = projectConversations.first
+            let latestActivityAt = max(
+                latestConversation.map(Self.activityDate(for:)) ?? .distantPast,
+                projectUsages.first?.endTime ?? .distantPast
+            )
+            let summary = latestConversation?.summary?.nonEmpty
+                ?? latestConversation?.summaryTitle?.nonEmpty
+                ?? latestConversation.map { $0.inferredTaskTitle.nonEmpty }.flatMap { $0 }
+                ?? "Recent BurnBar activity is available for review."
+
+            return BurnBarControllerActivityProject(
+                projectSlug: slug,
+                displayName: projectName,
+                summary: summary,
+                latestActivityAt: latestActivityAt == .distantPast ? nil : latestActivityAt,
+                latestConversationID: latestConversation?.id,
+                latestConversationSessionID: latestConversation.map { BurnBarSessionID(rawValue: $0.sessionId) },
+                latestConversationTitle: latestConversation?.summaryTitle?.nonEmpty
+                    ?? latestConversation.map { $0.inferredTaskTitle.nonEmpty }.flatMap { $0 },
+                latestConversationSummary: latestConversation?.summary?.nonEmpty,
+                latestQuestionPrompt: nil,
+                sessionCountLast7Days: Set(projectUsages.map(\.sessionId)).count,
+                totalCostLast7Days: projectUsages.reduce(0) { $0 + $1.cost },
+                totalTokensLast7Days: projectUsages.reduce(0) { $0 + $1.totalTokens }
+            )
+        }
+        .sorted { ($0.latestActivityAt ?? .distantPast) > ($1.latestActivityAt ?? .distantPast) }
+
+        return BurnBarControllerActivitySnapshot(
+            generatedAt: Date(),
+            activeProjectSlug: projects.first?.projectSlug,
+            projects: projects
+        )
+    }
+
+    private static func telegramTokenHint(for token: String) -> String {
+        guard token.count > 8 else { return token }
+        return "\(token.prefix(4))…\(token.suffix(4))"
+    }
+
+    private static func slug(for projectName: String) -> String {
+        let trimmed = projectName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { return "" }
+
+        let scalars = trimmed.lowercased().unicodeScalars.map { scalar -> Character in
+            if CharacterSet.alphanumerics.contains(scalar) {
+                return Character(String(scalar))
+            }
+            return "-"
+        }
+        let collapsed = String(scalars)
+            .replacingOccurrences(of: "--", with: "-")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        return collapsed.isEmpty ? trimmed.lowercased().replacingOccurrences(of: " ", with: "-") : collapsed
+    }
+
+    private static func activityDate(for conversation: ConversationRecord) -> Date {
+        conversation.endTime ?? conversation.startTime ?? conversation.indexedAt
+    }
+
+}
+
+enum BurnBarDaemonProcessRunner {
+    static func run(executable: String, arguments: [String]) throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
+
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let output = String(
+            data: outputPipe.fileHandleForReading.readDataToEndOfFile(),
+            encoding: .utf8
+        ) ?? ""
+        let error = String(
+            data: errorPipe.fileHandleForReading.readDataToEndOfFile(),
+            encoding: .utf8
+        ) ?? ""
+
+        guard process.terminationStatus == 0 else {
+            throw BurnBarDaemonManagerError.launchctlFailed(error.isEmpty ? output : error)
+        }
+
+        return output
+    }
+}
+
+enum BurnBarDaemonBinaryResolver {
+    static func resolve(appBundleURL: URL, fileManager: FileManager) -> URL? {
+        let candidates = [
+            appBundleURL.appendingPathComponent("Contents/Helpers/BurnBarDaemon", isDirectory: false),
+            appBundleURL.deletingLastPathComponent().appendingPathComponent("BurnBarDaemon", isDirectory: false),
+            appBundleURL.deletingLastPathComponent().appendingPathComponent("BurnBarDaemonExecutable", isDirectory: false)
+        ]
+
+        return candidates.first { fileManager.isExecutableFile(atPath: $0.path) }
+    }
+
+    /// Locates the BurnBarCore resource bundle that must be installed alongside the daemon binary.
+    static func resolveResourceBundle(
+        nearBinaryURL: URL,
+        appBundleURL: URL,
+        fileManager: FileManager
+    ) -> URL? {
+        let bundleName = "BurnBarCore_BurnBarCore.bundle"
+        let binaryDirectory = nearBinaryURL.deletingLastPathComponent()
+        let appParent = appBundleURL.deletingLastPathComponent()
+        let candidates = [
+            // Next to the source binary (SPM / swift build output)
+            binaryDirectory.appendingPathComponent(bundleName),
+            // Xcode products often keep package resource bundles in sibling Resources.
+            binaryDirectory.appendingPathComponent("Resources").appendingPathComponent(bundleName),
+            // Inside the app bundle's Resources (Xcode build)
+            appBundleURL.appendingPathComponent("Contents/Resources/\(bundleName)"),
+            // Some app layouts place package bundles under Frameworks.
+            appBundleURL.appendingPathComponent("Contents/Frameworks/\(bundleName)"),
+            // DerivedData Products next to app bundle.
+            appParent.appendingPathComponent(bundleName),
+            appParent.appendingPathComponent("PackageFrameworks").appendingPathComponent(bundleName)
+        ]
+        return candidates.first { fileManager.fileExists(atPath: $0.path) }
+    }
+}
+
+enum BurnBarDaemonSocketClient {
+    private struct RawRequestEnvelope: Encodable {
+        let id: String
+        let method: String
+
+        init(id: String = UUID().uuidString, method: String) {
+            self.id = id
+            self.method = method
+        }
+    }
+
+    private struct RawRequestEnvelopeWithParams<Params: Encodable>: Encodable {
+        let id: String
+        let method: String
+        let params: Params
+
+        init(id: String = UUID().uuidString, method: String, params: Params) {
+            self.id = id
+            self.method = method
+            self.params = params
+        }
+    }
+
+    static func health(at socketURL: URL) throws -> BurnBarHealthResponse {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarHealthResponse> = try send(
+            BurnBarRPCRequestEnvelope(method: .health),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+
+        return result
+    }
+
+    static func config(at socketURL: URL) throws -> BurnBarProviderConfigurationSnapshot {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarConfigResponse> = try send(
+            BurnBarRPCRequestEnvelope(method: .configGet),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+
+        return result.snapshot
+    }
+
+    static func updateConfig(
+        _ snapshot: BurnBarProviderConfigurationSnapshot,
+        at socketURL: URL
+    ) throws -> BurnBarProviderConfigurationSnapshot {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarConfigResponse> = try send(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .configUpdate,
+                params: BurnBarConfigUpdateRequest(snapshot: snapshot)
+            ),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+
+        return result.snapshot
+    }
+
+    static func recentUsage(
+        at socketURL: URL,
+        limit: Int = 20
+    ) throws -> [BurnBarUsageEvent] {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarRecentUsageResponse> = try send(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .usageRecent,
+                params: BurnBarRecentUsageRequest(limit: limit)
+            ),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+
+        return result.usage
+    }
+
+    static func connectorPlane(at socketURL: URL) throws -> BurnBarConnectorPlaneSnapshot {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarConnectorPlaneResponse> = try send(
+            BurnBarRPCRequestEnvelope(method: .connectorPlaneGet),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+        return result.snapshot
+    }
+
+    static func updateConnectorConfig(
+        _ request: BurnBarConnectorConfigUpdateRequest,
+        at socketURL: URL
+    ) throws -> BurnBarConnectorPlaneSnapshot {
+        let response: BurnBarConnectorPlaneResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .connectorConfigUpdate,
+                params: request
+            ),
+            socketURL: socketURL
+        )
+        return response.snapshot
+    }
+
+    static func performConnectorAction(
+        _ request: BurnBarConnectorActionRequest,
+        at socketURL: URL
+    ) throws -> BurnBarConnectorActionResponse {
+        try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .connectorAction,
+                params: request
+            ),
+            socketURL: socketURL
+        ) as BurnBarConnectorActionResponse
+    }
+
+    static func browserTooling(at socketURL: URL) throws -> BurnBarBrowserToolingSnapshot {
+        let envelope: BurnBarRPCResponseEnvelope<BurnBarBrowserToolingResponse> = try send(
+            BurnBarRPCRequestEnvelope(method: .browserToolingGet),
+            socketURL: socketURL
+        )
+
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+        return result.snapshot
+    }
+
+    static func updateBrowserTooling(
+        _ request: BurnBarBrowserToolingUpdateRequest,
+        at socketURL: URL
+    ) throws -> BurnBarBrowserToolingSnapshot {
+        let response: BurnBarBrowserToolingResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .browserToolingUpdate,
+                params: request
+            ),
+            socketURL: socketURL
+        )
+        return response.snapshot
+    }
+
+    static func performBrowserAction(
+        _ request: BurnBarBrowserActionRequest,
+        at socketURL: URL
+    ) throws -> BurnBarBrowserActionResponse {
+        try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .browserAction,
+                params: request
+            ),
+            socketURL: socketURL
+        ) as BurnBarBrowserActionResponse
+    }
+
+    static func updateNotificationConfig(
+        _ config: BurnBarNotificationConfig,
+        at socketURL: URL
+    ) throws -> BurnBarNotificationConfig {
+        let response: BurnBarNotificationConfigResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .notificationConfigUpdate,
+                params: BurnBarNotificationConfigUpdateRequest(config: config)
+            ),
+            socketURL: socketURL
+        )
+        return response.config
+    }
+
+    static func controllerProjects(at socketURL: URL) throws -> [BurnBarReviewProjectSnapshot] {
+        let response: BurnBarControllerProjectsListResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .controllerProjectsList,
+                params: BurnBarControllerProjectsListRequest(includePaused: true, limit: 200)
+            ),
+            socketURL: socketURL
+        )
+        return response.projects
+    }
+
+    static func upsertControllerProject(
+        _ project: BurnBarReviewProjectSnapshot,
+        at socketURL: URL
+    ) throws -> BurnBarReviewProjectSnapshot? {
+        let response: BurnBarControllerProjectResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .controllerProjectUpsert,
+                params: BurnBarControllerProjectUpsertRequest(project: project)
+            ),
+            socketURL: socketURL
+        )
+        return response.project
+    }
+
+    static func recordControllerReviewRun(
+        _ run: BurnBarReviewRunSnapshot,
+        at socketURL: URL
+    ) throws -> BurnBarControllerReviewRunRecordResponse {
+        try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .reviewRunRecord,
+                params: BurnBarControllerReviewRunRecordRequest(run: run)
+            ),
+            socketURL: socketURL
+        ) as BurnBarControllerReviewRunRecordResponse
+    }
+
+    static func controllerRuntimeSnapshot(at socketURL: URL) throws -> BurnBarControllerRuntimeSnapshot {
+        let summary = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .controllerSummary,
+                params: BurnBarControllerSummaryRequest()
+            ),
+            socketURL: socketURL
+        ) as BurnBarCore.BurnBarControllerSummaryResponse
+        let questions = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .questionsList,
+                params: BurnBarQuestionsListRequest(projectSlug: nil, statuses: BurnBarPendingQuestionStatus.allCases)
+            ),
+            socketURL: socketURL
+        ) as BurnBarQuestionsListResponse
+        let followups = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .followupsList,
+                params: BurnBarFollowupsListRequest(projectSlug: nil, statuses: BurnBarFollowupStatus.allCases)
+            ),
+            socketURL: socketURL
+        ) as BurnBarFollowupsListResponse
+        let missions = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .missionsList,
+                params: BurnBarMissionListRequest()
+            ),
+            socketURL: socketURL
+        ) as BurnBarMissionListResponse
+        let notificationHealth = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .notificationHealth,
+                params: BurnBarNotificationHealthRequest()
+            ),
+            socketURL: socketURL
+        ) as BurnBarNotificationHealthResponse
+        let simulatorRuns = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .simulatorList,
+                params: BurnBarSimulatorListRequest()
+            ),
+            socketURL: socketURL
+        ) as BurnBarSimulatorListResponse
+
+        return makeControllerRuntimeSnapshot(
+            summary: summary.summary,
+            questions: questions.questions,
+            followups: followups.followups,
+            missions: missions.missions,
+            notificationHealth: notificationHealth.health,
+            simulatorRuns: simulatorRuns.runs
+        )
+    }
+
+    static func answerControllerQuestion(
+        questionID: String,
+        answer: String,
+        selectedOptionID: String? = nil,
+        at socketURL: URL
+    ) throws -> BurnBarControllerRuntimeSnapshot? {
+        let _: BurnBarQuestionAnswerResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .questionAnswer,
+                params: BurnBarQuestionAnswerRequest(
+                    questionID: BurnBarQuestionID(rawValue: questionID),
+                    answeredBy: "operator",
+                    answer: answer,
+                    selectedOptionID: selectedOptionID
+                )
+            ),
+            socketURL: socketURL
+        )
+        return try controllerRuntimeSnapshot(at: socketURL)
+    }
+
+    static func completeControllerFollowup(
+        followupID: String,
+        at socketURL: URL
+    ) throws -> BurnBarControllerRuntimeSnapshot? {
+        let _: BurnBarFollowupMutationResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .followupDone,
+                params: BurnBarFollowupDoneRequest(
+                    followupID: BurnBarFollowupID(rawValue: followupID),
+                    actor: "operator"
+                )
+            ),
+            socketURL: socketURL
+        )
+        return try controllerRuntimeSnapshot(at: socketURL)
+    }
+
+    static func snoozeControllerFollowup(
+        followupID: String,
+        until: Date,
+        at socketURL: URL
+    ) throws -> BurnBarControllerRuntimeSnapshot? {
+        let _: BurnBarFollowupMutationResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .followupSnooze,
+                params: BurnBarFollowupSnoozeRequest(
+                    followupID: BurnBarFollowupID(rawValue: followupID),
+                    actor: "operator",
+                    snoozeUntil: until
+                )
+            ),
+            socketURL: socketURL
+        )
+        return try controllerRuntimeSnapshot(at: socketURL)
+    }
+
+    static func scheduleControllerFollowupCalendar(
+        followupID: String,
+        title: String?,
+        start: Date,
+        durationMinutes: Int,
+        at socketURL: URL
+    ) throws -> BurnBarControllerRuntimeSnapshot? {
+        let resolvedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? title!
+            : "BurnBar followup"
+        let end = start.addingTimeInterval(Double(max(durationMinutes, 15)) * 60)
+        let _: BurnBarFollowupMutationResponse = try requestResult(
+            BurnBarRPCRequestEnvelopeWithParams(
+                method: .followupCalendar,
+                params: BurnBarFollowupCalendarRequest(
+                    followupID: BurnBarFollowupID(rawValue: followupID),
+                    actor: "operator",
+                    action: .create,
+                    entry: BurnBarCalendarEntrySnapshot(
+                        externalID: nil,
+                        title: resolvedTitle,
+                        startAt: start,
+                        endAt: end,
+                        notes: "Scheduled from AgentLens."
+                    )
+                )
+            ),
+            socketURL: socketURL
+        )
+        return try controllerRuntimeSnapshot(at: socketURL)
+    }
+
+    private static func send<Response: Codable & Sendable>(
+        _ request: BurnBarRPCRequestEnvelope,
+        socketURL: URL
+    ) throws -> BurnBarRPCResponseEnvelope<Response> {
+        try sendEncoded(request, socketURL: socketURL)
+    }
+
+    private static func send<Params: Codable & Sendable, Response: Codable & Sendable>(
+        _ request: BurnBarRPCRequestEnvelopeWithParams<Params>,
+        socketURL: URL
+    ) throws -> BurnBarRPCResponseEnvelope<Response> {
+        try sendEncoded(request, socketURL: socketURL)
+    }
+
+    private static func requestResult<Params: Codable & Sendable, Response: Codable & Sendable>(
+        _ request: BurnBarRPCRequestEnvelopeWithParams<Params>,
+        socketURL: URL
+    ) throws -> Response {
+        let envelope: BurnBarRPCResponseEnvelope<Response> = try send(request, socketURL: socketURL)
+        if let error = envelope.error {
+            throw BurnBarDaemonManagerError.rpcError(error.message)
+        }
+        guard let result = envelope.result else {
+            throw BurnBarDaemonManagerError.emptyResponse
+        }
+        return result
+    }
+
+    static func makeControllerRuntimeSnapshot(
+        summary: BurnBarCore.BurnBarControllerSummary,
+        questions: [BurnBarPendingQuestionSnapshot],
+        followups: [BurnBarFollowupSnapshot],
+        missions: [BurnBarMissionSnapshot],
+        notificationHealth: BurnBarNotificationHealthSnapshot,
+        simulatorRuns: [BurnBarSimulatorRunSnapshot]
+    ) -> BurnBarControllerRuntimeSnapshot {
+        let visibleQuestions = questions.filter { shouldIncludeInOperatorInbox($0) }
+        let visibleQuestionIDs = Set(visibleQuestions.map(\.id.rawValue))
+        let visibleFollowups = followups.filter {
+            shouldIncludeInOperatorInbox($0, visibleQuestionIDs: visibleQuestionIDs)
+        }
+
+        let mappedQuestions = visibleQuestions.map { question in
+            BurnBarControllerQuestion(
+                id: question.id.rawValue,
+                projectName: displayName(for: question.projectSlug),
+                sessionID: question.sessionID?.rawValue,
+                title: question.title,
+                prompt: question.prompt,
+                stageLabel: question.stageLabel,
+                evidenceHint: question.contextSummary,
+                state: questionState(for: question.status),
+                priority: questionPriority(for: question.priority),
+                sourceLabel: question.sessionID == nil ? "Daemon controller runtime" : "Daemon session runtime",
+                createdAt: question.askedAt,
+                answeredAt: question.latestAnswer?.answeredAt,
+                answer: question.latestAnswer?.answer,
+                selectedOptionID: question.latestAnswer?.selectedOptionID,
+                answerPlaceholder: question.answerPlaceholder,
+                suggestedOptions: question.suggestedOptions.map { option in
+                    BurnBarControllerQuestionOption(
+                        id: option.id,
+                        title: option.title,
+                        detail: option.detail,
+                        answer: option.answer
+                    )
+                },
+                deepLink: question.deepLink.map { link in
+                    BurnBarControllerQuestionDeepLink(
+                        kind: questionDeepLinkKind(for: link.kind),
+                        targetID: link.targetID,
+                        title: link.title,
+                        subtitle: link.subtitle
+                    )
+                },
+                isUnread: question.tracker?.isUnread ?? false,
+                notificationCount: question.tracker?.notificationCount ?? 0
+            )
+        }
+
+        let mappedFollowups = visibleFollowups.map { followup in
+            BurnBarControllerFollowup(
+                id: followup.id.rawValue,
+                projectName: displayName(for: followup.projectSlug),
+                title: followup.title,
+                summary: followup.summary,
+                stageLabel: followup.stageLabel,
+                detail: followup.calendarEntry?.notes,
+                state: followupState(for: followup.status),
+                kind: followupKind(for: followup.kind),
+                linkedQuestionID: followup.questionID?.rawValue,
+                deepLink: followup.deepLink.map { link in
+                    BurnBarControllerQuestionDeepLink(
+                        kind: questionDeepLinkKind(for: link.kind),
+                        targetID: link.targetID,
+                        title: link.title,
+                        subtitle: link.subtitle
+                    )
+                },
+                createdAt: followup.createdAt,
+                updatedAt: followup.nextNudgeAt ?? followup.snoozeUntil ?? followup.createdAt,
+                dueAt: followup.nextNudgeAt,
+                snoozedUntil: followup.snoozeUntil,
+                calendarTitle: followup.calendarEntry?.title,
+                calendarStart: followup.calendarEntry?.startAt,
+                calendarEnd: followup.calendarEntry?.endAt
+            )
+        }
+
+        let mappedMissions = missions.map { mission in
+            let latestPacket = mission.packets.sorted {
+                ($0.dispatchedAt ?? .distantPast) > ($1.dispatchedAt ?? .distantPast)
+            }.first
+            let activePacket = mission.packets.first(where: { [.queued, .dispatched, .running].contains($0.status) }) ?? latestPacket
+            let latestResult = mission.results.sorted(by: { $0.createdAt > $1.createdAt }).first
+            let latestTakeover = mission.takeoverHistory?
+                .sorted(by: { $0.updatedAt > $1.updatedAt })
+                .first
+            return BurnBarControllerMissionRecord(
+                id: mission.id.rawValue,
+                projectName: displayName(for: mission.projectSlug),
+                title: mission.title,
+                summary: mission.summary,
+                state: missionLifecycle(for: mission.status),
+                approval: mission.approval.approved ? .approved : .pending,
+                packetSummary: latestPacket.map { "\($0.workerName): \($0.objective)" },
+                latestResultSummary: latestResult?.summary,
+                latestResultDetail: latestResult?.detail,
+                latestResultRunID: latestResult?.runID?.rawValue,
+                activeWorkerName: activePacket?.workerName,
+                activeRunID: activePacket?.runID?.rawValue,
+                packetRunCount: mission.packets.compactMap(\.runID).count,
+                latestTakeoverState: latestTakeover.map { takeoverState(for: $0.status) },
+                latestTakeoverReason: latestTakeover?.reason,
+                latestTakeoverRunID: latestTakeover?.takeoverRunID?.rawValue,
+                takeoverCount: mission.takeoverHistory?.count ?? 0,
+                burnCostUSD: mission.burnRecords.reduce(0) { $0 + $1.amount },
+                burnTokens: mission.results.reduce(0) { partial, result in
+                    partial
+                        + intValue(in: result.metadata["input_tokens"])
+                        + intValue(in: result.metadata["output_tokens"])
+                        + intValue(in: result.metadata["cache_read_tokens"])
+                },
+                updatedAt: mission.updatedAt
+            )
+        }
+
+        let mappedEvents = summary.recentEvents.map { event in
+            BurnBarControllerEvent(
+                id: event.id.rawValue,
+                projectName: displayName(for: event.projectSlug),
+                category: eventCategory(for: event.family),
+                title: readableEventTitle(for: event.eventType),
+                summary: event.summary,
+                detail: event.detail,
+                createdAt: event.recordedAt
+            )
+        }
+
+        let pendingQuestionCount = mappedQuestions.filter { $0.state == .pending }.count
+        let unresolvedFollowupCount = mappedFollowups.filter { $0.state == .open }.count
+        let openMissionCount = mappedMissions.filter { $0.state != .completed }.count
+
+        return BurnBarControllerRuntimeSnapshot(
+            source: .daemon,
+            updatedAt: summary.updatedAt,
+            summary: BurnBarControllerSummary(
+                headline: controllerHeadline(
+                    questionCount: pendingQuestionCount,
+                    followupCount: unresolvedFollowupCount
+                ),
+                detail: "Daemon-backed controller summary. \(freshnessLabel(for: summary.freshness)).",
+                pendingQuestions: pendingQuestionCount,
+                unresolvedFollowups: unresolvedFollowupCount,
+                openMissions: openMissionCount,
+                replayLabel: replayLabel(from: simulatorRuns),
+                notificationLabel: notificationLabel(from: notificationHealth)
+            ),
+            questions: mappedQuestions,
+            followups: mappedFollowups,
+            missions: mappedMissions,
+            recentEvents: mappedEvents
+        )
+    }
+
+    private static func shouldIncludeInOperatorInbox(_ question: BurnBarPendingQuestionSnapshot) -> Bool {
+        stringValue(in: question.metadata["ingestion_source"]) != BurnBarControllerProjectIngestionSource.appActivity.rawValue
+    }
+
+    private static func shouldIncludeInOperatorInbox(
+        _ followup: BurnBarFollowupSnapshot,
+        visibleQuestionIDs: Set<String>
+    ) -> Bool {
+        guard let questionID = followup.questionID?.rawValue else {
+            return true
+        }
+        return visibleQuestionIDs.contains(questionID)
+    }
+
+    private static func controllerHeadline(questionCount: Int, followupCount: Int) -> String {
+        if questionCount > 0 && followupCount > 0 {
+            return "\(questionCount) pending question\(questionCount == 1 ? "" : "s") and \(followupCount) followup\(followupCount == 1 ? "" : "s") need attention."
+        }
+        if questionCount > 0 {
+            return "\(questionCount) pending question\(questionCount == 1 ? "" : "s") need an answer."
+        }
+        if followupCount > 0 {
+            return "\(followupCount) followup\(followupCount == 1 ? "" : "s") are still open."
+        }
+        return "Controller runtime is quiet."
+    }
+
+    private static func freshnessLabel(for freshness: BurnBarControllerFreshnessState) -> String {
+        switch freshness {
+        case .fresh: return "Fresh local signal."
+        case .aging: return "Aging review signal."
+        case .stale: return "Review signal is stale."
+        case .provisional: return "Controller view is provisional."
+        case .missing: return "Controller view is awaiting its first review."
+        }
+    }
+
+    private static func notificationLabel(from health: BurnBarNotificationHealthSnapshot) -> String {
+        let localHealthy = health.channels.contains { $0.channel == .local && $0.status == .healthy }
+        let telegramHealthy = health.channels.contains { $0.channel == .telegram && $0.status == .healthy }
+        let needsSetup = health.channels.contains { [.degraded, .unauthorized].contains($0.status) }
+        if localHealthy && telegramHealthy {
+            return "Telegram and local notifications armed"
+        }
+        if telegramHealthy {
+            return "Telegram armed"
+        }
+        if localHealthy {
+            return "Local notifications armed"
+        }
+        if needsSetup {
+            return "Notifications need setup"
+        }
+        return "Notifications optional"
+    }
+
+    private static func replayLabel(from runs: [BurnBarSimulatorRunSnapshot]) -> String {
+        guard let latest = runs.sorted(by: { $0.startedAt > $1.startedAt }).first else {
+            return "Replay idle"
+        }
+        let status: String
+        switch latest.status {
+        case .idle: status = "Replay idle"
+        case .queued: status = "Replay queued"
+        case .running: status = "Replay running"
+        case .completed: status = "Replay complete"
+        case .failed: status = "Replay failed"
+        }
+        return "\(status): \(latest.scenarioName)"
+    }
+
+    private static func questionState(for status: BurnBarPendingQuestionStatus) -> BurnBarControllerQuestionState {
+        switch status {
+        case .pending: return .pending
+        case .answered: return .answered
+        case .dismissed, .expired: return .dismissed
+        }
+    }
+
+    private static func questionPriority(for priority: BurnBarPendingQuestionPriority) -> BurnBarControllerQuestionPriority {
+        switch priority {
+        case .critical, .high: return .high
+        case .medium: return .medium
+        case .low: return .low
+        }
+    }
+
+    private static func questionDeepLinkKind(
+        for kind: BurnBarQuestionDeepLinkKind
+    ) -> BurnBarControllerQuestionDeepLinkKind {
+        switch kind {
+        case .sessionLog: return .sessionLog
+        case .dashboard: return .dashboard
+        case .project: return .project
+        case .settings: return .settings
+        }
+    }
+
+    private static func followupState(for status: BurnBarFollowupStatus) -> BurnBarControllerFollowupState {
+        switch status {
+        case .open: return .open
+        case .done: return .done
+        case .snoozed: return .snoozed
+        }
+    }
+
+    private static func followupKind(for kind: BurnBarFollowupKind) -> BurnBarControllerFollowupKind {
+        switch kind {
+        case .pendingQuestion: return .pendingQuestion
+        case .completedAction: return .completedAction
+        case .missionReview: return .missionWork
+        case .controllerNudge: return .setup
+        }
+    }
+
+    private static func missionLifecycle(for status: BurnBarMissionStatus) -> BurnBarMissionLifecycle {
+        switch status {
+        case .draft, .awaitingApproval, .approved:
+            return .planned
+        case .dispatching, .inProgress:
+            return .running
+        case .partiallyCompleted:
+            return .partial
+        case .failed, .cancelled:
+            return .blocked
+        case .completed:
+            return .completed
+        }
+    }
+
+    private static func takeoverState(for status: BurnBarAutoTakeoverStatus) -> BurnBarControllerTakeoverState {
+        switch status {
+        case .monitoring:
+            return .monitoring
+        case .launched:
+            return .launched
+        case .completed:
+            return .completed
+        case .failed:
+            return .failed
+        case .skipped:
+            return .skipped
+        }
+    }
+
+    private static func eventCategory(for family: BurnBarControllerEventFamily) -> BurnBarControllerEventCategory {
+        switch family {
+        case .controller: return .controller
+        case .question: return .question
+        case .followup: return .followup
+        case .mission: return .mission
+        case .notification: return .notification
+        case .simulator, .projection: return .replay
+        case .governance: return .governance
+        }
+    }
+
+    private static func readableEventTitle(for eventType: String) -> String {
+        eventType
+            .split(separator: "_")
+            .map { $0.capitalized }
+            .joined(separator: " ")
+    }
+
+    private static func displayName(for slug: String) -> String {
+        let title = slug
+            .split(separator: "-", omittingEmptySubsequences: true)
+            .map { $0.capitalized }
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? slug : title
+    }
+
+    private static func intValue(in value: BurnBarJSONValue?) -> Int {
+        switch value {
+        case .number(let value): return Int(value)
+        case .string(let value): return Int(value) ?? 0
+        default: return 0
+        }
+    }
+
+    private static func stringValue(in value: BurnBarJSONValue?) -> String? {
+        guard case .string(let value) = value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    private static func sendEncoded<Request: Encodable, Response: Codable & Sendable>(
+        _ request: Request,
+        socketURL: URL
+    ) throws -> BurnBarRPCResponseEnvelope<Response> {
+        let fileDescriptor = socket(AF_UNIX, SOCK_STREAM, 0)
+        guard fileDescriptor != -1 else {
+            throw POSIXError(.init(rawValue: errno) ?? .EIO)
+        }
+        defer { close(fileDescriptor) }
+
+        var noSigPipe: Int32 = 1
+        setsockopt(
+            fileDescriptor,
+            SOL_SOCKET,
+            SO_NOSIGPIPE,
+            &noSigPipe,
+            socklen_t(MemoryLayout<Int32>.size)
+        )
+
+        var address = try socketAddress(for: socketURL.path)
+        let connectResult = withUnsafePointer(to: &address) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { reboundPointer in
+                connect(fileDescriptor, reboundPointer, socklen_t(MemoryLayout<sockaddr_un>.stride))
+            }
+        }
+        guard connectResult == 0 else {
+            throw POSIXError(.init(rawValue: errno) ?? .EIO)
+        }
+
+        let encoder = JSONEncoder()
+        let payload = try encoder.encode(request) + Data([0x0A])
+        try payload.withUnsafeBytes { rawBuffer in
+            guard let baseAddress = rawBuffer.baseAddress else { return }
+            var bytesRemaining = rawBuffer.count
+            var offset = 0
+            while bytesRemaining > 0 {
+                let bytesWritten = write(fileDescriptor, baseAddress.advanced(by: offset), bytesRemaining)
+                guard bytesWritten > 0 else {
+                    throw POSIXError(.init(rawValue: errno) ?? .EIO)
+                }
+                bytesRemaining -= bytesWritten
+                offset += bytesWritten
+            }
+        }
+
+        var response = Data()
+        var buffer = [UInt8](repeating: 0, count: 1024)
+        while true {
+            let bytesRead = read(fileDescriptor, &buffer, buffer.count)
+            if bytesRead == 0 {
+                break
+            }
+            guard bytesRead > 0 else {
+                throw POSIXError(.init(rawValue: errno) ?? .EIO)
+            }
+            response.append(contentsOf: buffer.prefix(bytesRead))
+            if response.last == 0x0A {
+                break
+            }
+        }
+
+        while response.last == 0x0A || response.last == 0x0D {
+            response.removeLast()
+        }
+
+        return try JSONDecoder().decode(BurnBarRPCResponseEnvelope<Response>.self, from: response)
+    }
+
+    private static func socketAddress(for socketPath: String) throws -> sockaddr_un {
+        var address = sockaddr_un()
+        address.sun_family = sa_family_t(AF_UNIX)
+        address.sun_len = UInt8(MemoryLayout<sockaddr_un>.stride)
+
+        let pathBytes = Array(socketPath.utf8)
+        guard pathBytes.count < MemoryLayout.size(ofValue: address.sun_path) else {
+            throw POSIXError(.ENAMETOOLONG)
+        }
+
+        withUnsafeMutableBytes(of: &address.sun_path) { rawBuffer in
+            rawBuffer.initializeMemory(as: UInt8.self, repeating: 0)
+            for (index, byte) in pathBytes.enumerated() {
+                rawBuffer[index] = byte
+            }
+        }
+
+        return address
+    }
+}
+
+struct BurnBarDaemonProviderConfiguration: Equatable, Identifiable {
+    let providerID: String
+    let provider: AgentProvider
+    let isEnabled: Bool
+    let baseURL: String
+    let preferredModelIDs: [String]
+
+    var id: String { providerID }
+    var displayName: String { provider.displayName }
+}
+
+struct BurnBarDaemonRecentUsage: Equatable, Identifiable {
+    let idempotencyKey: String
+    let provider: AgentProvider
+    let model: String
+    let totalTokens: Int
+    let cost: Double
+    let recordedAt: Date
+
+    var id: String { idempotencyKey }
+}
+
+struct BurnBarDaemonRuntimeSnapshot: Equatable {
+    static let empty = BurnBarDaemonRuntimeSnapshot(
+        providerConfigurations: [],
+        recentUsage: [],
+        ledgerRecordCount: 0
+    )
+
+    let providerConfigurations: [BurnBarDaemonProviderConfiguration]
+    let recentUsage: [BurnBarDaemonRecentUsage]
+    let ledgerRecordCount: Int
+}
+
+final class BurnBarDaemonUsageSyncService {
+    private let paths: BurnBarDaemonRuntimePaths
+    private let fileManager: FileManager
+    private let decoder = JSONDecoder()
+
+    init(
+        paths: BurnBarDaemonRuntimePaths = .live(),
+        fileManager: FileManager = .default
+    ) {
+        self.paths = paths
+        self.fileManager = fileManager
+    }
+
+    @discardableResult
+    func refreshState(
+        insertUsage: ((TokenUsage) throws -> Void)? = nil,
+        refreshUsageCache: (() -> Void)? = nil
+    ) -> BurnBarDaemonRuntimeSnapshot {
+        let usageRecords = loadUsageRecords()
+        let importedUsages = usageRecords.compactMap { tokenUsage(from: $0) }
+
+        if let insertUsage, !importedUsages.isEmpty {
+            for usage in importedUsages {
+                try? insertUsage(usage)
+            }
+            refreshUsageCache?()
+        }
+
+        return BurnBarDaemonRuntimeSnapshot(
+            providerConfigurations: providerConfigurations(from: loadProviderConfigurationSnapshot()),
+            recentUsage: usageRecords
+                .compactMap { recentUsage(from: $0) }
+                .sorted { $0.recordedAt > $1.recordedAt }
+                .prefix(6)
+                .map { $0 },
+            ledgerRecordCount: importedUsages.count
+        )
+    }
+
+    @discardableResult
+    func runtimeSnapshot(
+        from configSnapshot: BurnBarProviderConfigurationSnapshot,
+        usageEvents: [BurnBarUsageEvent],
+        insertUsage: ((TokenUsage) throws -> Void)? = nil,
+        refreshUsageCache: (() -> Void)? = nil
+    ) -> BurnBarDaemonRuntimeSnapshot {
+        let importedUsages = usageEvents.compactMap { tokenUsage(from: $0) }
+
+        if let insertUsage, !importedUsages.isEmpty {
+            for usage in importedUsages {
+                try? insertUsage(usage)
+            }
+            refreshUsageCache?()
+        }
+
+        return BurnBarDaemonRuntimeSnapshot(
+            providerConfigurations: providerConfigurations(from: configSnapshot),
+            recentUsage: usageEvents
+                .compactMap { recentUsage(from: $0) }
+                .sorted { $0.recordedAt > $1.recordedAt }
+                .prefix(6)
+                .map { $0 },
+            ledgerRecordCount: importedUsages.count
+        )
+    }
+
+    private func loadProviderConfigurationSnapshot() -> BurnBarProviderConfigurationSnapshot {
+        guard fileManager.fileExists(atPath: paths.providerConfigURL.path) else {
+            return BurnBarProviderConfigurationSnapshot(providers: [])
+        }
+
+        guard
+            let data = try? Data(contentsOf: paths.providerConfigURL),
+            let snapshot = try? decoder.decode(StoredProviderConfigurationSnapshot.self, from: data)
+        else {
+            return BurnBarProviderConfigurationSnapshot(providers: [])
+        }
+
+        return BurnBarProviderConfigurationSnapshot(
+            providers: snapshot.providers.map { settings in
+                BurnBarProviderSettings(
+                    providerID: settings.providerID,
+                    isEnabled: settings.isEnabled,
+                    baseURL: settings.baseURL,
+                    preferredModelIDs: settings.preferredModelIDs
+                )
+            }
+        )
+    }
+
+    private func providerConfigurations(
+        from snapshot: BurnBarProviderConfigurationSnapshot
+    ) -> [BurnBarDaemonProviderConfiguration] {
+        snapshot.providers
+            .compactMap { settings in
+                guard let provider = agentProvider(for: settings.providerID) else { return nil }
+                return BurnBarDaemonProviderConfiguration(
+                    providerID: settings.providerID,
+                    provider: provider,
+                    isEnabled: settings.isEnabled,
+                    baseURL: settings.baseURL,
+                    preferredModelIDs: settings.preferredModelIDs
+                )
+            }
+            .sorted { providerSortOrder($0.provider) < providerSortOrder($1.provider) }
+    }
+
+    private func loadUsageRecords() -> [StoredUsageRecord] {
+        guard fileManager.fileExists(atPath: paths.usageLedgerURL.path) else {
+            return []
+        }
+
+        guard let fileContents = try? String(contentsOf: paths.usageLedgerURL, encoding: .utf8) else {
+            return []
+        }
+
+        return fileContents
+            .split(whereSeparator: \.isNewline)
+            .compactMap { line in
+                try? decoder.decode(StoredUsageRecord.self, from: Data(line.utf8))
+            }
+    }
+
+    private func tokenUsage(from event: BurnBarUsageEvent) -> TokenUsage? {
+        guard let provider = agentProvider(for: event.providerID) else {
+            return nil
+        }
+
+        let sessionID = event.runID?.rawValue ?? "\(provider.rawValue.lowercased())-\(event.recordedAt.timeIntervalSince1970)"
+        let identityValue = event.runID?.rawValue ?? "\(event.providerID)|\(event.modelID)|\(event.recordedAt.timeIntervalSince1970)"
+        return TokenUsage(
+            id: deterministicUUID(for: identityValue),
+            provider: provider,
+            sessionId: sessionID,
+            projectName: "BurnBar Daemon",
+            model: event.modelID,
+            inputTokens: event.inputTokens,
+            outputTokens: event.outputTokens,
+            cacheCreationTokens: event.cacheCreationTokens,
+            cacheReadTokens: event.cacheReadTokens,
+            costUSD: event.cost,
+            startTime: event.recordedAt,
+            endTime: event.recordedAt
+        )
+    }
+
+    private func tokenUsage(from record: StoredUsageRecord) -> TokenUsage? {
+        guard let provider = agentProvider(for: record.event.providerID) else {
+            return nil
+        }
+
+        let sessionID = record.event.runID?.rawValue ?? record.idempotencyKey
+        return TokenUsage(
+            id: deterministicUUID(for: record.idempotencyKey),
+            provider: provider,
+            sessionId: sessionID,
+            projectName: "BurnBar Daemon",
+            model: record.event.modelID,
+            inputTokens: record.event.inputTokens,
+            outputTokens: record.event.outputTokens,
+            cacheCreationTokens: record.event.cacheCreationTokens,
+            cacheReadTokens: record.event.cacheReadTokens,
+            costUSD: record.event.cost,
+            startTime: record.event.recordedAt,
+            endTime: record.event.recordedAt
+        )
+    }
+
+    private func recentUsage(from event: BurnBarUsageEvent) -> BurnBarDaemonRecentUsage? {
+        guard let provider = agentProvider(for: event.providerID) else {
+            return nil
+        }
+
+        return BurnBarDaemonRecentUsage(
+            idempotencyKey: event.runID?.rawValue ?? "\(event.providerID)|\(event.modelID)|\(event.recordedAt.timeIntervalSince1970)",
+            provider: provider,
+            model: event.modelID,
+            totalTokens: event.inputTokens + event.outputTokens + event.cacheCreationTokens + event.cacheReadTokens,
+            cost: event.cost,
+            recordedAt: event.recordedAt
+        )
+    }
+
+    private func recentUsage(from record: StoredUsageRecord) -> BurnBarDaemonRecentUsage? {
+        guard let provider = agentProvider(for: record.event.providerID) else {
+            return nil
+        }
+
+        return BurnBarDaemonRecentUsage(
+            idempotencyKey: record.idempotencyKey,
+            provider: provider,
+            model: record.event.modelID,
+            totalTokens: record.event.inputTokens + record.event.outputTokens + record.event.cacheCreationTokens + record.event.cacheReadTokens,
+            cost: record.event.cost,
+            recordedAt: record.event.recordedAt
+        )
+    }
+
+    private func deterministicUUID(for value: String) -> UUID {
+        let digest = Insecure.MD5.hash(data: Data(value.utf8))
+        let bytes = Array(digest)
+        return UUID(uuid: (
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5],
+            bytes[6], bytes[7],
+            bytes[8], bytes[9],
+            bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+        ))
+    }
+
+    private func agentProvider(for providerID: String) -> AgentProvider? {
+        switch providerID.lowercased() {
+        case "zai":
+            return .zai
+        case "minimax":
+            return .minimax
+        default:
+            return nil
+        }
+    }
+
+    private func providerSortOrder(_ provider: AgentProvider) -> Int {
+        switch provider {
+        case .zai:
+            return 0
+        case .minimax:
+            return 1
+        default:
+            return Int.max
+        }
+    }
+}
+
+private struct StoredProviderConfigurationSnapshot: Codable {
+    let providers: [StoredProviderSettings]
+}
+
+private struct StoredProviderSettings: Codable {
+    let providerID: String
+    let isEnabled: Bool
+    let baseURL: String
+    let preferredModelIDs: [String]
+}
+
+private struct StoredUsageRecord: Codable {
+    let idempotencyKey: String
+    let event: BurnBarUsageEvent
+}
+
+private extension String {
+    var nonEmpty: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
