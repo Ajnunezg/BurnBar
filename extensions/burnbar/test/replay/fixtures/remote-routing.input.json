@@ -61,7 +61,7 @@
             "run_terminal"
           ],
           "gatedTools": [],
-          "explanation": "Workspace tools are running on the remote workspace host. All PR6 workspace tools are available."
+          "explanation": "Workspace tools are running on the remote workspace host. All workspace tools are available."
         }
       }
     ]

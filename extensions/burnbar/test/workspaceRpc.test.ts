@@ -37,7 +37,7 @@ describe("BurnBar workspace RPC", () => {
     commandRegistrations.clear();
   });
 
-  it("bridges command RPC into the local workspace companion and executes PR6 tools", async () => {
+  it("bridges command RPC into the local workspace companion and executes workspace tools", async () => {
     const api = createFakeWorkspaceApi();
     const companion = new BurnBarWorkspaceCompanion(api);
     const client = new BurnBarWorkspaceRpcClient({

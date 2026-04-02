@@ -1528,7 +1528,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AgentLens/Resources/BurnBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 4Y367DF25B;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "AgentLens/Resources/BurnBar-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = BurnBar;
 				INFOPLIST_KEY_CFBundleName = BurnBar;
@@ -1700,7 +1700,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AgentLens/Resources/BurnBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 4Y367DF25B;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = "AgentLens/Resources/BurnBar-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = BurnBar;
 				INFOPLIST_KEY_CFBundleName = BurnBar;

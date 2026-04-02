@@ -36,7 +36,7 @@
             "run_terminal"
           ],
           "gatedTools": [],
-          "explanation": "Workspace tools are running in the local extension host. All PR6 workspace tools are available."
+          "explanation": "Workspace tools are running in the local extension host. All workspace tools are available."
         },
         "lastUpdatedAt": "2026-03-22T12:00:00.000Z"
       },
@@ -106,9 +106,9 @@
         {
           "id": "workspace-explanation",
           "label": "Workspace note",
-          "value": "Workspace tools are running in the local extension host. All PR6 workspace tools are available.",
+          "value": "Workspace tools are running in the local extension host. All workspace tools are available.",
           "icon": "note",
-          "tooltip": "Workspace tools are running in the local extension host. All PR6 workspace tools are available."
+          "tooltip": "Workspace tools are running in the local extension host. All workspace tools are available."
         },
         {
           "id": "next-step",
@@ -190,7 +190,7 @@
             "run_terminal"
           ],
           "gatedTools": [],
-          "explanation": "Workspace tools are running in the local extension host. All PR6 workspace tools are available."
+          "explanation": "Workspace tools are running in the local extension host. All workspace tools are available."
         },
         "health": {
           "ok": true,
@@ -269,9 +269,9 @@
         {
           "id": "workspace-explanation",
           "label": "Workspace note",
-          "value": "Workspace tools are running in the local extension host. All PR6 workspace tools are available.",
+          "value": "Workspace tools are running in the local extension host. All workspace tools are available.",
           "icon": "note",
-          "tooltip": "Workspace tools are running in the local extension host. All PR6 workspace tools are available."
+          "tooltip": "Workspace tools are running in the local extension host. All workspace tools are available."
         },
         {
           "id": "next-step",

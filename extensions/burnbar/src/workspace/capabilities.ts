@@ -91,7 +91,7 @@ function explainWorkspaceCapabilities(capabilities: {
   }
 
   if (segments.length === 1) {
-    segments.push('All PR6 workspace tools are available.');
+    segments.push('All workspace tools are available.');
   }
 
   return segments.join(' ');
