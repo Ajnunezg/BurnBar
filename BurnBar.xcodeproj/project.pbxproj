@@ -1,0 +1,1953 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00AC75B060491F5A14E576FA /* BurnBarConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5520282B54D5B55516E83A6A /* BurnBarConfigStore.swift */; };
+		00CF8F604CC04B577CA6CFF0 /* AppLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6CBCC17F090BB09BDB45E2 /* AppLogoView.swift */; };
+		023221EFD1C35F98213C2672 /* libBurnBarDaemon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F18060AB007AAC6A073EE77F /* libBurnBarDaemon.a */; };
+		0308DAE1148B4DAB9BDC7F4E /* ChatBackendID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4168A8A8873FFABB10DBC975 /* ChatBackendID.swift */; };
+		031849A28E9B786B32BCECF3 /* OnboardingWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9938D2A552EA70963AC5141 /* OnboardingWizardView.swift */; };
+		04EFC1813CA35E9D5EB22751 /* ZaiMiniMaxUsageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F873D5A329426688F413581 /* ZaiMiniMaxUsageProbe.swift */; };
+		0570296CEB53B1FAC0898D34 /* MissionControlProjectionFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C68CD9B70BA8A9042B64DF /* MissionControlProjectionFile.swift */; };
+		05A6E3A1E5E7A10FD483BC7B /* ProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CBD27204008085BDEAC3BF0 /* ProviderLogoView.swift */; };
+		0693FB1EC2D004154C5507D3 /* ControlPlaneStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53AFE43048900448494F2F5 /* ControlPlaneStore.swift */; };
+		07038E3A9148757570FA69E7 /* SessionLedgerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07FEC415B07A3FC8DC85D429 /* SessionLedgerSection.swift */; };
+		09C863B45002C6FAE8DD144D /* BurnBarDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4FD1248A8C6144D2DA8DAE /* BurnBarDatabase.swift */; };
+		0A23D849F157E1BDA0CAA9D6 /* AugmentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07EC912B8FE41B204E41EA03 /* AugmentParser.swift */; };
+		0A3298FA7A454ECC45A532F7 /* ChatMessageViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676692E66CC6F77399EBD628 /* ChatMessageViewTests.swift */; };
+		0B81470A3FAFC854A11B8D48 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84E08215997E4EC968826D45 /* SearchService.swift */; };
+		0C6144388B50FEA9575D4ECB /* AgentLensApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB63B965BA4D6A7398DEE39 /* AgentLensApp.swift */; };
+		0C9D72C6C2B0FE162D901F43 /* BurnBarProviderExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0224B1ACC9473291EF8A1BA3 /* BurnBarProviderExecutor.swift */; };
+		0CDEEEF7548897A1E9DB45E4 /* ProviderQuotaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B994E197D62EA81E57DAD31 /* ProviderQuotaService.swift */; };
+		0E56C051DACB1C66589F2A31 /* KimiParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021276DEE6679BDBF0E71042 /* KimiParser.swift */; };
+		0E7B66B5E964BAEBB4F6DBB4 /* MissionControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62DEA94AEB97FB82BAEE8742 /* MissionControlService.swift */; };
+		0F2F42FF5B06EA21657674B9 /* OnboardingCompleteViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3839A05BE8BA56D5AB4C6166 /* OnboardingCompleteViewTests.swift */; };
+		125B9C990A5869F375EDAA2F /* OpenAIUsageAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9686D98CD34345A4DCA4D612 /* OpenAIUsageAPI.swift */; };
+		13E4E761EEE3E7ABA2D6FDCE /* retrieval-semantic-rescue.json in Resources */ = {isa = PBXBuildFile; fileRef = D7B104DE9475A787BEB3214E /* retrieval-semantic-rescue.json */; };
+		15176819B2B968579984FCAA /* retrieval-filter-correctness.json in Resources */ = {isa = PBXBuildFile; fileRef = 87DA6CB067222B5E99456B3F /* retrieval-filter-correctness.json */; };
+		15E5CD3894F270D058BB4EC0 /* InsightCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787CA705F565BE6C5765A7F7 /* InsightCardView.swift */; };
+		182F0C0B8B479DC85797D30B /* BurnBarPolicyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A372A1F348E51FCAF134A24 /* BurnBarPolicyEngine.swift */; };
+		187983793E740E66D8C14EC5 /* CLIAssistantConsentSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409A02AB731D00FB5AAFB7BA /* CLIAssistantConsentSheetTests.swift */; };
+		1B69BF63B7176CC14405918E /* HermesPopoverStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = C143C34FDB9141FE48DCA705 /* HermesPopoverStrip.swift */; };
+		1BBCD265DBC9780414A5224E /* BurnBarChatWorkspaceConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EB9B6F52BEB0DD27364FFF /* BurnBarChatWorkspaceConfigurator.swift */; };
+		1CB31ECEC37FDB792D55A815 /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D40EDD5872FB26C05824AE2 /* NavigationCoordinator.swift */; };
+		1EF1BE9D77D9BFB209A4C144 /* CursorConnectorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DC63AE4066BA4C15C2AD9B /* CursorConnectorManager.swift */; };
+		1EF76BA011F3E8D3DDA81784 /* SearchIndexStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DCE8821ED32580432E5647 /* SearchIndexStore.swift */; };
+		1F0E7247EAF58DDB1C5F0738 /* OnboardingChatEngineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36E45387E760AF2F19029CE7 /* OnboardingChatEngineView.swift */; };
+		1FDC3D17CAA154F4B8C8F467 /* TokenExtractionUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA269E3080C36499D19BB076 /* TokenExtractionUtility.swift */; };
+		2160E0861FDA738ABA9FB7F2 /* ConversationIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78AAB24FFCF6E834BEF9F57 /* ConversationIndexer.swift */; };
+		22ED69E3B33A04412FFF512E /* OpenRouterUsageAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCDF707C013B9746C2C881C /* OpenRouterUsageAPI.swift */; };
+		24CC9553D5FCF5770DD2B335 /* BurnBarDaemonConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99AFB17D951FAEEA4824E20 /* BurnBarDaemonConfiguration.swift */; };
+		267D5B08C8170557A8B5B8A2 /* DailyDigestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC7BF69A4E9C2151614E0DB /* DailyDigestManager.swift */; };
+		276D0A1C6A750ECC1D34D686 /* OnboardingCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30086E9168B41B3E3B8B5E4F /* OnboardingCompleteView.swift */; };
+		279D475C721B1D66032D1A40 /* ChatPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DB93DCF073DBA419A279F7B /* ChatPanel.swift */; };
+		28E2E74FB32DF78342143C1A /* ChatSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E868B210AF80295AB84F5900 /* ChatSessionController.swift */; };
+		28FAE9E14D36DEE0C584ACFF /* BurnBarClientRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B142C292956B5143453C2D3B /* BurnBarClientRegistry.swift */; };
+		2989CD7BDFFAEA0A58660E79 /* BurnBarDaemonManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF00DDB2DC457FA8BCF2FD41 /* BurnBarDaemonManagerTests.swift */; };
+		2DDBB36CB651B9922A12F0D6 /* AgentLensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180D764BB278219C8C08C531 /* AgentLensTests.swift */; };
+		303D488B71E91FD9A328A1B7 /* HermesToolCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FD51E35B86062664247506 /* HermesToolCardTests.swift */; };
+		305D11D4EF2BEB1A3667A6E4 /* ViewFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66168517C3121A5169D65D1 /* ViewFixtures.swift */; };
+		307FE152A5352381D14E360F /* ParserIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69C7815DD87A69F0B12159D /* ParserIntegrationTests.swift */; };
+		33C02A29F63B31FF1DCA777C /* MissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C29E0AB4A772066AFE8A3DB2 /* MissionsView.swift */; };
+		345CE3C3DC3EEFE4EDDCE6BF /* InsightBriefCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 846CF10DE54AA8C66CDD7699 /* InsightBriefCard.swift */; };
+		353FC2A36D8DB60F6018E9F5 /* BurnBarIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A75541FE7442B29F4894BCC /* BurnBarIdentity.swift */; };
+		3AF8A9A59F48835DE835898B /* BurnBarAgentLoopService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6988E1ECB5A01E2F0244571A /* BurnBarAgentLoopService.swift */; };
+		3BAB70BEDBC07D8A19C3E307 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF3B136474EC87BAFF9A3B1 /* DashboardView.swift */; };
+		3D4793ECE8FBF7FBEBD9E7C4 /* UsageAggregator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C27E98F51683D9AACE8A82F /* UsageAggregator.swift */; };
+		3D6B4FD7CA92481C4F948C12 /* BurnBarContextSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32B15D2EBFFCAC88F633101 /* BurnBarContextSelector.swift */; };
+		3E2267F32B14832144E933D1 /* MissionControlError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2F53D375F65C9EA011883B /* MissionControlError.swift */; };
+		3E8D4A575AB9E29537153CE3 /* BurnBarProviderRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00797E78E3EB2460BC73F717 /* BurnBarProviderRouterTests.swift */; };
+		416A01A17B8084A11BE4CD21 /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB62777DDFCCE7756CE2583E /* MenuBarPopoverView.swift */; };
+		42953BEAE38B676C6EBD6384 /* AccountManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 919C163E3845CED5CB2A8D6A /* AccountManager.swift */; };
+		43010FB90DABB271F4030454 /* InsightBriefCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF69D197835FF9E460C0596E /* InsightBriefCardTests.swift */; };
+		43BA485D9546C2619D2CFC3B /* DeviceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D338AF75C2D20B79D0D5044C /* DeviceStore.swift */; };
+		449D270D236534D80F1AC52B /* AppLogoViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8540252A9415DF9FC8430DCA /* AppLogoViewTests.swift */; };
+		498A40676B8A037B481FA31A /* HermesPopoverChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CB93DEC3EB8D73FE3B5302 /* HermesPopoverChatView.swift */; };
+		4B7A04331CE08B83EF78E9E8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 75A41CA28F5F94306C9AEBD3 /* FirebaseFirestore */; };
+		4C169BE060466EBFA824FE12 /* MiniSparkline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA53CDBBD782834EC9FA51B8 /* MiniSparkline.swift */; };
+		4C1DEE0A243A0D0F82A5F94B /* ContextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0C003B0BC42F2B9629E344 /* ContextBuilder.swift */; };
+		4C2BE788814BF6CF5A4AF1C2 /* ForgeDevParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CEE8A9E8BBBA1DE97E27FC5 /* ForgeDevParser.swift */; };
+		4D455F701D9DB63B75DB7138 /* BurnBarDaemonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC89C463323EF989AEA92AE4 /* BurnBarDaemonManager.swift */; };
+		52C9EE6B24B4BE5D099481CB /* BurnBarIndexedSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E33F9067CC8630AB3D9D19 /* BurnBarIndexedSearchService.swift */; };
+		538B4122D661C21C5C78795F /* ChatFAB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6FC3BE7A6E6EA1AFE3E41E /* ChatFAB.swift */; };
+		556C3D566FA5029F03B41848 /* BurnBarIndexedSearchServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F159D4D7759E70FCC5DE2A /* BurnBarIndexedSearchServiceTests.swift */; };
+		56A87437FBFF7D3BD7131711 /* FactoryDroidParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31C24B995A2CBBB18265152 /* FactoryDroidParser.swift */; };
+		5701E58E0F2F677D5365C0E9 /* BurnBarOperatingLayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0FD8CD2084F0CBBAD34AF13 /* BurnBarOperatingLayerTests.swift */; };
+		5A6C727845CE9B52330B989F /* DashboardActionGlyphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FB5B6FA3B3A8A919660CB6D /* DashboardActionGlyphTests.swift */; };
+		5BA8D7D5E51F397BE669059A /* BurnBarAgentStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46D2BCD6B006500521B68AA8 /* BurnBarAgentStackTests.swift */; };
+		5C0724473518856FD77FD381 /* NarrativeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0263618C9749E500C938C0B1 /* NarrativeCardView.swift */; };
+		5CEB345FDC7C5D565C8C6CB2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 36350E32BFC87CC729892DE2 /* GoogleService-Info.plist */; };
+		5FEB73945A2529012A543048 /* SessionLogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA46F9D242D22FD43A22B1C /* SessionLogsView.swift */; };
+		6017122A1014FC685BF82A2F /* ProviderQuotaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9474415C61F45B5810EA5156 /* ProviderQuotaViews.swift */; };
+		62ACFA7A09A09FBEF375E44D /* MissionControlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D7665228C70CA566FA6489 /* MissionControlHelpers.swift */; };
+		63129433EF48F8636FCB8B1A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6F26FB866B92E10DC33128 /* SettingsView.swift */; };
+		B04F1E2D3C5B6A7988776655 /* AccountSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776655 /* AccountSettingsView.swift */; };
+		B04F1E2D3C5B6A7988776656 /* AlertsAndNotificationsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776656 /* AlertsAndNotificationsViews.swift */; };
+		B04F1E2D3C5B6A7988776657 /* AppearanceCorkboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776657 /* AppearanceCorkboardSection.swift */; };
+		B04F1E2D3C5B6A7988776658 /* AppearanceModePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776658 /* AppearanceModePickerView.swift */; };
+		B04F1E2D3C5B6A7988776659 /* ChatGatewaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776659 /* ChatGatewaySettingsView.swift */; };
+		B04F1E2D3C5B6A798877665A /* DaemonSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665A /* DaemonSettingsView.swift */; };
+		B04F1E2D3C5B6A798877665B /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665B /* GeneralSettingsView.swift */; };
+		B04F1E2D3C5B6A798877665C /* PrivacyIndexingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665C /* PrivacyIndexingSettingsView.swift */; };
+		B04F1E2D3C5B6A798877665D /* ProvidersSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665D /* ProvidersSettingsView.swift */; };
+		B04F1E2D3C5B6A798877665E /* SessionSummaryWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665E /* SessionSummaryWizardView.swift */; };
+		B04F1E2D3C5B6A798877665F /* SettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A798877665F /* SettingsTab.swift */; };
+		B04F1E2D3C5B6A7988776660 /* SpeedOptionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04F1E2D3C5B6A7988776660 /* SpeedOptionsSheet.swift */; };
+		64293F500C16B45737E5BB32 /* BurnBarSearchIntegrationHarnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCFAD9B2EFB1A0D1643EBB4 /* BurnBarSearchIntegrationHarnessTests.swift */; };
+		64396AEAD16A95B365B5C34D /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C75EE1CC1C5085466E59BE /* DesignSystem.swift */; };
+		668E03DF78E5653D30C411CC /* BurnBarOperatingLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B223F1F47CB588A0F840DE16 /* BurnBarOperatingLayer.swift */; };
+		6739A74B4744612379228EB0 /* BurnBarCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B28647A9AFE4CA61A02C4FA /* BurnBarCore */; };
+		67BD9B64297BFF7CB8D18144 /* OnboardingConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEFE8597356F6730FE6063A7 /* OnboardingConnectView.swift */; };
+		6A4DAC63BB30F8458BFACE26 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB25ED0122B25402A8274537 /* Assets.xcassets */; };
+		6C1BAAF37641726DB3DCF879 /* AnthropicUsageAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884C00CD139AB73C24F8EB96 /* AnthropicUsageAPI.swift */; };
+		6C2C48F577AF34DC382F00CE /* GooseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93949AFABCF26567712367AB /* GooseParser.swift */; };
+		6E7324835087667843154F8C /* ProviderQuotaServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7B9095083BF1AF6D2EDAC7 /* ProviderQuotaServiceTests.swift */; };
+		6EA6639C091DB34D5D77EEC4 /* BurnBarProviderRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CD47FEE60B1D5715C8E94F1 /* BurnBarProviderRouter.swift */; };
+		70CC119C5FD74295B651297F /* PopoverTooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC5EE077F2EB72344CE0494 /* PopoverTooltip.swift */; };
+		720603691FA7249468178568 /* BurnBarProviderCatalogSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43E6640557CB14B9782F17F /* BurnBarProviderCatalogSupport.swift */; };
+		76065972945E97BB1063C2A0 /* ProviderUsageAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 232E2624301EF9DBC44485B3 /* ProviderUsageAPIService.swift */; };
+		765EAFB1EC3EAAA0FA197EF4 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5419CC3403C6F6AE2739AB /* FlowLayout.swift */; };
+		77DB561CDAC21883591329EE /* BurnBarRunJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC3214CAC813B7058703E86 /* BurnBarRunJournal.swift */; };
+		78A1D969DCECEF0C6CE17101 /* DatabaseWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26990789CDF44C02B70659D5 /* DatabaseWorkspaceView.swift */; };
+		7A70951F155AC491EBDA90B7 /* BurnBarSearchIntegrationHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0350E75CD849BD279A595941 /* BurnBarSearchIntegrationHarness.swift */; };
+		7D62BA6F6FCE298E4AD710F9 /* CloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD006CD9B9241D1364DE204 /* CloudSyncService.swift */; };
+		82E2FC121C9EFB002C429418 /* retrieval-ann-vs-exact-baseline.json in Resources */ = {isa = PBXBuildFile; fileRef = 221DF20D6ADD21DA23F2F7EF /* retrieval-ann-vs-exact-baseline.json */; };
+		85BF8C03D18C03FEC77EC2CF /* TelegramBotBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692C5FB45B80DA96DFF9C857 /* TelegramBotBridge.swift */; };
+		8622D30B075BF11CDCBA0C97 /* OnboardingProviderCloudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE625A7636B06EA5F2353955 /* OnboardingProviderCloudView.swift */; };
+		86FE7AA85FD388F048D169AF /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E585C2B7DE464924EC3F5751 /* KeychainStore.swift */; };
+		896B87E45E85474A48AF74F2 /* ProjectionPipelineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09ABDFBBAF6B198BDD825AC /* ProjectionPipelineService.swift */; };
+		8A964B0CD5A05F81129CEF49 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1396996BD4F1A33C8202CE /* ThemeManager.swift */; };
+		8B364BDA00A686C1D08CE6DF /* SessionLogMarkdownFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543EF3A2D2A3D55B71D5EE9A /* SessionLogMarkdownFormatter.swift */; };
+		8B5336E8F3B743D1A4F1F613 /* EventKitBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC948B0229F5C3B8FC16B649 /* EventKitBridge.swift */; };
+		8B70B20C4CB174C0EE104F0B /* AgentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93861E410EAF0BE0E52F57BC /* AgentProvider.swift */; };
+		8D1ECC59ACF18EC42BC81573 /* CursorConnectorModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7356C2B877EAD026DC34C39C /* CursorConnectorModels.swift */; };
+		8D77F5D4F3A5E3DC6A2BF45C /* ClaudeCodeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C00538BB191C7829B9351C9 /* ClaudeCodeParser.swift */; };
+		8D7A08AC38B3A7F88C981036 /* CrossEncoderConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF0262CCB1779605B79D5AAA /* CrossEncoderConfiguration.swift */; };
+		8D8FB67B13FDEA50063C1207 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 13242102B8AB16D7BF4F0829 /* FirebaseAuth */; };
+		919C9DB35478E7E2BC98E194 /* BurnBarDaemonMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10B81A290BB2FA13F52EF43 /* BurnBarDaemonMain.swift */; };
+		925360D124A2A47B0BD7C78C /* InsightEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E39B5FA548A873DDB3B02D2 /* InsightEngineTests.swift */; };
+		929BDE647DC342239714D7A2 /* GitHubCopilotUsageAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CD840845253AE47D3AD546 /* GitHubCopilotUsageAPI.swift */; };
+		93F39ED729B41A62FFECA398 /* ChatMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD8DDB67F7353521940AE65A /* ChatMessageView.swift */; };
+		940835280FB24C4565C952EF /* ArtifactAuthoringService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60E61FACB3F1BA7798FE9CA /* ArtifactAuthoringService.swift */; };
+		94631D5DC02918F490866953 /* DailyDigestManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF449A9A05FC0BC270A0FA31 /* DailyDigestManagerTests.swift */; };
+		966CAD2C00479EBC2FBAFDB8 /* DataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058CCE36124AD2719EAB058 /* DataStoreTests.swift */; };
+		98E18FD279ED3571BCE5686D /* CursorConnectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD03FDBE76B81491FE3AD390 /* CursorConnectorTests.swift */; };
+		995479B39BB2DB0BBB7C851A /* BurnBarDaemonServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F22BFE4FEA6AE9B6DF55F0E /* BurnBarDaemonServer.swift */; };
+		E6D7C890B1A234E5678D9C0B2 /* BurnBarDaemonAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E8D901C2B3A4F5678E9D0A1 /* BurnBarDaemonAuth.swift */; };
+		996C4E4C0C5D370445E86E59 /* CLIAssistantConsentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95ABBBF9B8FF86B6A0C98A69 /* CLIAssistantConsentSheet.swift */; };
+		9986637512B71864BE70C1DB /* ProjectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC96DA0A6947F17788B60ABE /* ProjectionStore.swift */; };
+		99C8CB701F5F799C65404F13 /* libBurnBarDaemon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F18060AB007AAC6A073EE77F /* libBurnBarDaemon.a */; };
+		9BF79DF35C6E49FCCF10E7AE /* InsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C7570151F5AA138EA100752 /* InsightEngine.swift */; };
+		9D5B7D3EA32894C63BC6AA6A /* MissionControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803D01D1AAD6A73255297CB8 /* MissionControlStore.swift */; };
+		A12CD2F9FF0AD35187DFEEBB /* ClineFormatParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C290E33A14E5BA65747111E4 /* ClineFormatParser.swift */; };
+		A3CE1296FE0714AEFCD64495 /* HermesThinkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F4C9C52E6791F1FC7384BA /* HermesThinkingView.swift */; };
+		A46C2B6F13102032252A1F21 /* ProjectsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FDA5107B5C32DF13BF1B1C /* ProjectsView.swift */; };
+		A4C3A23CC6CEE7590D98DA78 /* BurnBarRunServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8F159F87C03C164ABE2FD2 /* BurnBarRunServiceTests.swift */; };
+		A5DDAF93CA320ED6D4AF538F /* BurnBarUsageRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11E1C39E4D9A409079BF406 /* BurnBarUsageRecorder.swift */; };
+		A89458ED3F44A60CAFC0379D /* BurnBarDaemonServerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E38E58D2F026F93D17F205 /* BurnBarDaemonServerTests.swift */; };
+		A9B05FFB93001CF32AC82F48 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 979643508E77719C5C1D947C /* Formatting.swift */; };
+		AAF91CB4D31BF1A344E7BA87 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD45369DB6FF2FB2D144762 /* SessionDetailView.swift */; };
+		AAFB8FF094CF34714D02ABB3 /* OnboardingProviderPillTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EED64DDF2B424EAA0168C692 /* OnboardingProviderPillTests.swift */; };
+		AB232E66373CAE791D7E9D53 /* ArtifactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D617654C1FF312A9CAC572E9 /* ArtifactStore.swift */; };
+		ADC3D20DDABC845D7ECF52D3 /* ColorAdaptive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09680869E5BE9F09B6BA54AA /* ColorAdaptive.swift */; };
+		AE2F79139358807805CF4C9D /* BurnBarUsageRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92599A99F821919AC0FC4801 /* BurnBarUsageRecorderTests.swift */; };
+		AFE2A5C131F9044CEAB00AD4 /* OnboardingTourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05CA939925D947C3DB2628EA /* OnboardingTourView.swift */; };
+		B2D2EDED9629A76AD6321E86 /* TranscriptBlockParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9EF14922DF5A2D1ABE036AB /* TranscriptBlockParser.swift */; };
+		B64F983BD4AFEE0CF0353DB7 /* ModelProviderLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5117B944730A212EB03A155D /* ModelProviderLogoView.swift */; };
+		B680867046D1AC58FD841AB5 /* ProviderLogoViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B084687B2EB12096A729B2 /* ProviderLogoViewTests.swift */; };
+		B801CB334DBD194CD3CCC5C9 /* GoogleService-Info.plist.example in Resources */ = {isa = PBXBuildFile; fileRef = 516803FEE424627EFA549B4B /* GoogleService-Info.plist.example */; };
+		B9D6A4B6C79CAF77769C3214 /* CrossEncoderReranker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AB0C2B1159EF1508DED5FCF /* CrossEncoderReranker.swift */; };
+		BB7A019353CDC1B6099A62A0 /* HermesToolCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715B5B7D9D597F6D273022CF /* HermesToolCard.swift */; };
+		BC3A293B622202B95F37F726 /* ModelDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446591207B48BD3395B876D2 /* ModelDashboardView.swift */; };
+		BC4F19A4F569A139F55FAB25 /* ChatFABTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3FF0831FB58E8A7F80DB21 /* ChatFABTests.swift */; };
+		BCC3BB4619B33BC3324144E6 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BEF571BF26E1E73F323BB3 /* PerformanceTests.swift */; };
+		BD32D6EA3FEB7EC0D65D62E2 /* OnboardingProviderPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A7B26E19B5CB2309D4DCCC /* OnboardingProviderPill.swift */; };
+		BD88BFC5BFFF32DFFBE9374F /* CrossEncoderRerankerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7804F13D717D2F98E7183BC3 /* CrossEncoderRerankerTests.swift */; };
+		BDC1E4E01F094D7217E76226 /* BurnBarToolPlaneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 308AE17F7159F9DF09461384 /* BurnBarToolPlaneService.swift */; };
+		BE186A1903C5879B1E3EA670 /* SessionLedgerSectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C56A7076466B1F76C90C4DF /* SessionLedgerSectionTests.swift */; };
+		C0C391E1AE3B91F98AA817F9 /* ModelPricing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4DF7BE299DBC731B8FECEBB /* ModelPricing.swift */; };
+		C3789CDE17F2855242A5D2F5 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101905159A0133B28DE3CE39 /* DataStore.swift */; };
+		C6B8B95F868DB683DB17D7CE /* HermesDataFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 236042087027F85FC17BC6C7 /* HermesDataFolder.swift */; };
+		C769397B3B82F9BAC7D0D5FD /* CLIBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F655466D7F6773AF8FAA13C /* CLIBridgeTests.swift */; };
+		C816F174DDC961A6C2F3A963 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = F04B5C9B1DD26137230DCDBC /* GoogleSignIn */; };
+		CBEE91F9CBDFA0305DA4580C /* MercuryShimmerModifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C359C7C6CB897418D7C36240 /* MercuryShimmerModifierTests.swift */; };
+		CC85DC958D92AA433AE3D132 /* retrieval-lexical-win.json in Resources */ = {isa = PBXBuildFile; fileRef = 72FB611C7CD42A40B8527536 /* retrieval-lexical-win.json */; };
+		CCA4E7B5A5355C795196E543 /* BurnBarPlannerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5E77446951994F498C252C /* BurnBarPlannerService.swift */; };
+		CD06514B50B91D4D3095D771 /* 66e1b25cc9185ef537421b18_Factory.ai.webp in Resources */ = {isa = PBXBuildFile; fileRef = D7EB9931E680E925C69C44C5 /* 66e1b25cc9185ef537421b18_Factory.ai.webp */; };
+		CEDE2DB0A6358585E8DD7660 /* DataStoreTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076B10D569B131B490180E61 /* DataStoreTypes.swift */; };
+		CFA2741D43AF54B847A18CCF /* BurnBarCLITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137037A2A13E28865490FF35 /* BurnBarCLITests.swift */; };
+		D0F0586121A4838BB6D1BBB0 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = E37D681CEE596C358C399E97 /* GRDB */; };
+		D1465342E1C49F1C5B32D9BF /* ClaudeConversationExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCE6654BB36FDEC775973BE /* ClaudeConversationExtractor.swift */; };
+		D1655666ECD3913A0A4AF9A1 /* LLMModelBrand.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7EFA857E2A3E502B70258D /* LLMModelBrand.swift */; };
+		D405A794676962042118DB54 /* BurnBarRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13A8FC66EDEA2DD7E67043B /* BurnBarRunService.swift */; };
+		D45856434D21B5ADBE66D70A /* CLIBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F729FDFE6D34B6F03B5DDCA9 /* CLIBridge.swift */; };
+		D877DDBDCE083275CA407C45 /* ConversationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B8CE717F88F54CF543742D /* ConversationStore.swift */; };
+		D8D0032F44F151ADB45679E9 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = F43B86081AA7DE4C3274A45E /* ViewInspector */; };
+		DB41ABA17ADE496572FC7246 /* BurnBarCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3404298C8DE53D53D16D8D4B /* BurnBarCore */; };
+		DC4A69ED82EBA0B7F6A5DF51 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD32B87E897C0B3AD398D398 /* FlowLayoutTests.swift */; };
+		DCC4F16F8E2E49A56F568888 /* ICloudSessionMirrorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B483FB92F7D6DD4CA3BE7E72 /* ICloudSessionMirrorService.swift */; };
+		DD6060EEA96A0FDB42FE69B6 /* MiniSparklineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C82AD6D0174469EA64F6E5 /* MiniSparklineTests.swift */; };
+		DF1C4BA6B09BF13736758D87 /* NarrativeCardViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1C36B03B59BDAC0A7B738F /* NarrativeCardViewTests.swift */; };
+		E070162E6B896F896AE370AE /* UsageAggregatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 080371F153D66E8C8A42912C /* UsageAggregatorTests.swift */; };
+		E0A8312686E5453E69374B2E /* BurnBarConfigStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 362C0D92E7C496843E0AF8C6 /* BurnBarConfigStoreTests.swift */; };
+		E0AF93D560D7D5C985E42467 /* BurnBarDaemonLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D907E693E39D95550BE34A51 /* BurnBarDaemonLogger.swift */; };
+		E1F316DB8D07E09F3C5E4B78 /* GeminiCLIParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F663373EF66E467DEF4A6561 /* GeminiCLIParser.swift */; };
+		E2088FFB5C3663E816FCBD4A /* LocalNotificationBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2F38C6F18A40E701A8EDC /* LocalNotificationBridge.swift */; };
+		E2A23FFFB7A31BBE6143E4ED /* BurnBarCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E79AA744DFFEBBEC918ADF /* BurnBarCLI.swift */; };
+		E31475AF88C63C35822545FA /* HermesThinkingViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AFCC022BB4B9F0B9A104951 /* HermesThinkingViewTests.swift */; };
+		E51DD6FEEC5C264E8BB711DC /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC7CCE2E9BF08471CE475C /* SettingsManager.swift */; };
+		E5B1F3256223D9E6B10CE820 /* BurnBarMissionControlServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF592F10B5BFCA95544AF954 /* BurnBarMissionControlServiceTests.swift */; };
+		E616D6AB30E4E8668C86DDD3 /* BurnBarMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB2B6C595EE40639297CBC2A /* BurnBarMigrationTests.swift */; };
+		E7A4C60A4E45F1AF59102BC0 /* DatabaseWorkspaceSnapshotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C575F84B51ADF5E3C1FF5C6 /* DatabaseWorkspaceSnapshotBuilder.swift */; };
+		E82C0035E674335918180C7D /* CloudSyncServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A4BD09FF2146CE128C7CA6 /* CloudSyncServiceTests.swift */; };
+		E9F2A8ED3429D40FF1A5FBC5 /* ProviderTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBA805C308D29564142BA7F9 /* ProviderTheme.swift */; };
+		ECF0501FADEDA4841B231EE9 /* MercuryShimmerModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD0CBEB721FB213FB80D1B2 /* MercuryShimmerModifier.swift */; };
+		ED7FA243D3949A581A46057A /* OnboardingScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAB3948C87EE353C3B722238 /* OnboardingScanView.swift */; };
+		EDFF510E1EBB3E37BFAE8440 /* retrieval-degraded-fallback.json in Resources */ = {isa = PBXBuildFile; fileRef = DC9B2AAC42DD613BD503A745 /* retrieval-degraded-fallback.json */; };
+		EEDDF4098BDB681E68B3DCD8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 796FA1BE8E5B299F6ACC23EB /* AppDelegate.swift */; };
+		F20A38289F6B1139A1020E37 /* BurnBarWorkspaceBridgeBroker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4991EDE1CCF21B7D26E86CF8 /* BurnBarWorkspaceBridgeBroker.swift */; };
+		F3C72ED816168D2DF6DBA53B /* MissionControlTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BD0BC81F425EC28EE59F04 /* MissionControlTransport.swift */; };
+		F3F94B27A5EDAB6B9B4619FC /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD418751379084676C5DD54 /* AppLogger.swift */; };
+		F4B5243EE8052EC6351257E9 /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D6032FB687B1BC453EE286F /* UsageStore.swift */; };
+		F54FAD22774C3EAC23C735C0 /* DashboardActionGlyphs.swift in Sources */ = {isa = PBXBuildFile; fileRef = F44DD59841F049FCDE1AEEF2 /* DashboardActionGlyphs.swift */; };
+		F79D6C046B4420B3EE195917 /* BurnBarMissionControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B005EF72EE09F6B1B6CCA5E2 /* BurnBarMissionControlService.swift */; };
+		F8DB3DF0910CABC4741FEE5E /* authoring-draft-refine-grounding.json in Resources */ = {isa = PBXBuildFile; fileRef = 27A62AD6566AE570262C637B /* authoring-draft-refine-grounding.json */; };
+		F96F34F5EB13D199D821A7EC /* ProviderDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D3647B2340086A90F0DEF7D /* ProviderDashboardView.swift */; };
+		FC0F0E2E8CD05CDD418B22F9 /* LogParserProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A092BBAFB87D0879CA16B36D /* LogParserProtocol.swift */; };
+		FCB2B100086EB32711D2677A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8EEF117D24EF855E0ADBF6 /* OnboardingView.swift */; };
+		FDCF746FB0D1A9FFA4775177 /* ConversationParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A09A8DD647C8765C28A970 /* ConversationParsingTests.swift */; };
+		FF31D80050E72DC20DB5D6E4 /* BurnBarRecoveryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 936F65CEF628F11D68EE4CAF /* BurnBarRecoveryEngine.swift */; };
+		FF7C1830F6BB33A71CD79EE4 /* ConversationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62DF2D96D023A5FF92F39C1 /* ConversationRecord.swift */; };
+		FFA4BA5909843CBFA8373FF6 /* HermesParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57FF1667F8EAA777B7E06A45 /* HermesParser.swift */; };
+		FFBFE6597948663C685FE51C /* BurnBarCore in Frameworks */ = {isa = PBXBuildFile; productRef = 672895C82DE1B508B5837144 /* BurnBarCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		02A1DA3265901C926B963DA6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432E2B9BBC9CBAC438D98577 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A4B11EB8718CC65B3641862;
+			remoteInfo = BurnBarDaemon;
+		};
+		02FDE6030F46527229560220 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432E2B9BBC9CBAC438D98577 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CCAAB67E29FF9D25D2076CA1;
+			remoteInfo = BurnBarDaemonExecutable;
+		};
+		1699D0CF42A3E01D3228F74E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432E2B9BBC9CBAC438D98577 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CCAAB67E29FF9D25D2076CA1;
+			remoteInfo = BurnBarDaemonExecutable;
+		};
+		34B528176E18551396AE49CA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432E2B9BBC9CBAC438D98577 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A4B11EB8718CC65B3641862;
+			remoteInfo = BurnBarDaemon;
+		};
+		696A4DAD5283D2078465BB19 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 432E2B9BBC9CBAC438D98577 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F0EC55BBD5021BDEA98C593E;
+			remoteInfo = BurnBar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00797E78E3EB2460BC73F717 /* BurnBarProviderRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarProviderRouterTests.swift; sourceTree = "<group>"; };
+		01D7665228C70CA566FA6489 /* MissionControlHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlHelpers.swift; sourceTree = "<group>"; };
+		021276DEE6679BDBF0E71042 /* KimiParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KimiParser.swift; sourceTree = "<group>"; };
+		0224B1ACC9473291EF8A1BA3 /* BurnBarProviderExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarProviderExecutor.swift; sourceTree = "<group>"; };
+		0263618C9749E500C938C0B1 /* NarrativeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeCardView.swift; sourceTree = "<group>"; };
+		02FF039EF6AB618DE7C93651 /* BurnBarCore */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BurnBarCore; sourceTree = SOURCE_ROOT; };
+		0350E75CD849BD279A595941 /* BurnBarSearchIntegrationHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarSearchIntegrationHarness.swift; sourceTree = "<group>"; };
+		05CA939925D947C3DB2628EA /* OnboardingTourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTourView.swift; sourceTree = "<group>"; };
+		076B10D569B131B490180E61 /* DataStoreTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStoreTypes.swift; sourceTree = "<group>"; };
+		07EC912B8FE41B204E41EA03 /* AugmentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AugmentParser.swift; sourceTree = "<group>"; };
+		07FEC415B07A3FC8DC85D429 /* SessionLedgerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLedgerSection.swift; sourceTree = "<group>"; };
+		080371F153D66E8C8A42912C /* UsageAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregatorTests.swift; sourceTree = "<group>"; };
+		09680869E5BE9F09B6BA54AA /* ColorAdaptive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorAdaptive.swift; sourceTree = "<group>"; };
+		0BB35FF524E892107F0C39E2 /* BurnBar-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "BurnBar-Info.plist"; sourceTree = "<group>"; };
+		0BB63B965BA4D6A7398DEE39 /* AgentLensApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLensApp.swift; sourceTree = "<group>"; };
+		0C0C003B0BC42F2B9629E344 /* ContextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextBuilder.swift; sourceTree = "<group>"; };
+		0C27E98F51683D9AACE8A82F /* UsageAggregator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAggregator.swift; sourceTree = "<group>"; };
+		0E1396996BD4F1A33C8202CE /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		101905159A0133B28DE3CE39 /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
+		137037A2A13E28865490FF35 /* BurnBarCLITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarCLITests.swift; sourceTree = "<group>"; };
+		16F4C9C52E6791F1FC7384BA /* HermesThinkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesThinkingView.swift; sourceTree = "<group>"; };
+		180D764BB278219C8C08C531 /* AgentLensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentLensTests.swift; sourceTree = "<group>"; };
+		1AA46F9D242D22FD43A22B1C /* SessionLogsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogsView.swift; sourceTree = "<group>"; };
+		1CBD27204008085BDEAC3BF0 /* ProviderLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderLogoView.swift; sourceTree = "<group>"; };
+		1D40EDD5872FB26C05824AE2 /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
+		1E5E77446951994F498C252C /* BurnBarPlannerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarPlannerService.swift; sourceTree = "<group>"; };
+		1F655466D7F6773AF8FAA13C /* CLIBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIBridgeTests.swift; sourceTree = "<group>"; };
+		1F873D5A329426688F413581 /* ZaiMiniMaxUsageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZaiMiniMaxUsageProbe.swift; sourceTree = "<group>"; };
+		1FD0CBEB721FB213FB80D1B2 /* MercuryShimmerModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MercuryShimmerModifier.swift; sourceTree = "<group>"; };
+		20BD0BC81F425EC28EE59F04 /* MissionControlTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlTransport.swift; sourceTree = "<group>"; };
+		221DF20D6ADD21DA23F2F7EF /* retrieval-ann-vs-exact-baseline.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "retrieval-ann-vs-exact-baseline.json"; sourceTree = "<group>"; };
+		232E2624301EF9DBC44485B3 /* ProviderUsageAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderUsageAPIService.swift; sourceTree = "<group>"; };
+		236042087027F85FC17BC6C7 /* HermesDataFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesDataFolder.swift; sourceTree = "<group>"; };
+		25A4BD09FF2146CE128C7CA6 /* CloudSyncServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncServiceTests.swift; sourceTree = "<group>"; };
+		26990789CDF44C02B70659D5 /* DatabaseWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseWorkspaceView.swift; sourceTree = "<group>"; };
+		27A62AD6566AE570262C637B /* authoring-draft-refine-grounding.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "authoring-draft-refine-grounding.json"; sourceTree = "<group>"; };
+		2AF3B136474EC87BAFF9A3B1 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		2CD47FEE60B1D5715C8E94F1 /* BurnBarProviderRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarProviderRouter.swift; sourceTree = "<group>"; };
+		2D3647B2340086A90F0DEF7D /* ProviderDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDashboardView.swift; sourceTree = "<group>"; };
+		2DB93DCF073DBA419A279F7B /* ChatPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPanel.swift; sourceTree = "<group>"; };
+		2FD418751379084676C5DD54 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		30086E9168B41B3E3B8B5E4F /* OnboardingCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCompleteView.swift; sourceTree = "<group>"; };
+		308AE17F7159F9DF09461384 /* BurnBarToolPlaneService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarToolPlaneService.swift; sourceTree = "<group>"; };
+		33CC7CCE2E9BF08471CE475C /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		34DC63AE4066BA4C15C2AD9B /* CursorConnectorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorConnectorManager.swift; sourceTree = "<group>"; };
+		362C0D92E7C496843E0AF8C6 /* BurnBarConfigStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarConfigStoreTests.swift; sourceTree = "<group>"; };
+		36350E32BFC87CC729892DE2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		36E45387E760AF2F19029CE7 /* OnboardingChatEngineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChatEngineView.swift; sourceTree = "<group>"; };
+		3839A05BE8BA56D5AB4C6166 /* OnboardingCompleteViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCompleteViewTests.swift; sourceTree = "<group>"; };
+		3A6FC3BE7A6E6EA1AFE3E41E /* ChatFAB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFAB.swift; sourceTree = "<group>"; };
+		3B5419CC3403C6F6AE2739AB /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		3B994E197D62EA81E57DAD31 /* ProviderQuotaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderQuotaService.swift; sourceTree = "<group>"; };
+		3C00538BB191C7829B9351C9 /* ClaudeCodeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeCodeParser.swift; sourceTree = "<group>"; };
+		3D6032FB687B1BC453EE286F /* UsageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStore.swift; sourceTree = "<group>"; };
+		409A02AB731D00FB5AAFB7BA /* CLIAssistantConsentSheetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIAssistantConsentSheetTests.swift; sourceTree = "<group>"; };
+		40CD840845253AE47D3AD546 /* GitHubCopilotUsageAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitHubCopilotUsageAPI.swift; sourceTree = "<group>"; };
+		4168A8A8873FFABB10DBC975 /* ChatBackendID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBackendID.swift; sourceTree = "<group>"; };
+		4306FF827059DBC8C8D44D77 /* BurnBar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BurnBar.entitlements; sourceTree = "<group>"; };
+		446591207B48BD3395B876D2 /* ModelDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDashboardView.swift; sourceTree = "<group>"; };
+		46D2BCD6B006500521B68AA8 /* BurnBarAgentStackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarAgentStackTests.swift; sourceTree = "<group>"; };
+		4991EDE1CCF21B7D26E86CF8 /* BurnBarWorkspaceBridgeBroker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarWorkspaceBridgeBroker.swift; sourceTree = "<group>"; };
+		4A6CBCC17F090BB09BDB45E2 /* AppLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogoView.swift; sourceTree = "<group>"; };
+		4B2F53D375F65C9EA011883B /* MissionControlError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlError.swift; sourceTree = "<group>"; };
+		4F22BFE4FEA6AE9B6DF55F0E /* BurnBarDaemonServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonServer.swift; sourceTree = "<group>"; };
+		F7E8D901C2B3A4F5678E9D0A1 /* BurnBarDaemonAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonAuth.swift; sourceTree = "<group>"; };
+		4FB5B6FA3B3A8A919660CB6D /* DashboardActionGlyphTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardActionGlyphTests.swift; sourceTree = "<group>"; };
+		5117B944730A212EB03A155D /* ModelProviderLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelProviderLogoView.swift; sourceTree = "<group>"; };
+		516803FEE424627EFA549B4B /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
+		52C68CD9B70BA8A9042B64DF /* MissionControlProjectionFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlProjectionFile.swift; sourceTree = "<group>"; };
+		543EF3A2D2A3D55B71D5EE9A /* SessionLogMarkdownFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLogMarkdownFormatter.swift; sourceTree = "<group>"; };
+		5520282B54D5B55516E83A6A /* BurnBarConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarConfigStore.swift; sourceTree = "<group>"; };
+		57C75EE1CC1C5085466E59BE /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		57FF1667F8EAA777B7E06A45 /* HermesParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesParser.swift; sourceTree = "<group>"; };
+		5AB0C2B1159EF1508DED5FCF /* CrossEncoderReranker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossEncoderReranker.swift; sourceTree = "<group>"; };
+		5C7B9095083BF1AF6D2EDAC7 /* ProviderQuotaServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderQuotaServiceTests.swift; sourceTree = "<group>"; };
+		62DEA94AEB97FB82BAEE8742 /* MissionControlService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlService.swift; sourceTree = "<group>"; };
+		65A09A8DD647C8765C28A970 /* ConversationParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationParsingTests.swift; sourceTree = "<group>"; };
+		66E79AA744DFFEBBEC918ADF /* BurnBarCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarCLI.swift; sourceTree = "<group>"; };
+		676692E66CC6F77399EBD628 /* ChatMessageViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageViewTests.swift; sourceTree = "<group>"; };
+		67CB93DEC3EB8D73FE3B5302 /* HermesPopoverChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesPopoverChatView.swift; sourceTree = "<group>"; };
+		682017FCA38A7AB4A7C80608 /* BurnBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BurnBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		692C5FB45B80DA96DFF9C857 /* TelegramBotBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramBotBridge.swift; sourceTree = "<group>"; };
+		6988E1ECB5A01E2F0244571A /* BurnBarAgentLoopService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarAgentLoopService.swift; sourceTree = "<group>"; };
+		6AFCC022BB4B9F0B9A104951 /* HermesThinkingViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesThinkingViewTests.swift; sourceTree = "<group>"; };
+		6C56A7076466B1F76C90C4DF /* SessionLedgerSectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLedgerSectionTests.swift; sourceTree = "<group>"; };
+		6C575F84B51ADF5E3C1FF5C6 /* DatabaseWorkspaceSnapshotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseWorkspaceSnapshotBuilder.swift; sourceTree = "<group>"; };
+		6CD006CD9B9241D1364DE204 /* CloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncService.swift; sourceTree = "<group>"; };
+		6EC5EE077F2EB72344CE0494 /* PopoverTooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverTooltip.swift; sourceTree = "<group>"; };
+		6F4FD1248A8C6144D2DA8DAE /* BurnBarDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDatabase.swift; sourceTree = "<group>"; };
+		715B5B7D9D597F6D273022CF /* HermesToolCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesToolCard.swift; sourceTree = "<group>"; };
+		72FB611C7CD42A40B8527536 /* retrieval-lexical-win.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "retrieval-lexical-win.json"; sourceTree = "<group>"; };
+		7356C2B877EAD026DC34C39C /* CursorConnectorModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorConnectorModels.swift; sourceTree = "<group>"; };
+		744780AD18D485DDFFF46DA4 /* BurnBarDaemonExecutable */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = text; name = BurnBarDaemonExecutable; path = BurnBarDaemon; sourceTree = BUILT_PRODUCTS_DIR; };
+		77A7B26E19B5CB2309D4DCCC /* OnboardingProviderPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProviderPill.swift; sourceTree = "<group>"; };
+		7804F13D717D2F98E7183BC3 /* CrossEncoderRerankerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossEncoderRerankerTests.swift; sourceTree = "<group>"; };
+		787CA705F565BE6C5765A7F7 /* InsightCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightCardView.swift; sourceTree = "<group>"; };
+		796FA1BE8E5B299F6ACC23EB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7A372A1F348E51FCAF134A24 /* BurnBarPolicyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarPolicyEngine.swift; sourceTree = "<group>"; };
+		7A75541FE7442B29F4894BCC /* BurnBarIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarIdentity.swift; sourceTree = "<group>"; };
+		803D01D1AAD6A73255297CB8 /* MissionControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionControlStore.swift; sourceTree = "<group>"; };
+		846CF10DE54AA8C66CDD7699 /* InsightBriefCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBriefCard.swift; sourceTree = "<group>"; };
+		84E08215997E4EC968826D45 /* SearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchService.swift; sourceTree = "<group>"; };
+		8540252A9415DF9FC8430DCA /* AppLogoViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogoViewTests.swift; sourceTree = "<group>"; };
+		85E33F9067CC8630AB3D9D19 /* BurnBarIndexedSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarIndexedSearchService.swift; sourceTree = "<group>"; };
+		87DA6CB067222B5E99456B3F /* retrieval-filter-correctness.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "retrieval-filter-correctness.json"; sourceTree = "<group>"; };
+		884C00CD139AB73C24F8EB96 /* AnthropicUsageAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicUsageAPI.swift; sourceTree = "<group>"; };
+		8C7570151F5AA138EA100752 /* InsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngine.swift; sourceTree = "<group>"; };
+		8CEE8A9E8BBBA1DE97E27FC5 /* ForgeDevParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgeDevParser.swift; sourceTree = "<group>"; };
+		8DCE6654BB36FDEC775973BE /* ClaudeConversationExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeConversationExtractor.swift; sourceTree = "<group>"; };
+		8E39B5FA548A873DDB3B02D2 /* InsightEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngineTests.swift; sourceTree = "<group>"; };
+		919C163E3845CED5CB2A8D6A /* AccountManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountManager.swift; sourceTree = "<group>"; };
+		92599A99F821919AC0FC4801 /* BurnBarUsageRecorderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarUsageRecorderTests.swift; sourceTree = "<group>"; };
+		936F65CEF628F11D68EE4CAF /* BurnBarRecoveryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarRecoveryEngine.swift; sourceTree = "<group>"; };
+		93861E410EAF0BE0E52F57BC /* AgentProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProvider.swift; sourceTree = "<group>"; };
+		93949AFABCF26567712367AB /* GooseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GooseParser.swift; sourceTree = "<group>"; };
+		93DCE8821ED32580432E5647 /* SearchIndexStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndexStore.swift; sourceTree = "<group>"; };
+		9474415C61F45B5810EA5156 /* ProviderQuotaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderQuotaViews.swift; sourceTree = "<group>"; };
+		95ABBBF9B8FF86B6A0C98A69 /* CLIAssistantConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIAssistantConsentSheet.swift; sourceTree = "<group>"; };
+		9686D98CD34345A4DCA4D612 /* OpenAIUsageAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIUsageAPI.swift; sourceTree = "<group>"; };
+		979643508E77719C5C1D947C /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatting.swift; sourceTree = "<group>"; };
+		99E38E58D2F026F93D17F205 /* BurnBarDaemonServerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonServerTests.swift; sourceTree = "<group>"; };
+		A058CCE36124AD2719EAB058 /* DataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStoreTests.swift; sourceTree = "<group>"; };
+		A092BBAFB87D0879CA16B36D /* LogParserProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogParserProtocol.swift; sourceTree = "<group>"; };
+		A32B15D2EBFFCAC88F633101 /* BurnBarContextSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarContextSelector.swift; sourceTree = "<group>"; };
+		A3FD51E35B86062664247506 /* HermesToolCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesToolCardTests.swift; sourceTree = "<group>"; };
+		A4AA68F1319A1D37F2B0F20C /* BurnBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BurnBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A66168517C3121A5169D65D1 /* ViewFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewFixtures.swift; sourceTree = "<group>"; };
+		A69C7815DD87A69F0B12159D /* ParserIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserIntegrationTests.swift; sourceTree = "<group>"; };
+		A7EB9B6F52BEB0DD27364FFF /* BurnBarChatWorkspaceConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarChatWorkspaceConfigurator.swift; sourceTree = "<group>"; };
+		A99AFB17D951FAEEA4824E20 /* BurnBarDaemonConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonConfiguration.swift; sourceTree = "<group>"; };
+		A9BEF571BF26E1E73F323BB3 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
+		AC89C463323EF989AEA92AE4 /* BurnBarDaemonManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonManager.swift; sourceTree = "<group>"; };
+		AC948B0229F5C3B8FC16B649 /* EventKitBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventKitBridge.swift; sourceTree = "<group>"; };
+		AF592F10B5BFCA95544AF954 /* BurnBarMissionControlServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarMissionControlServiceTests.swift; sourceTree = "<group>"; };
+		B005EF72EE09F6B1B6CCA5E2 /* BurnBarMissionControlService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarMissionControlService.swift; sourceTree = "<group>"; };
+		B0FD8CD2084F0CBBAD34AF13 /* BurnBarOperatingLayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarOperatingLayerTests.swift; sourceTree = "<group>"; };
+		B10B81A290BB2FA13F52EF43 /* BurnBarDaemonMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonMain.swift; sourceTree = "<group>"; };
+		B13A8FC66EDEA2DD7E67043B /* BurnBarRunService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarRunService.swift; sourceTree = "<group>"; };
+		B142C292956B5143453C2D3B /* BurnBarClientRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarClientRegistry.swift; sourceTree = "<group>"; };
+		B223F1F47CB588A0F840DE16 /* BurnBarOperatingLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarOperatingLayer.swift; sourceTree = "<group>"; };
+		B31C24B995A2CBBB18265152 /* FactoryDroidParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactoryDroidParser.swift; sourceTree = "<group>"; };
+		B483FB92F7D6DD4CA3BE7E72 /* ICloudSessionMirrorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudSessionMirrorService.swift; sourceTree = "<group>"; };
+		B4B084687B2EB12096A729B2 /* ProviderLogoViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderLogoViewTests.swift; sourceTree = "<group>"; };
+		B4DF7BE299DBC731B8FECEBB /* ModelPricing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPricing.swift; sourceTree = "<group>"; };
+		B53AFE43048900448494F2F5 /* ControlPlaneStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlPlaneStore.swift; sourceTree = "<group>"; };
+		B60E61FACB3F1BA7798FE9CA /* ArtifactAuthoringService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactAuthoringService.swift; sourceTree = "<group>"; };
+		BAB3948C87EE353C3B722238 /* OnboardingScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingScanView.swift; sourceTree = "<group>"; };
+		BAC3214CAC813B7058703E86 /* BurnBarRunJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarRunJournal.swift; sourceTree = "<group>"; };
+		BB1C36B03B59BDAC0A7B738F /* NarrativeCardViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NarrativeCardViewTests.swift; sourceTree = "<group>"; };
+		BD8EEF117D24EF855E0ADBF6 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		BDCFAD9B2EFB1A0D1643EBB4 /* BurnBarSearchIntegrationHarnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarSearchIntegrationHarnessTests.swift; sourceTree = "<group>"; };
+		C09ABDFBBAF6B198BDD825AC /* ProjectionPipelineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectionPipelineService.swift; sourceTree = "<group>"; };
+		C143C34FDB9141FE48DCA705 /* HermesPopoverStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesPopoverStrip.swift; sourceTree = "<group>"; };
+		C290E33A14E5BA65747111E4 /* ClineFormatParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClineFormatParser.swift; sourceTree = "<group>"; };
+		C29E0AB4A772066AFE8A3DB2 /* MissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionsView.swift; sourceTree = "<group>"; };
+		C359C7C6CB897418D7C36240 /* MercuryShimmerModifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MercuryShimmerModifierTests.swift; sourceTree = "<group>"; };
+		C9EF14922DF5A2D1ABE036AB /* TranscriptBlockParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptBlockParser.swift; sourceTree = "<group>"; };
+		CE625A7636B06EA5F2353955 /* OnboardingProviderCloudView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProviderCloudView.swift; sourceTree = "<group>"; };
+		CF449A9A05FC0BC270A0FA31 /* DailyDigestManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyDigestManagerTests.swift; sourceTree = "<group>"; };
+		D11E1C39E4D9A409079BF406 /* BurnBarUsageRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarUsageRecorder.swift; sourceTree = "<group>"; };
+		D2B8CE717F88F54CF543742D /* ConversationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationStore.swift; sourceTree = "<group>"; };
+		D338AF75C2D20B79D0D5044C /* DeviceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceStore.swift; sourceTree = "<group>"; };
+		D3F159D4D7759E70FCC5DE2A /* BurnBarIndexedSearchServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarIndexedSearchServiceTests.swift; sourceTree = "<group>"; };
+		D617654C1FF312A9CAC572E9 /* ArtifactStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactStore.swift; sourceTree = "<group>"; };
+		D7B104DE9475A787BEB3214E /* retrieval-semantic-rescue.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "retrieval-semantic-rescue.json"; sourceTree = "<group>"; };
+		D7EB9931E680E925C69C44C5 /* 66e1b25cc9185ef537421b18_Factory.ai.webp */ = {isa = PBXFileReference; lastKnownFileType = file; path = 66e1b25cc9185ef537421b18_Factory.ai.webp; sourceTree = "<group>"; };
+		D907E693E39D95550BE34A51 /* BurnBarDaemonLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonLogger.swift; sourceTree = "<group>"; };
+		DA269E3080C36499D19BB076 /* TokenExtractionUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenExtractionUtility.swift; sourceTree = "<group>"; };
+		DB25ED0122B25402A8274537 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DB62777DDFCCE7756CE2583E /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		DBA805C308D29564142BA7F9 /* ProviderTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderTheme.swift; sourceTree = "<group>"; };
+		DC96DA0A6947F17788B60ABE /* ProjectionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectionStore.swift; sourceTree = "<group>"; };
+		DC9B2AAC42DD613BD503A745 /* retrieval-degraded-fallback.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "retrieval-degraded-fallback.json"; sourceTree = "<group>"; };
+		DD03FDBE76B81491FE3AD390 /* CursorConnectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorConnectorTests.swift; sourceTree = "<group>"; };
+		DD8DDB67F7353521940AE65A /* ChatMessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageView.swift; sourceTree = "<group>"; };
+		DEFE8597356F6730FE6063A7 /* OnboardingConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingConnectView.swift; sourceTree = "<group>"; };
+		DF00DDB2DC457FA8BCF2FD41 /* BurnBarDaemonManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarDaemonManagerTests.swift; sourceTree = "<group>"; };
+		DF0262CCB1779605B79D5AAA /* CrossEncoderConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossEncoderConfiguration.swift; sourceTree = "<group>"; };
+		DF3FF0831FB58E8A7F80DB21 /* ChatFABTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFABTests.swift; sourceTree = "<group>"; };
+		E43E6640557CB14B9782F17F /* BurnBarProviderCatalogSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarProviderCatalogSupport.swift; sourceTree = "<group>"; };
+		E585C2B7DE464924EC3F5751 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		E62DF2D96D023A5FF92F39C1 /* ConversationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationRecord.swift; sourceTree = "<group>"; };
+		E868B210AF80295AB84F5900 /* ChatSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSessionController.swift; sourceTree = "<group>"; };
+		E9C82AD6D0174469EA64F6E5 /* MiniSparklineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniSparklineTests.swift; sourceTree = "<group>"; };
+		EA8F159F87C03C164ABE2FD2 /* BurnBarRunServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarRunServiceTests.swift; sourceTree = "<group>"; };
+		EAC7BF69A4E9C2151614E0DB /* DailyDigestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyDigestManager.swift; sourceTree = "<group>"; };
+		EAD45369DB6FF2FB2D144762 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
+		ECCDF707C013B9746C2C881C /* OpenRouterUsageAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterUsageAPI.swift; sourceTree = "<group>"; };
+		ECF5BA92CF853D4B7CDE5D9D /* BurnBarDaemonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BurnBarDaemonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED7EFA857E2A3E502B70258D /* LLMModelBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMModelBrand.swift; sourceTree = "<group>"; };
+		EED64DDF2B424EAA0168C692 /* OnboardingProviderPillTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingProviderPillTests.swift; sourceTree = "<group>"; };
+		F18060AB007AAC6A073EE77F /* libBurnBarDaemon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBurnBarDaemon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1E2F38C6F18A40E701A8EDC /* LocalNotificationBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalNotificationBridge.swift; sourceTree = "<group>"; };
+		F44DD59841F049FCDE1AEEF2 /* DashboardActionGlyphs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardActionGlyphs.swift; sourceTree = "<group>"; };
+		F4FDA5107B5C32DF13BF1B1C /* ProjectsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectsView.swift; sourceTree = "<group>"; };
+		F663373EF66E467DEF4A6561 /* GeminiCLIParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiCLIParser.swift; sourceTree = "<group>"; };
+		F729FDFE6D34B6F03B5DDCA9 /* CLIBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIBridge.swift; sourceTree = "<group>"; };
+		F78AAB24FFCF6E834BEF9F57 /* ConversationIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationIndexer.swift; sourceTree = "<group>"; };
+		F9938D2A552EA70963AC5141 /* OnboardingWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWizardView.swift; sourceTree = "<group>"; };
+		FA53CDBBD782834EC9FA51B8 /* MiniSparkline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniSparkline.swift; sourceTree = "<group>"; };
+		FB2B6C595EE40639297CBC2A /* BurnBarMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BurnBarMigrationTests.swift; sourceTree = "<group>"; };
+		FD32B87E897C0B3AD398D398 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
+		FD6F26FB866B92E10DC33128 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776655 /* AccountSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776656 /* AlertsAndNotificationsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsAndNotificationsViews.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776657 /* AppearanceCorkboardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceCorkboardSection.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776658 /* AppearanceModePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceModePickerView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776659 /* ChatGatewaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGatewaySettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665A /* DaemonSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonSettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665B /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665C /* PrivacyIndexingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyIndexingSettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665D /* ProvidersSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvidersSettingsView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665E /* SessionSummaryWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSummaryWizardView.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A798877665F /* SettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTab.swift; sourceTree = "<group>"; };
+		A04F1E2D3C5B6A7988776660 /* SpeedOptionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedOptionsSheet.swift; sourceTree = "<group>"; };
+		FF69D197835FF9E460C0596E /* InsightBriefCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightBriefCardTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7C432F84BF92A2DF8CF87678 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8D0032F44F151ADB45679E9 /* ViewInspector in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B7B802C5771BC9FA9ABC9046 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFBFE6597948663C685FE51C /* BurnBarCore in Frameworks */,
+				D0F0586121A4838BB6D1BBB0 /* GRDB in Frameworks */,
+				8D8FB67B13FDEA50063C1207 /* FirebaseAuth in Frameworks */,
+				4B7A04331CE08B83EF78E9E8 /* FirebaseFirestore in Frameworks */,
+				C816F174DDC961A6C2F3A963 /* GoogleSignIn in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F148E2C3F83AA179DEBB2616 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				023221EFD1C35F98213C2672 /* libBurnBarDaemon.a in Frameworks */,
+				DB41ABA17ADE496572FC7246 /* BurnBarCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8CE4EDFD7B55AD694385465 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99C8CB701F5F799C65404F13 /* libBurnBarDaemon.a in Frameworks */,
+				6739A74B4744612379228EB0 /* BurnBarCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		015F65D6FBAFB821D94103A3 /* BurnBarDaemon */ = {
+			isa = PBXGroup;
+			children = (
+				AC89C463323EF989AEA92AE4 /* BurnBarDaemonManager.swift */,
+			);
+			path = BurnBarDaemon;
+			sourceTree = "<group>";
+		};
+		01B2C5FAA6EFB3C7E2AB162F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				93861E410EAF0BE0E52F57BC /* AgentProvider.swift */,
+				4168A8A8873FFABB10DBC975 /* ChatBackendID.swift */,
+				E62DF2D96D023A5FF92F39C1 /* ConversationRecord.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		07577554CAB39B3F32A73320 /* LogParser */ = {
+			isa = PBXGroup;
+			children = (
+				07EC912B8FE41B204E41EA03 /* AugmentParser.swift */,
+				3C00538BB191C7829B9351C9 /* ClaudeCodeParser.swift */,
+				8DCE6654BB36FDEC775973BE /* ClaudeConversationExtractor.swift */,
+				C290E33A14E5BA65747111E4 /* ClineFormatParser.swift */,
+				B31C24B995A2CBBB18265152 /* FactoryDroidParser.swift */,
+				8CEE8A9E8BBBA1DE97E27FC5 /* ForgeDevParser.swift */,
+				F663373EF66E467DEF4A6561 /* GeminiCLIParser.swift */,
+				93949AFABCF26567712367AB /* GooseParser.swift */,
+				57FF1667F8EAA777B7E06A45 /* HermesParser.swift */,
+				021276DEE6679BDBF0E71042 /* KimiParser.swift */,
+				A092BBAFB87D0879CA16B36D /* LogParserProtocol.swift */,
+				DA269E3080C36499D19BB076 /* TokenExtractionUtility.swift */,
+			);
+			path = LogParser;
+			sourceTree = "<group>";
+		};
+		0FDBA491ED04C7492229C5BD /* BurnBarDaemonTests */ = {
+			isa = PBXGroup;
+			children = (
+				46D2BCD6B006500521B68AA8 /* BurnBarAgentStackTests.swift */,
+				137037A2A13E28865490FF35 /* BurnBarCLITests.swift */,
+				362C0D92E7C496843E0AF8C6 /* BurnBarConfigStoreTests.swift */,
+				99E38E58D2F026F93D17F205 /* BurnBarDaemonServerTests.swift */,
+				D3F159D4D7759E70FCC5DE2A /* BurnBarIndexedSearchServiceTests.swift */,
+				AF592F10B5BFCA95544AF954 /* BurnBarMissionControlServiceTests.swift */,
+				00797E78E3EB2460BC73F717 /* BurnBarProviderRouterTests.swift */,
+				EA8F159F87C03C164ABE2FD2 /* BurnBarRunServiceTests.swift */,
+				92599A99F821919AC0FC4801 /* BurnBarUsageRecorderTests.swift */,
+			);
+			name = BurnBarDaemonTests;
+			path = BurnBarDaemon/Tests/BurnBarDaemonTests;
+			sourceTree = "<group>";
+		};
+		15A5C7F19A6DF6F1DACA9F83 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				4A6CBCC17F090BB09BDB45E2 /* AppLogoView.swift */,
+				F44DD59841F049FCDE1AEEF2 /* DashboardActionGlyphs.swift */,
+				FA53CDBBD782834EC9FA51B8 /* MiniSparkline.swift */,
+				5117B944730A212EB03A155D /* ModelProviderLogoView.swift */,
+				6EC5EE077F2EB72344CE0494 /* PopoverTooltip.swift */,
+				1CBD27204008085BDEAC3BF0 /* ProviderLogoView.swift */,
+				9474415C61F45B5810EA5156 /* ProviderQuotaViews.swift */,
+				07FEC415B07A3FC8DC85D429 /* SessionLedgerSection.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		2347F2B1479ECDF1AF62A993 /* BurnBarDaemon */ = {
+			isa = PBXGroup;
+			children = (
+				420AE323EA701BF7C662F254 /* MissionControl */,
+				6988E1ECB5A01E2F0244571A /* BurnBarAgentLoopService.swift */,
+				66E79AA744DFFEBBEC918ADF /* BurnBarCLI.swift */,
+				B142C292956B5143453C2D3B /* BurnBarClientRegistry.swift */,
+				5520282B54D5B55516E83A6A /* BurnBarConfigStore.swift */,
+				A32B15D2EBFFCAC88F633101 /* BurnBarContextSelector.swift */,
+				F7E8D901C2B3A4F5678E9D0A1 /* BurnBarDaemonAuth.swift */,
+				A99AFB17D951FAEEA4824E20 /* BurnBarDaemonConfiguration.swift */,
+				D907E693E39D95550BE34A51 /* BurnBarDaemonLogger.swift */,
+				4F22BFE4FEA6AE9B6DF55F0E /* BurnBarDaemonServer.swift */,
+				85E33F9067CC8630AB3D9D19 /* BurnBarIndexedSearchService.swift */,
+				B005EF72EE09F6B1B6CCA5E2 /* BurnBarMissionControlService.swift */,
+				1E5E77446951994F498C252C /* BurnBarPlannerService.swift */,
+				7A372A1F348E51FCAF134A24 /* BurnBarPolicyEngine.swift */,
+				E43E6640557CB14B9782F17F /* BurnBarProviderCatalogSupport.swift */,
+				0224B1ACC9473291EF8A1BA3 /* BurnBarProviderExecutor.swift */,
+				2CD47FEE60B1D5715C8E94F1 /* BurnBarProviderRouter.swift */,
+				936F65CEF628F11D68EE4CAF /* BurnBarRecoveryEngine.swift */,
+				BAC3214CAC813B7058703E86 /* BurnBarRunJournal.swift */,
+				B13A8FC66EDEA2DD7E67043B /* BurnBarRunService.swift */,
+				308AE17F7159F9DF09461384 /* BurnBarToolPlaneService.swift */,
+				D11E1C39E4D9A409079BF406 /* BurnBarUsageRecorder.swift */,
+				4991EDE1CCF21B7D26E86CF8 /* BurnBarWorkspaceBridgeBroker.swift */,
+			);
+			name = BurnBarDaemon;
+			path = BurnBarDaemon/Sources/BurnBarDaemon;
+			sourceTree = "<group>";
+		};
+		247881B7E08D44024008B3E5 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				3A6FC3BE7A6E6EA1AFE3E41E /* ChatFAB.swift */,
+				DD8DDB67F7353521940AE65A /* ChatMessageView.swift */,
+				2DB93DCF073DBA419A279F7B /* ChatPanel.swift */,
+				E868B210AF80295AB84F5900 /* ChatSessionController.swift */,
+				95ABBBF9B8FF86B6A0C98A69 /* CLIAssistantConsentSheet.swift */,
+				16F4C9C52E6791F1FC7384BA /* HermesThinkingView.swift */,
+				715B5B7D9D597F6D273022CF /* HermesToolCard.swift */,
+				846CF10DE54AA8C66CDD7699 /* InsightBriefCard.swift */,
+				1FD0CBEB721FB213FB80D1B2 /* MercuryShimmerModifier.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		420AE323EA701BF7C662F254 /* MissionControl */ = {
+			isa = PBXGroup;
+			children = (
+				5B3C4C5F79A6CB0700C4A01C /* Bridges */,
+				4B2F53D375F65C9EA011883B /* MissionControlError.swift */,
+				01D7665228C70CA566FA6489 /* MissionControlHelpers.swift */,
+				52C68CD9B70BA8A9042B64DF /* MissionControlProjectionFile.swift */,
+				62DEA94AEB97FB82BAEE8742 /* MissionControlService.swift */,
+				803D01D1AAD6A73255297CB8 /* MissionControlStore.swift */,
+				20BD0BC81F425EC28EE59F04 /* MissionControlTransport.swift */,
+			);
+			path = MissionControl;
+			sourceTree = "<group>";
+		};
+		58D1F7A80C1BBA7C53C38459 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D7EB9931E680E925C69C44C5 /* 66e1b25cc9185ef537421b18_Factory.ai.webp */,
+				DB25ED0122B25402A8274537 /* Assets.xcassets */,
+				0BB35FF524E892107F0C39E2 /* BurnBar-Info.plist */,
+				4306FF827059DBC8C8D44D77 /* BurnBar.entitlements */,
+				36350E32BFC87CC729892DE2 /* GoogleService-Info.plist */,
+				516803FEE424627EFA549B4B /* GoogleService-Info.plist.example */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		5B3C4C5F79A6CB0700C4A01C /* Bridges */ = {
+			isa = PBXGroup;
+			children = (
+				AC948B0229F5C3B8FC16B649 /* EventKitBridge.swift */,
+				F1E2F38C6F18A40E701A8EDC /* LocalNotificationBridge.swift */,
+				692C5FB45B80DA96DFF9C857 /* TelegramBotBridge.swift */,
+			);
+			path = Bridges;
+			sourceTree = "<group>";
+		};
+		5FE017D945F8EF5D711BBBA1 = {
+			isa = PBXGroup;
+			children = (
+				62344AAD9130A28C8AE6D854 /* AgentLens */,
+				721973A7F518EA0EC0919740 /* AgentLensTests */,
+				2347F2B1479ECDF1AF62A993 /* BurnBarDaemon */,
+				D74A2B6D4762024B98FC4442 /* BurnBarDaemonExecutable */,
+				0FDBA491ED04C7492229C5BD /* BurnBarDaemonTests */,
+				8B073BDC54AC148B858D584B /* Packages */,
+				B8C3613FDEE192A631370093 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		62344AAD9130A28C8AE6D854 /* AgentLens */ = {
+			isa = PBXGroup;
+			children = (
+				F622CC4D69D2B75BA57B792B /* App */,
+				01B2C5FAA6EFB3C7E2AB162F /* Models */,
+				58D1F7A80C1BBA7C53C38459 /* Resources */,
+				DE54EC95940C4E44DF3E7E94 /* Services */,
+				BCF4D5C4FC786079C0575A68 /* Theme */,
+				EC628A23E09C59470FE68D9A /* Utilities */,
+				95CE9AEF742F9165ABB68027 /* Views */,
+			);
+			path = AgentLens;
+			sourceTree = "<group>";
+		};
+		6623CD7316ADE08CDD703D69 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				2AF3B136474EC87BAFF9A3B1 /* DashboardView.swift */,
+				26990789CDF44C02B70659D5 /* DatabaseWorkspaceView.swift */,
+				C29E0AB4A772066AFE8A3DB2 /* MissionsView.swift */,
+				446591207B48BD3395B876D2 /* ModelDashboardView.swift */,
+				0263618C9749E500C938C0B1 /* NarrativeCardView.swift */,
+				F4FDA5107B5C32DF13BF1B1C /* ProjectsView.swift */,
+				2D3647B2340086A90F0DEF7D /* ProviderDashboardView.swift */,
+				EAD45369DB6FF2FB2D144762 /* SessionDetailView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		690FBC84686315D504D8126E /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				8540252A9415DF9FC8430DCA /* AppLogoViewTests.swift */,
+				DF3FF0831FB58E8A7F80DB21 /* ChatFABTests.swift */,
+				676692E66CC6F77399EBD628 /* ChatMessageViewTests.swift */,
+				409A02AB731D00FB5AAFB7BA /* CLIAssistantConsentSheetTests.swift */,
+				4FB5B6FA3B3A8A919660CB6D /* DashboardActionGlyphTests.swift */,
+				FD32B87E897C0B3AD398D398 /* FlowLayoutTests.swift */,
+				6AFCC022BB4B9F0B9A104951 /* HermesThinkingViewTests.swift */,
+				A3FD51E35B86062664247506 /* HermesToolCardTests.swift */,
+				FF69D197835FF9E460C0596E /* InsightBriefCardTests.swift */,
+				C359C7C6CB897418D7C36240 /* MercuryShimmerModifierTests.swift */,
+				E9C82AD6D0174469EA64F6E5 /* MiniSparklineTests.swift */,
+				BB1C36B03B59BDAC0A7B738F /* NarrativeCardViewTests.swift */,
+				3839A05BE8BA56D5AB4C6166 /* OnboardingCompleteViewTests.swift */,
+				EED64DDF2B424EAA0168C692 /* OnboardingProviderPillTests.swift */,
+				B4B084687B2EB12096A729B2 /* ProviderLogoViewTests.swift */,
+				6C56A7076466B1F76C90C4DF /* SessionLedgerSectionTests.swift */,
+				A66168517C3121A5169D65D1 /* ViewFixtures.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		6F623EE66CC10AB342714329 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				7C7555F9BFEF5A43A702C19E /* ReplayGoldens */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		721973A7F518EA0EC0919740 /* AgentLensTests */ = {
+			isa = PBXGroup;
+			children = (
+				6F623EE66CC10AB342714329 /* Fixtures */,
+				690FBC84686315D504D8126E /* UI */,
+				180D764BB278219C8C08C531 /* AgentLensTests.swift */,
+				DF00DDB2DC457FA8BCF2FD41 /* BurnBarDaemonManagerTests.swift */,
+				FB2B6C595EE40639297CBC2A /* BurnBarMigrationTests.swift */,
+				B0FD8CD2084F0CBBAD34AF13 /* BurnBarOperatingLayerTests.swift */,
+				0350E75CD849BD279A595941 /* BurnBarSearchIntegrationHarness.swift */,
+				BDCFAD9B2EFB1A0D1643EBB4 /* BurnBarSearchIntegrationHarnessTests.swift */,
+				1F655466D7F6773AF8FAA13C /* CLIBridgeTests.swift */,
+				25A4BD09FF2146CE128C7CA6 /* CloudSyncServiceTests.swift */,
+				65A09A8DD647C8765C28A970 /* ConversationParsingTests.swift */,
+				7804F13D717D2F98E7183BC3 /* CrossEncoderRerankerTests.swift */,
+				DD03FDBE76B81491FE3AD390 /* CursorConnectorTests.swift */,
+				CF449A9A05FC0BC270A0FA31 /* DailyDigestManagerTests.swift */,
+				A058CCE36124AD2719EAB058 /* DataStoreTests.swift */,
+				8E39B5FA548A873DDB3B02D2 /* InsightEngineTests.swift */,
+				A69C7815DD87A69F0B12159D /* ParserIntegrationTests.swift */,
+				A9BEF571BF26E1E73F323BB3 /* PerformanceTests.swift */,
+				5C7B9095083BF1AF6D2EDAC7 /* ProviderQuotaServiceTests.swift */,
+				080371F153D66E8C8A42912C /* UsageAggregatorTests.swift */,
+			);
+			path = AgentLensTests;
+			sourceTree = "<group>";
+		};
+		7C7555F9BFEF5A43A702C19E /* ReplayGoldens */ = {
+			isa = PBXGroup;
+			children = (
+				27A62AD6566AE570262C637B /* authoring-draft-refine-grounding.json */,
+				221DF20D6ADD21DA23F2F7EF /* retrieval-ann-vs-exact-baseline.json */,
+				DC9B2AAC42DD613BD503A745 /* retrieval-degraded-fallback.json */,
+				87DA6CB067222B5E99456B3F /* retrieval-filter-correctness.json */,
+				72FB611C7CD42A40B8527536 /* retrieval-lexical-win.json */,
+				D7B104DE9475A787BEB3214E /* retrieval-semantic-rescue.json */,
+			);
+			path = ReplayGoldens;
+			sourceTree = "<group>";
+		};
+		882BB2854400C682A0CEAAB4 /* Popover */ = {
+			isa = PBXGroup;
+			children = (
+				67CB93DEC3EB8D73FE3B5302 /* HermesPopoverChatView.swift */,
+				C143C34FDB9141FE48DCA705 /* HermesPopoverStrip.swift */,
+				787CA705F565BE6C5765A7F7 /* InsightCardView.swift */,
+				DB62777DDFCCE7756CE2583E /* MenuBarPopoverView.swift */,
+				BD8EEF117D24EF855E0ADBF6 /* OnboardingView.swift */,
+			);
+			path = Popover;
+			sourceTree = "<group>";
+		};
+		8B073BDC54AC148B858D584B /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				02FF039EF6AB618DE7C93651 /* BurnBarCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		95CE9AEF742F9165ABB68027 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				247881B7E08D44024008B3E5 /* Chat */,
+				15A5C7F19A6DF6F1DACA9F83 /* Components */,
+				6623CD7316ADE08CDD703D69 /* Dashboard */,
+				C4A23AAFD925C03FAC812113 /* Onboarding */,
+				882BB2854400C682A0CEAAB4 /* Popover */,
+				A903C699228C5BE556297A32 /* SessionLogs */,
+				972073AE992CC15463D4BF60 /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		972073AE992CC15463D4BF60 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A04F1E2D3C5B6A7988776655 /* AccountSettingsView.swift */,
+				A04F1E2D3C5B6A7988776656 /* AlertsAndNotificationsViews.swift */,
+				A04F1E2D3C5B6A7988776657 /* AppearanceCorkboardSection.swift */,
+				A04F1E2D3C5B6A7988776658 /* AppearanceModePickerView.swift */,
+				A04F1E2D3C5B6A7988776659 /* ChatGatewaySettingsView.swift */,
+				A04F1E2D3C5B6A798877665A /* DaemonSettingsView.swift */,
+				A04F1E2D3C5B6A798877665B /* GeneralSettingsView.swift */,
+				A04F1E2D3C5B6A798877665C /* PrivacyIndexingSettingsView.swift */,
+				A04F1E2D3C5B6A798877665D /* ProvidersSettingsView.swift */,
+				A04F1E2D3C5B6A798877665E /* SessionSummaryWizardView.swift */,
+				A04F1E2D3C5B6A798877665F /* SettingsTab.swift */,
+				FD6F26FB866B92E10DC33128 /* SettingsView.swift */,
+				A04F1E2D3C5B6A7988776660 /* SpeedOptionsSheet.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A903C699228C5BE556297A32 /* SessionLogs */ = {
+			isa = PBXGroup;
+			children = (
+				1AA46F9D242D22FD43A22B1C /* SessionLogsView.swift */,
+			);
+			path = SessionLogs;
+			sourceTree = "<group>";
+		};
+		B8C3613FDEE192A631370093 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A4AA68F1319A1D37F2B0F20C /* BurnBar.app */,
+				744780AD18D485DDFFF46DA4 /* BurnBarDaemonExecutable */,
+				ECF5BA92CF853D4B7CDE5D9D /* BurnBarDaemonTests.xctest */,
+				682017FCA38A7AB4A7C80608 /* BurnBarTests.xctest */,
+				F18060AB007AAC6A073EE77F /* libBurnBarDaemon.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BCF4D5C4FC786079C0575A68 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				09680869E5BE9F09B6BA54AA /* ColorAdaptive.swift */,
+				57C75EE1CC1C5085466E59BE /* DesignSystem.swift */,
+				ED7EFA857E2A3E502B70258D /* LLMModelBrand.swift */,
+				DBA805C308D29564142BA7F9 /* ProviderTheme.swift */,
+				0E1396996BD4F1A33C8202CE /* ThemeManager.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		C4A23AAFD925C03FAC812113 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				3B5419CC3403C6F6AE2739AB /* FlowLayout.swift */,
+				36E45387E760AF2F19029CE7 /* OnboardingChatEngineView.swift */,
+				30086E9168B41B3E3B8B5E4F /* OnboardingCompleteView.swift */,
+				DEFE8597356F6730FE6063A7 /* OnboardingConnectView.swift */,
+				CE625A7636B06EA5F2353955 /* OnboardingProviderCloudView.swift */,
+				77A7B26E19B5CB2309D4DCCC /* OnboardingProviderPill.swift */,
+				BAB3948C87EE353C3B722238 /* OnboardingScanView.swift */,
+				05CA939925D947C3DB2628EA /* OnboardingTourView.swift */,
+				F9938D2A552EA70963AC5141 /* OnboardingWizardView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		D74A2B6D4762024B98FC4442 /* BurnBarDaemonExecutable */ = {
+			isa = PBXGroup;
+			children = (
+				B10B81A290BB2FA13F52EF43 /* BurnBarDaemonMain.swift */,
+			);
+			name = BurnBarDaemonExecutable;
+			path = BurnBarDaemon/Sources/BurnBarDaemonExecutable;
+			sourceTree = "<group>";
+		};
+		DE54EC95940C4E44DF3E7E94 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				015F65D6FBAFB821D94103A3 /* BurnBarDaemon */,
+				FF6DA51936188AD0E5DA0DA9 /* CursorConnector */,
+				DED2D904049A61B97301824C /* DataStore */,
+				07577554CAB39B3F32A73320 /* LogParser */,
+				F4C6297FF574AAC374E6576E /* ProviderQuota */,
+				FD1B372E8EDAEB21E61FC457 /* ProviderUsageAPI */,
+				919C163E3845CED5CB2A8D6A /* AccountManager.swift */,
+				2FD418751379084676C5DD54 /* AppLogger.swift */,
+				B60E61FACB3F1BA7798FE9CA /* ArtifactAuthoringService.swift */,
+				A7EB9B6F52BEB0DD27364FFF /* BurnBarChatWorkspaceConfigurator.swift */,
+				7A75541FE7442B29F4894BCC /* BurnBarIdentity.swift */,
+				B223F1F47CB588A0F840DE16 /* BurnBarOperatingLayer.swift */,
+				F729FDFE6D34B6F03B5DDCA9 /* CLIBridge.swift */,
+				6CD006CD9B9241D1364DE204 /* CloudSyncService.swift */,
+				0C0C003B0BC42F2B9629E344 /* ContextBuilder.swift */,
+				F78AAB24FFCF6E834BEF9F57 /* ConversationIndexer.swift */,
+				DF0262CCB1779605B79D5AAA /* CrossEncoderConfiguration.swift */,
+				5AB0C2B1159EF1508DED5FCF /* CrossEncoderReranker.swift */,
+				EAC7BF69A4E9C2151614E0DB /* DailyDigestManager.swift */,
+				6C575F84B51ADF5E3C1FF5C6 /* DatabaseWorkspaceSnapshotBuilder.swift */,
+				101905159A0133B28DE3CE39 /* DataStore.swift */,
+				236042087027F85FC17BC6C7 /* HermesDataFolder.swift */,
+				B483FB92F7D6DD4CA3BE7E72 /* ICloudSessionMirrorService.swift */,
+				8C7570151F5AA138EA100752 /* InsightEngine.swift */,
+				B4DF7BE299DBC731B8FECEBB /* ModelPricing.swift */,
+				1D40EDD5872FB26C05824AE2 /* NavigationCoordinator.swift */,
+				C09ABDFBBAF6B198BDD825AC /* ProjectionPipelineService.swift */,
+				84E08215997E4EC968826D45 /* SearchService.swift */,
+				543EF3A2D2A3D55B71D5EE9A /* SessionLogMarkdownFormatter.swift */,
+				33CC7CCE2E9BF08471CE475C /* SettingsManager.swift */,
+				C9EF14922DF5A2D1ABE036AB /* TranscriptBlockParser.swift */,
+				0C27E98F51683D9AACE8A82F /* UsageAggregator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		DED2D904049A61B97301824C /* DataStore */ = {
+			isa = PBXGroup;
+			children = (
+				D617654C1FF312A9CAC572E9 /* ArtifactStore.swift */,
+				6F4FD1248A8C6144D2DA8DAE /* BurnBarDatabase.swift */,
+				B53AFE43048900448494F2F5 /* ControlPlaneStore.swift */,
+				D2B8CE717F88F54CF543742D /* ConversationStore.swift */,
+				076B10D569B131B490180E61 /* DataStoreTypes.swift */,
+				D338AF75C2D20B79D0D5044C /* DeviceStore.swift */,
+				DC96DA0A6947F17788B60ABE /* ProjectionStore.swift */,
+				93DCE8821ED32580432E5647 /* SearchIndexStore.swift */,
+				3D6032FB687B1BC453EE286F /* UsageStore.swift */,
+			);
+			path = DataStore;
+			sourceTree = "<group>";
+		};
+		EC628A23E09C59470FE68D9A /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				979643508E77719C5C1D947C /* Formatting.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		F4C6297FF574AAC374E6576E /* ProviderQuota */ = {
+			isa = PBXGroup;
+			children = (
+				3B994E197D62EA81E57DAD31 /* ProviderQuotaService.swift */,
+			);
+			path = ProviderQuota;
+			sourceTree = "<group>";
+		};
+		F622CC4D69D2B75BA57B792B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0BB63B965BA4D6A7398DEE39 /* AgentLensApp.swift */,
+				796FA1BE8E5B299F6ACC23EB /* AppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FD1B372E8EDAEB21E61FC457 /* ProviderUsageAPI */ = {
+			isa = PBXGroup;
+			children = (
+				884C00CD139AB73C24F8EB96 /* AnthropicUsageAPI.swift */,
+				40CD840845253AE47D3AD546 /* GitHubCopilotUsageAPI.swift */,
+				9686D98CD34345A4DCA4D612 /* OpenAIUsageAPI.swift */,
+				ECCDF707C013B9746C2C881C /* OpenRouterUsageAPI.swift */,
+				232E2624301EF9DBC44485B3 /* ProviderUsageAPIService.swift */,
+				1F873D5A329426688F413581 /* ZaiMiniMaxUsageProbe.swift */,
+			);
+			path = ProviderUsageAPI;
+			sourceTree = "<group>";
+		};
+		FF6DA51936188AD0E5DA0DA9 /* CursorConnector */ = {
+			isa = PBXGroup;
+			children = (
+				34DC63AE4066BA4C15C2AD9B /* CursorConnectorManager.swift */,
+				7356C2B877EAD026DC34C39C /* CursorConnectorModels.swift */,
+				E585C2B7DE464924EC3F5751 /* KeychainStore.swift */,
+			);
+			path = CursorConnector;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2D792008A0E5A53172665AD8 /* BurnBarDaemonTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 178D704E040A4E0F899A0F7A /* Build configuration list for PBXNativeTarget "BurnBarDaemonTests" */;
+			buildPhases = (
+				FFF733D3CAAD11181D9FBFDE /* Sources */,
+				F8CE4EDFD7B55AD694385465 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EE1229481DF738FB46609CC7 /* PBXTargetDependency */,
+				7C0C210908B0D810CBE0E0F3 /* PBXTargetDependency */,
+			);
+			name = BurnBarDaemonTests;
+			packageProductDependencies = (
+				5B28647A9AFE4CA61A02C4FA /* BurnBarCore */,
+			);
+			productName = BurnBarDaemonTests;
+			productReference = ECF5BA92CF853D4B7CDE5D9D /* BurnBarDaemonTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8A4B11EB8718CC65B3641862 /* BurnBarDaemon */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6ED240BD3BECE813514FD771 /* Build configuration list for PBXNativeTarget "BurnBarDaemon" */;
+			buildPhases = (
+				62468ACE2B3AF44B4740F79F /* Sources */,
+				0BEAC8A351C99DD547D6BA9B /* Copy Swift Objective-C Interface Header */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4CA8A06EF1CE881A473E5D19 /* PBXTargetDependency */,
+			);
+			name = BurnBarDaemon;
+			packageProductDependencies = (
+				76215FC91DF382206891AE7F /* BurnBarCore */,
+			);
+			productName = BurnBarDaemon;
+			productReference = F18060AB007AAC6A073EE77F /* libBurnBarDaemon.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CCAAB67E29FF9D25D2076CA1 /* BurnBarDaemonExecutable */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99135C58F925610E7B461B77 /* Build configuration list for PBXNativeTarget "BurnBarDaemonExecutable" */;
+			buildPhases = (
+				F086B41DB5C18F7F8379FAFE /* Sources */,
+				F148E2C3F83AA179DEBB2616 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				44E3A4E1F415FFC68D20398A /* PBXTargetDependency */,
+			);
+			name = BurnBarDaemonExecutable;
+			packageProductDependencies = (
+				3404298C8DE53D53D16D8D4B /* BurnBarCore */,
+			);
+			productName = BurnBarDaemonExecutable;
+			productReference = 744780AD18D485DDFFF46DA4 /* BurnBarDaemonExecutable */;
+			productType = "com.apple.product-type.tool";
+		};
+		F0EC55BBD5021BDEA98C593E /* BurnBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 922F4964277AACC9F435E4AE /* Build configuration list for PBXNativeTarget "BurnBar" */;
+			buildPhases = (
+				1742337C8346CF6635B2D01A /* Sources */,
+				138D578B8ABB92D04F73063B /* Resources */,
+				B7B802C5771BC9FA9ABC9046 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				469178811FC321D17A5214E2 /* PBXTargetDependency */,
+			);
+			name = BurnBar;
+			packageProductDependencies = (
+				672895C82DE1B508B5837144 /* BurnBarCore */,
+				E37D681CEE596C358C399E97 /* GRDB */,
+				13242102B8AB16D7BF4F0829 /* FirebaseAuth */,
+				75A41CA28F5F94306C9AEBD3 /* FirebaseFirestore */,
+				F04B5C9B1DD26137230DCDBC /* GoogleSignIn */,
+			);
+			productName = BurnBar;
+			productReference = A4AA68F1319A1D37F2B0F20C /* BurnBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F4090E8EFEBD76DDA074075A /* BurnBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EB41A10CD5AA71244BB881B5 /* Build configuration list for PBXNativeTarget "BurnBarTests" */;
+			buildPhases = (
+				6E2A84ABC2DC9167D67080FE /* Sources */,
+				54E890024B3CF1E1F378182D /* Resources */,
+				7C432F84BF92A2DF8CF87678 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				45A20D9DE0C03A99884C88B7 /* PBXTargetDependency */,
+			);
+			name = BurnBarTests;
+			packageProductDependencies = (
+				F43B86081AA7DE4C3274A45E /* ViewInspector */,
+			);
+			productName = BurnBarTests;
+			productReference = 682017FCA38A7AB4A7C80608 /* BurnBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		432E2B9BBC9CBAC438D98577 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					2D792008A0E5A53172665AD8 = {
+						ProvisioningStyle = Automatic;
+					};
+					8A4B11EB8718CC65B3641862 = {
+						ProvisioningStyle = Automatic;
+					};
+					CCAAB67E29FF9D25D2076CA1 = {
+						ProvisioningStyle = Automatic;
+					};
+					F0EC55BBD5021BDEA98C593E = {
+						ProvisioningStyle = Automatic;
+					};
+					F4090E8EFEBD76DDA074075A = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C3C18D01849DBACEACF4D151 /* Build configuration list for PBXProject "BurnBar" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5FE017D945F8EF5D711BBBA1;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				36E44B6A0754B8A49BAA768A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				7B93F196728A06D5A1262ED3 /* XCRemoteSwiftPackageReference "GRDB" */,
+				D77E1B9B2963A98DD4EB9C5C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				5E7FD988EA2BCCDC841D0ED9 /* XCRemoteSwiftPackageReference "ViewInspector" */,
+				1592DE07DA11E5F4F9C35198 /* XCLocalSwiftPackageReference "BurnBarCore" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F0EC55BBD5021BDEA98C593E /* BurnBar */,
+				8A4B11EB8718CC65B3641862 /* BurnBarDaemon */,
+				CCAAB67E29FF9D25D2076CA1 /* BurnBarDaemonExecutable */,
+				2D792008A0E5A53172665AD8 /* BurnBarDaemonTests */,
+				F4090E8EFEBD76DDA074075A /* BurnBarTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		138D578B8ABB92D04F73063B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD06514B50B91D4D3095D771 /* 66e1b25cc9185ef537421b18_Factory.ai.webp in Resources */,
+				6A4DAC63BB30F8458BFACE26 /* Assets.xcassets in Resources */,
+				5CEB345FDC7C5D565C8C6CB2 /* GoogleService-Info.plist in Resources */,
+				B801CB334DBD194CD3CCC5C9 /* GoogleService-Info.plist.example in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		54E890024B3CF1E1F378182D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8DB3DF0910CABC4741FEE5E /* authoring-draft-refine-grounding.json in Resources */,
+				82E2FC121C9EFB002C429418 /* retrieval-ann-vs-exact-baseline.json in Resources */,
+				EDFF510E1EBB3E37BFAE8440 /* retrieval-degraded-fallback.json in Resources */,
+				15176819B2B968579984FCAA /* retrieval-filter-correctness.json in Resources */,
+				CC85DC958D92AA433AE3D132 /* retrieval-lexical-win.json in Resources */,
+				13E4E761EEE3E7ABA2D6FDCE /* retrieval-semantic-rescue.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0BEAC8A351C99DD547D6BA9B /* Copy Swift Objective-C Interface Header */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(DERIVED_SOURCES_DIR)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			name = "Copy Swift Objective-C Interface Header";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/include/$(PRODUCT_MODULE_NAME)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ditto \"${SCRIPT_INPUT_FILE_0}\" \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1742337C8346CF6635B2D01A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				42953BEAE38B676C6EBD6384 /* AccountManager.swift in Sources */,
+				0C6144388B50FEA9575D4ECB /* AgentLensApp.swift in Sources */,
+				8B70B20C4CB174C0EE104F0B /* AgentProvider.swift in Sources */,
+				6C1BAAF37641726DB3DCF879 /* AnthropicUsageAPI.swift in Sources */,
+				EEDDF4098BDB681E68B3DCD8 /* AppDelegate.swift in Sources */,
+				F3F94B27A5EDAB6B9B4619FC /* AppLogger.swift in Sources */,
+				00CF8F604CC04B577CA6CFF0 /* AppLogoView.swift in Sources */,
+				940835280FB24C4565C952EF /* ArtifactAuthoringService.swift in Sources */,
+				AB232E66373CAE791D7E9D53 /* ArtifactStore.swift in Sources */,
+				0A23D849F157E1BDA0CAA9D6 /* AugmentParser.swift in Sources */,
+				1BBCD265DBC9780414A5224E /* BurnBarChatWorkspaceConfigurator.swift in Sources */,
+				4D455F701D9DB63B75DB7138 /* BurnBarDaemonManager.swift in Sources */,
+				09C863B45002C6FAE8DD144D /* BurnBarDatabase.swift in Sources */,
+				353FC2A36D8DB60F6018E9F5 /* BurnBarIdentity.swift in Sources */,
+				668E03DF78E5653D30C411CC /* BurnBarOperatingLayer.swift in Sources */,
+				996C4E4C0C5D370445E86E59 /* CLIAssistantConsentSheet.swift in Sources */,
+				D45856434D21B5ADBE66D70A /* CLIBridge.swift in Sources */,
+				0308DAE1148B4DAB9BDC7F4E /* ChatBackendID.swift in Sources */,
+				538B4122D661C21C5C78795F /* ChatFAB.swift in Sources */,
+				93F39ED729B41A62FFECA398 /* ChatMessageView.swift in Sources */,
+				279D475C721B1D66032D1A40 /* ChatPanel.swift in Sources */,
+				28E2E74FB32DF78342143C1A /* ChatSessionController.swift in Sources */,
+				8D77F5D4F3A5E3DC6A2BF45C /* ClaudeCodeParser.swift in Sources */,
+				D1465342E1C49F1C5B32D9BF /* ClaudeConversationExtractor.swift in Sources */,
+				A12CD2F9FF0AD35187DFEEBB /* ClineFormatParser.swift in Sources */,
+				7D62BA6F6FCE298E4AD710F9 /* CloudSyncService.swift in Sources */,
+				ADC3D20DDABC845D7ECF52D3 /* ColorAdaptive.swift in Sources */,
+				4C1DEE0A243A0D0F82A5F94B /* ContextBuilder.swift in Sources */,
+				0693FB1EC2D004154C5507D3 /* ControlPlaneStore.swift in Sources */,
+				2160E0861FDA738ABA9FB7F2 /* ConversationIndexer.swift in Sources */,
+				FF7C1830F6BB33A71CD79EE4 /* ConversationRecord.swift in Sources */,
+				D877DDBDCE083275CA407C45 /* ConversationStore.swift in Sources */,
+				8D7A08AC38B3A7F88C981036 /* CrossEncoderConfiguration.swift in Sources */,
+				B9D6A4B6C79CAF77769C3214 /* CrossEncoderReranker.swift in Sources */,
+				1EF1BE9D77D9BFB209A4C144 /* CursorConnectorManager.swift in Sources */,
+				8D1ECC59ACF18EC42BC81573 /* CursorConnectorModels.swift in Sources */,
+				267D5B08C8170557A8B5B8A2 /* DailyDigestManager.swift in Sources */,
+				F54FAD22774C3EAC23C735C0 /* DashboardActionGlyphs.swift in Sources */,
+				3BAB70BEDBC07D8A19C3E307 /* DashboardView.swift in Sources */,
+				C3789CDE17F2855242A5D2F5 /* DataStore.swift in Sources */,
+				CEDE2DB0A6358585E8DD7660 /* DataStoreTypes.swift in Sources */,
+				E7A4C60A4E45F1AF59102BC0 /* DatabaseWorkspaceSnapshotBuilder.swift in Sources */,
+				78A1D969DCECEF0C6CE17101 /* DatabaseWorkspaceView.swift in Sources */,
+				64396AEAD16A95B365B5C34D /* DesignSystem.swift in Sources */,
+				43BA485D9546C2619D2CFC3B /* DeviceStore.swift in Sources */,
+				56A87437FBFF7D3BD7131711 /* FactoryDroidParser.swift in Sources */,
+				765EAFB1EC3EAAA0FA197EF4 /* FlowLayout.swift in Sources */,
+				4C2BE788814BF6CF5A4AF1C2 /* ForgeDevParser.swift in Sources */,
+				A9B05FFB93001CF32AC82F48 /* Formatting.swift in Sources */,
+				E1F316DB8D07E09F3C5E4B78 /* GeminiCLIParser.swift in Sources */,
+				929BDE647DC342239714D7A2 /* GitHubCopilotUsageAPI.swift in Sources */,
+				6C2C48F577AF34DC382F00CE /* GooseParser.swift in Sources */,
+				C6B8B95F868DB683DB17D7CE /* HermesDataFolder.swift in Sources */,
+				FFA4BA5909843CBFA8373FF6 /* HermesParser.swift in Sources */,
+				498A40676B8A037B481FA31A /* HermesPopoverChatView.swift in Sources */,
+				1B69BF63B7176CC14405918E /* HermesPopoverStrip.swift in Sources */,
+				A3CE1296FE0714AEFCD64495 /* HermesThinkingView.swift in Sources */,
+				BB7A019353CDC1B6099A62A0 /* HermesToolCard.swift in Sources */,
+				DCC4F16F8E2E49A56F568888 /* ICloudSessionMirrorService.swift in Sources */,
+				345CE3C3DC3EEFE4EDDCE6BF /* InsightBriefCard.swift in Sources */,
+				15E5CD3894F270D058BB4EC0 /* InsightCardView.swift in Sources */,
+				9BF79DF35C6E49FCCF10E7AE /* InsightEngine.swift in Sources */,
+				86FE7AA85FD388F048D169AF /* KeychainStore.swift in Sources */,
+				0E56C051DACB1C66589F2A31 /* KimiParser.swift in Sources */,
+				D1655666ECD3913A0A4AF9A1 /* LLMModelBrand.swift in Sources */,
+				FC0F0E2E8CD05CDD418B22F9 /* LogParserProtocol.swift in Sources */,
+				416A01A17B8084A11BE4CD21 /* MenuBarPopoverView.swift in Sources */,
+				ECF0501FADEDA4841B231EE9 /* MercuryShimmerModifier.swift in Sources */,
+				4C169BE060466EBFA824FE12 /* MiniSparkline.swift in Sources */,
+				33C02A29F63B31FF1DCA777C /* MissionsView.swift in Sources */,
+				BC3A293B622202B95F37F726 /* ModelDashboardView.swift in Sources */,
+				C0C391E1AE3B91F98AA817F9 /* ModelPricing.swift in Sources */,
+				B64F983BD4AFEE0CF0353DB7 /* ModelProviderLogoView.swift in Sources */,
+				5C0724473518856FD77FD381 /* NarrativeCardView.swift in Sources */,
+				1CB31ECEC37FDB792D55A815 /* NavigationCoordinator.swift in Sources */,
+				1F0E7247EAF58DDB1C5F0738 /* OnboardingChatEngineView.swift in Sources */,
+				276D0A1C6A750ECC1D34D686 /* OnboardingCompleteView.swift in Sources */,
+				67BD9B64297BFF7CB8D18144 /* OnboardingConnectView.swift in Sources */,
+				8622D30B075BF11CDCBA0C97 /* OnboardingProviderCloudView.swift in Sources */,
+				BD32D6EA3FEB7EC0D65D62E2 /* OnboardingProviderPill.swift in Sources */,
+				ED7FA243D3949A581A46057A /* OnboardingScanView.swift in Sources */,
+				AFE2A5C131F9044CEAB00AD4 /* OnboardingTourView.swift in Sources */,
+				FCB2B100086EB32711D2677A /* OnboardingView.swift in Sources */,
+				031849A28E9B786B32BCECF3 /* OnboardingWizardView.swift in Sources */,
+				125B9C990A5869F375EDAA2F /* OpenAIUsageAPI.swift in Sources */,
+				22ED69E3B33A04412FFF512E /* OpenRouterUsageAPI.swift in Sources */,
+				70CC119C5FD74295B651297F /* PopoverTooltip.swift in Sources */,
+				896B87E45E85474A48AF74F2 /* ProjectionPipelineService.swift in Sources */,
+				9986637512B71864BE70C1DB /* ProjectionStore.swift in Sources */,
+				A46C2B6F13102032252A1F21 /* ProjectsView.swift in Sources */,
+				F96F34F5EB13D199D821A7EC /* ProviderDashboardView.swift in Sources */,
+				05A6E3A1E5E7A10FD483BC7B /* ProviderLogoView.swift in Sources */,
+				0CDEEEF7548897A1E9DB45E4 /* ProviderQuotaService.swift in Sources */,
+				6017122A1014FC685BF82A2F /* ProviderQuotaViews.swift in Sources */,
+				E9F2A8ED3429D40FF1A5FBC5 /* ProviderTheme.swift in Sources */,
+				76065972945E97BB1063C2A0 /* ProviderUsageAPIService.swift in Sources */,
+				1EF76BA011F3E8D3DDA81784 /* SearchIndexStore.swift in Sources */,
+				0B81470A3FAFC854A11B8D48 /* SearchService.swift in Sources */,
+				AAF91CB4D31BF1A344E7BA87 /* SessionDetailView.swift in Sources */,
+				07038E3A9148757570FA69E7 /* SessionLedgerSection.swift in Sources */,
+				8B364BDA00A686C1D08CE6DF /* SessionLogMarkdownFormatter.swift in Sources */,
+				5FEB73945A2529012A543048 /* SessionLogsView.swift in Sources */,
+				E51DD6FEEC5C264E8BB711DC /* SettingsManager.swift in Sources */,
+				B04F1E2D3C5B6A7988776655 /* AccountSettingsView.swift in Sources */,
+				B04F1E2D3C5B6A7988776656 /* AlertsAndNotificationsViews.swift in Sources */,
+				B04F1E2D3C5B6A7988776657 /* AppearanceCorkboardSection.swift in Sources */,
+				B04F1E2D3C5B6A7988776658 /* AppearanceModePickerView.swift in Sources */,
+				B04F1E2D3C5B6A7988776659 /* ChatGatewaySettingsView.swift in Sources */,
+				B04F1E2D3C5B6A798877665A /* DaemonSettingsView.swift in Sources */,
+				B04F1E2D3C5B6A798877665B /* GeneralSettingsView.swift in Sources */,
+				B04F1E2D3C5B6A798877665C /* PrivacyIndexingSettingsView.swift in Sources */,
+				B04F1E2D3C5B6A798877665D /* ProvidersSettingsView.swift in Sources */,
+				B04F1E2D3C5B6A798877665E /* SessionSummaryWizardView.swift in Sources */,
+				B04F1E2D3C5B6A798877665F /* SettingsTab.swift in Sources */,
+				63129433EF48F8636FCB8B1A /* SettingsView.swift in Sources */,
+				B04F1E2D3C5B6A7988776660 /* SpeedOptionsSheet.swift in Sources */,
+				8A964B0CD5A05F81129CEF49 /* ThemeManager.swift in Sources */,
+				1FDC3D17CAA154F4B8C8F467 /* TokenExtractionUtility.swift in Sources */,
+				B2D2EDED9629A76AD6321E86 /* TranscriptBlockParser.swift in Sources */,
+				3D4793ECE8FBF7FBEBD9E7C4 /* UsageAggregator.swift in Sources */,
+				F4B5243EE8052EC6351257E9 /* UsageStore.swift in Sources */,
+				04EFC1813CA35E9D5EB22751 /* ZaiMiniMaxUsageProbe.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		62468ACE2B3AF44B4740F79F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AF8A9A59F48835DE835898B /* BurnBarAgentLoopService.swift in Sources */,
+				E2A23FFFB7A31BBE6143E4ED /* BurnBarCLI.swift in Sources */,
+				28FAE9E14D36DEE0C584ACFF /* BurnBarClientRegistry.swift in Sources */,
+				00AC75B060491F5A14E576FA /* BurnBarConfigStore.swift in Sources */,
+				3D6B4FD7CA92481C4F948C12 /* BurnBarContextSelector.swift in Sources */,
+				E6D7C890B1A234E5678D9C0B2 /* BurnBarDaemonAuth.swift in Sources */,
+				24CC9553D5FCF5770DD2B335 /* BurnBarDaemonConfiguration.swift in Sources */,
+				E0AF93D560D7D5C985E42467 /* BurnBarDaemonLogger.swift in Sources */,
+				995479B39BB2DB0BBB7C851A /* BurnBarDaemonServer.swift in Sources */,
+				52C9EE6B24B4BE5D099481CB /* BurnBarIndexedSearchService.swift in Sources */,
+				F79D6C046B4420B3EE195917 /* BurnBarMissionControlService.swift in Sources */,
+				CCA4E7B5A5355C795196E543 /* BurnBarPlannerService.swift in Sources */,
+				182F0C0B8B479DC85797D30B /* BurnBarPolicyEngine.swift in Sources */,
+				720603691FA7249468178568 /* BurnBarProviderCatalogSupport.swift in Sources */,
+				0C9D72C6C2B0FE162D901F43 /* BurnBarProviderExecutor.swift in Sources */,
+				6EA6639C091DB34D5D77EEC4 /* BurnBarProviderRouter.swift in Sources */,
+				FF31D80050E72DC20DB5D6E4 /* BurnBarRecoveryEngine.swift in Sources */,
+				77DB561CDAC21883591329EE /* BurnBarRunJournal.swift in Sources */,
+				D405A794676962042118DB54 /* BurnBarRunService.swift in Sources */,
+				BDC1E4E01F094D7217E76226 /* BurnBarToolPlaneService.swift in Sources */,
+				A5DDAF93CA320ED6D4AF538F /* BurnBarUsageRecorder.swift in Sources */,
+				F20A38289F6B1139A1020E37 /* BurnBarWorkspaceBridgeBroker.swift in Sources */,
+				8B5336E8F3B743D1A4F1F613 /* EventKitBridge.swift in Sources */,
+				E2088FFB5C3663E816FCBD4A /* LocalNotificationBridge.swift in Sources */,
+				3E2267F32B14832144E933D1 /* MissionControlError.swift in Sources */,
+				62ACFA7A09A09FBEF375E44D /* MissionControlHelpers.swift in Sources */,
+				0570296CEB53B1FAC0898D34 /* MissionControlProjectionFile.swift in Sources */,
+				0E7B66B5E964BAEBB4F6DBB4 /* MissionControlService.swift in Sources */,
+				9D5B7D3EA32894C63BC6AA6A /* MissionControlStore.swift in Sources */,
+				F3C72ED816168D2DF6DBA53B /* MissionControlTransport.swift in Sources */,
+				85BF8C03D18C03FEC77EC2CF /* TelegramBotBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6E2A84ABC2DC9167D67080FE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DDBB36CB651B9922A12F0D6 /* AgentLensTests.swift in Sources */,
+				449D270D236534D80F1AC52B /* AppLogoViewTests.swift in Sources */,
+				2989CD7BDFFAEA0A58660E79 /* BurnBarDaemonManagerTests.swift in Sources */,
+				E616D6AB30E4E8668C86DDD3 /* BurnBarMigrationTests.swift in Sources */,
+				5701E58E0F2F677D5365C0E9 /* BurnBarOperatingLayerTests.swift in Sources */,
+				7A70951F155AC491EBDA90B7 /* BurnBarSearchIntegrationHarness.swift in Sources */,
+				64293F500C16B45737E5BB32 /* BurnBarSearchIntegrationHarnessTests.swift in Sources */,
+				187983793E740E66D8C14EC5 /* CLIAssistantConsentSheetTests.swift in Sources */,
+				C769397B3B82F9BAC7D0D5FD /* CLIBridgeTests.swift in Sources */,
+				BC4F19A4F569A139F55FAB25 /* ChatFABTests.swift in Sources */,
+				0A3298FA7A454ECC45A532F7 /* ChatMessageViewTests.swift in Sources */,
+				E82C0035E674335918180C7D /* CloudSyncServiceTests.swift in Sources */,
+				FDCF746FB0D1A9FFA4775177 /* ConversationParsingTests.swift in Sources */,
+				BD88BFC5BFFF32DFFBE9374F /* CrossEncoderRerankerTests.swift in Sources */,
+				98E18FD279ED3571BCE5686D /* CursorConnectorTests.swift in Sources */,
+				94631D5DC02918F490866953 /* DailyDigestManagerTests.swift in Sources */,
+				5A6C727845CE9B52330B989F /* DashboardActionGlyphTests.swift in Sources */,
+				966CAD2C00479EBC2FBAFDB8 /* DataStoreTests.swift in Sources */,
+				DC4A69ED82EBA0B7F6A5DF51 /* FlowLayoutTests.swift in Sources */,
+				E31475AF88C63C35822545FA /* HermesThinkingViewTests.swift in Sources */,
+				303D488B71E91FD9A328A1B7 /* HermesToolCardTests.swift in Sources */,
+				43010FB90DABB271F4030454 /* InsightBriefCardTests.swift in Sources */,
+				925360D124A2A47B0BD7C78C /* InsightEngineTests.swift in Sources */,
+				CBEE91F9CBDFA0305DA4580C /* MercuryShimmerModifierTests.swift in Sources */,
+				DD6060EEA96A0FDB42FE69B6 /* MiniSparklineTests.swift in Sources */,
+				DF1C4BA6B09BF13736758D87 /* NarrativeCardViewTests.swift in Sources */,
+				0F2F42FF5B06EA21657674B9 /* OnboardingCompleteViewTests.swift in Sources */,
+				AAFB8FF094CF34714D02ABB3 /* OnboardingProviderPillTests.swift in Sources */,
+				307FE152A5352381D14E360F /* ParserIntegrationTests.swift in Sources */,
+				BCC3BB4619B33BC3324144E6 /* PerformanceTests.swift in Sources */,
+				B680867046D1AC58FD841AB5 /* ProviderLogoViewTests.swift in Sources */,
+				6E7324835087667843154F8C /* ProviderQuotaServiceTests.swift in Sources */,
+				BE186A1903C5879B1E3EA670 /* SessionLedgerSectionTests.swift in Sources */,
+				E070162E6B896F896AE370AE /* UsageAggregatorTests.swift in Sources */,
+				305D11D4EF2BEB1A3667A6E4 /* ViewFixtures.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F086B41DB5C18F7F8379FAFE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				919C9DB35478E7E2BC98E194 /* BurnBarDaemonMain.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FFF733D3CAAD11181D9FBFDE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5BA8D7D5E51F397BE669059A /* BurnBarAgentStackTests.swift in Sources */,
+				CFA2741D43AF54B847A18CCF /* BurnBarCLITests.swift in Sources */,
+				E0A8312686E5453E69374B2E /* BurnBarConfigStoreTests.swift in Sources */,
+				A89458ED3F44A60CAFC0379D /* BurnBarDaemonServerTests.swift in Sources */,
+				556C3D566FA5029F03B41848 /* BurnBarIndexedSearchServiceTests.swift in Sources */,
+				E5B1F3256223D9E6B10CE820 /* BurnBarMissionControlServiceTests.swift in Sources */,
+				3E8D4A575AB9E29537153CE3 /* BurnBarProviderRouterTests.swift in Sources */,
+				A4C3A23CC6CEE7590D98DA78 /* BurnBarRunServiceTests.swift in Sources */,
+				AE2F79139358807805CF4C9D /* BurnBarUsageRecorderTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		44E3A4E1F415FFC68D20398A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A4B11EB8718CC65B3641862 /* BurnBarDaemon */;
+			targetProxy = 34B528176E18551396AE49CA /* PBXContainerItemProxy */;
+		};
+		45A20D9DE0C03A99884C88B7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F0EC55BBD5021BDEA98C593E /* BurnBar */;
+			targetProxy = 696A4DAD5283D2078465BB19 /* PBXContainerItemProxy */;
+		};
+		469178811FC321D17A5214E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CCAAB67E29FF9D25D2076CA1 /* BurnBarDaemonExecutable */;
+			targetProxy = 02FDE6030F46527229560220 /* PBXContainerItemProxy */;
+		};
+		4CA8A06EF1CE881A473E5D19 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 76215FC91DF382206891AE7F /* BurnBarCore */;
+		};
+		7C0C210908B0D810CBE0E0F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CCAAB67E29FF9D25D2076CA1 /* BurnBarDaemonExecutable */;
+			targetProxy = 1699D0CF42A3E01D3228F74E /* PBXContainerItemProxy */;
+		};
+		EE1229481DF738FB46609CC7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A4B11EB8718CC65B3641862 /* BurnBarDaemon */;
+			targetProxy = 02A1DA3265901C926B963DA6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		190A9E1E955F1E50E917B28F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.daemon;
+				PRODUCT_MODULE_NAME = BurnBarDaemonExecutable;
+				PRODUCT_NAME = BurnBarDaemon;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		2E6260F5993C7A652E984CF4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AgentLens/Resources/BurnBar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 4Y367DF25B;
+				INFOPLIST_FILE = "AgentLens/Resources/BurnBar-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = BurnBar;
+				INFOPLIST_KEY_CFBundleName = BurnBar;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.app;
+				PRODUCT_NAME = BurnBar;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		2F33ECFF351ED321EA0650B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.BurnBarDaemon;
+				PRODUCT_NAME = BurnBarDaemon;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		32B83308DC24185F26CFF1C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/BurnBar.app/Contents/MacOS/BurnBar";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.tests;
+				PRODUCT_NAME = BurnBarTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUNDLE_LOADER)";
+			};
+			name = Debug;
+		};
+		3936DC77A4138E6A76523EEF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.daemon.tests;
+				PRODUCT_NAME = BurnBarDaemonTests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		3C430C83A94C2BFC7453C77E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.daemon;
+				PRODUCT_MODULE_NAME = BurnBarDaemonExecutable;
+				PRODUCT_NAME = BurnBarDaemon;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		59F866CDC116EA67B1922B9E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		7EF912A860B497D77241625B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/BurnBar.app/Contents/MacOS/BurnBar";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.tests;
+				PRODUCT_NAME = BurnBarTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUNDLE_LOADER)";
+			};
+			name = Release;
+		};
+		8FC8BE331E9ECBC8F5F8DB1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AgentLens/Resources/BurnBar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 4Y367DF25B;
+				INFOPLIST_FILE = "AgentLens/Resources/BurnBar-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = BurnBar;
+				INFOPLIST_KEY_CFBundleName = BurnBar;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.app;
+				PRODUCT_NAME = BurnBar;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A626314C229BEC670DCE1F07 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		A952A12C05AA0EC0795475FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.BurnBarDaemon;
+				PRODUCT_NAME = BurnBarDaemon;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		E97E75D44B7A621EADCAA96B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.burnbar.daemon.tests;
+				PRODUCT_NAME = BurnBarDaemonTests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		178D704E040A4E0F899A0F7A /* Build configuration list for PBXNativeTarget "BurnBarDaemonTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E97E75D44B7A621EADCAA96B /* Debug */,
+				3936DC77A4138E6A76523EEF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6ED240BD3BECE813514FD771 /* Build configuration list for PBXNativeTarget "BurnBarDaemon" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F33ECFF351ED321EA0650B6 /* Debug */,
+				A952A12C05AA0EC0795475FB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		922F4964277AACC9F435E4AE /* Build configuration list for PBXNativeTarget "BurnBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2E6260F5993C7A652E984CF4 /* Debug */,
+				8FC8BE331E9ECBC8F5F8DB1E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		99135C58F925610E7B461B77 /* Build configuration list for PBXNativeTarget "BurnBarDaemonExecutable" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C430C83A94C2BFC7453C77E /* Debug */,
+				190A9E1E955F1E50E917B28F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C3C18D01849DBACEACF4D151 /* Build configuration list for PBXProject "BurnBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A626314C229BEC670DCE1F07 /* Debug */,
+				59F866CDC116EA67B1922B9E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EB41A10CD5AA71244BB881B5 /* Build configuration list for PBXNativeTarget "BurnBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				32B83308DC24185F26CFF1C7 /* Debug */,
+				7EF912A860B497D77241625B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		1592DE07DA11E5F4F9C35198 /* XCLocalSwiftPackageReference "BurnBarCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = BurnBarCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		36E44B6A0754B8A49BAA768A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+		5E7FD988EA2BCCDC841D0ED9 /* XCRemoteSwiftPackageReference "ViewInspector" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nalexn/ViewInspector";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
+		7B93F196728A06D5A1262ED3 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+		D77E1B9B2963A98DD4EB9C5C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		13242102B8AB16D7BF4F0829 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36E44B6A0754B8A49BAA768A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		3404298C8DE53D53D16D8D4B /* BurnBarCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BurnBarCore;
+		};
+		5B28647A9AFE4CA61A02C4FA /* BurnBarCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BurnBarCore;
+		};
+		672895C82DE1B508B5837144 /* BurnBarCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BurnBarCore;
+		};
+		75A41CA28F5F94306C9AEBD3 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36E44B6A0754B8A49BAA768A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		76215FC91DF382206891AE7F /* BurnBarCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BurnBarCore;
+		};
+		E37D681CEE596C358C399E97 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B93F196728A06D5A1262ED3 /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+		F04B5C9B1DD26137230DCDBC /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D77E1B9B2963A98DD4EB9C5C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		F43B86081AA7DE4C3274A45E /* ViewInspector */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E7FD988EA2BCCDC841D0ED9 /* XCRemoteSwiftPackageReference "ViewInspector" */;
+			productName = ViewInspector;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 432E2B9BBC9CBAC438D98577 /* Project object */;
+}

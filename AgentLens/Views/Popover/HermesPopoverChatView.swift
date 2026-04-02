@@ -1,0 +1,426 @@
+import SwiftUI
+
+// MARK: - Hermes Popover Chat View
+
+/// Full chat experience inside the menu bar popover.
+/// Replaces the default popover content when Hermes chat is active.
+/// Layout: provider hero → chat thread → input → dashboard link.
+struct HermesPopoverChatView: View {
+    @Bindable var controller: ChatSessionController
+    @Bindable var operatingLayer: BurnBarOperatingLayer
+    var settingsManager: SettingsManager
+    var onDismissChat: () -> Void
+    var onOpenDashboardWithChat: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            hermesHeroCard
+            HStack(alignment: .center, spacing: DesignSystem.Spacing.sm) {
+                ChatEngineBackendStrip(controller: controller, settingsManager: settingsManager)
+                Spacer(minLength: 0)
+                ChatEngineModelMenu(controller: controller)
+            }
+            .padding(.horizontal, DesignSystem.Spacing.md)
+            .padding(.vertical, DesignSystem.Spacing.xs)
+            .background(DesignSystem.Colors.surface.opacity(0.35))
+            BurnBarHermesOperatingStrip(layer: operatingLayer)
+            Divider().background(DesignSystem.Colors.hermesMercury.opacity(0.3))
+            chatThread
+            Divider().background(DesignSystem.Colors.hermesMercury.opacity(0.3))
+            inputRow
+            bottomBar
+        }
+        .frame(width: 340)
+        .background(DesignSystem.Colors.background)
+        .onAppear {
+            controller.ensureChatWorkspaceDirectoryExists()
+            Task {
+                await controller.probeHermesAvailability()
+                await controller.probeOpenClawAvailability()
+                await operatingLayer.refreshControllerRuntime()
+            }
+        }
+    }
+
+    // MARK: - Hero Card
+
+    private var hermesHeroCard: some View {
+        HStack(spacing: DesignSystem.Spacing.md) {
+            // Provider emblem
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                DesignSystem.Colors.hermesMercury.opacity(0.15),
+                                DesignSystem.Colors.hermesAureate.opacity(0.10)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+
+                Text("\u{263F}")
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .foregroundStyle(DesignSystem.Colors.hermesAureate)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(controller.chatBackend.displayName)
+                    .font(DesignSystem.Typography.headline)
+                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+
+                if controller.chatBackend == .hermes, let modelName = controller.hermesModelName {
+                    HStack(spacing: 4) {
+                        modelBrandDot(for: modelName)
+                        Text(Self.abbreviateModelName(modelName))
+                            .font(DesignSystem.Typography.tiny)
+                            .foregroundStyle(DesignSystem.Colors.textSecondary)
+                            .lineLimit(1)
+                    }
+                } else if controller.chatBackend == .hermes, controller.hermesAvailable {
+                    Text("Connected")
+                        .font(DesignSystem.Typography.tiny)
+                        .foregroundStyle(DesignSystem.Colors.success)
+                } else if controller.chatBackend == .openclaw, controller.openClawAvailable {
+                    Text("Connected")
+                        .font(DesignSystem.Typography.tiny)
+                        .foregroundStyle(DesignSystem.Colors.success)
+                } else {
+                    Text("Offline")
+                        .font(DesignSystem.Typography.tiny)
+                        .foregroundStyle(DesignSystem.Colors.textMuted)
+                }
+            }
+
+            Spacer()
+
+            Button {
+                controller.revealChatWorkspaceInFinder()
+            } label: {
+                Image(systemName: "folder")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(DesignSystem.Colors.hermesAureate)
+            }
+            .buttonStyle(.plain)
+            .popoverTooltip("Show this chat’s workspace in Finder — each new chat uses its own folder under BurnBar’s Application Support.")
+
+            // Mining animation or back button — top right corner
+            if controller.isStreaming {
+                AnimatedMiningPickView()
+                    .frame(width: 28, height: 28)
+            } else {
+                Button {
+                    onDismissChat()
+                } label: {
+                    Image(systemName: "chevron.left.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(DesignSystem.Colors.textMuted.opacity(0.5))
+                }
+                .buttonStyle(.plain)
+                .popoverTooltip("Back to overview")
+            }
+        }
+        .padding(.horizontal, DesignSystem.Spacing.lg)
+        .padding(.vertical, DesignSystem.Spacing.md)
+        .background {
+            DesignSystem.Colors.surfaceElevated
+        }
+        .mercuryShimmer(active: controller.isStreaming)
+    }
+
+    @ViewBuilder
+    private func modelBrandDot(for modelName: String) -> some View {
+        let brand = LLMModelBrand.infer(fromModelKey: modelName)
+        Circle()
+            .fill(brand == .unknown
+                  ? DesignSystem.Colors.colorForModel(modelName)
+                  : brand.emblemColor)
+            .frame(width: 6, height: 6)
+    }
+
+    private static func abbreviateModelName(_ name: String) -> String {
+        var short = name
+        let prefixes = ["NousResearch/", "meta-llama/", "mistralai/", "Qwen/", "google/", "deepseek-ai/"]
+        for prefix in prefixes {
+            if short.hasPrefix(prefix) {
+                short = String(short.dropFirst(prefix.count))
+                break
+            }
+        }
+        if short.count > 32 {
+            short = String(short.prefix(30)) + "…"
+        }
+        return short
+    }
+
+    // MARK: - Chat Thread
+
+    private var chatThread: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                    if controller.messages.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(controller.messages) { msg in
+                            HermesPopoverBubble(
+                                message: msg,
+                                isStreaming: controller.isStreaming
+                                    && msg.id == controller.activeStreamMessageId
+                                    && msg.role == .assistant
+                            )
+                            .id(msg.id)
+                        }
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.md)
+                .padding(.vertical, DesignSystem.Spacing.sm)
+            }
+            .frame(minHeight: 140, maxHeight: 320)
+            .onChange(of: controller.messages.count) { _, _ in
+                if let last = controller.messages.last {
+                    Task { @MainActor in
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: DesignSystem.Spacing.md) {
+            Text("\u{263F}")
+                .font(.system(size: 32))
+                .foregroundStyle(DesignSystem.Colors.hermesMercury.opacity(0.4))
+
+            Text("Ask \(controller.chatBackend.displayName)")
+                .font(DesignSystem.Typography.body)
+                .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+            Text("BurnBar index + your chosen backend")
+                .font(DesignSystem.Typography.tiny)
+                .foregroundStyle(DesignSystem.Colors.textMuted)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, DesignSystem.Spacing.xxl)
+    }
+
+    // MARK: - Input Row
+
+    private var inputRow: some View {
+        HStack(spacing: DesignSystem.Spacing.sm) {
+            TextField(popoverInputPlaceholder, text: $controller.inputText)
+                .textFieldStyle(.plain)
+                .font(DesignSystem.Typography.body)
+                .onSubmit {
+                    Task { await sendMessage() }
+                }
+
+            if controller.isStreaming {
+                Button {
+                    controller.cancelGeneration()
+                } label: {
+                    Image(systemName: "stop.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(DesignSystem.Colors.error)
+                }
+                .buttonStyle(.plain)
+            } else if !controller.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button {
+                    Task { await sendMessage() }
+                } label: {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(DesignSystem.Colors.hermesAureate)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+        .padding(.vertical, DesignSystem.Spacing.sm + 2)
+        .background(DesignSystem.Colors.surfaceElevated.opacity(0.6))
+    }
+
+    // MARK: - Bottom Bar
+
+    private var bottomBar: some View {
+        HStack(spacing: DesignSystem.Spacing.sm) {
+            Button {
+                controller.clearChat()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "square.and.pencil")
+                        .font(.system(size: 11, weight: .medium))
+                    Text("New")
+                        .font(DesignSystem.Typography.tiny)
+                }
+                .foregroundStyle(DesignSystem.Colors.textMuted)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Button {
+                onOpenDashboardWithChat()
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Open in Dashboard")
+                        .font(DesignSystem.Typography.tiny)
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .foregroundStyle(DesignSystem.Colors.hermesAureate)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, DesignSystem.Spacing.md)
+        .padding(.vertical, DesignSystem.Spacing.sm)
+        .background(DesignSystem.Colors.surface.opacity(0.5))
+    }
+
+    private var popoverInputPlaceholder: String {
+        switch controller.chatBackend {
+        case .codex: return "Ask Codex…"
+        case .claude: return "Ask Claude…"
+        case .hermes: return "Ask Hermes…"
+        case .openclaw: return "Ask OpenClaw…"
+        }
+    }
+
+    // MARK: - Actions
+
+    private func sendMessage() async {
+        await controller.send()
+    }
+}
+
+// MARK: - Hermes Popover Bubble
+
+/// Chat bubble optimized for the compact popover.
+private struct HermesPopoverBubble: View {
+    let message: ChatMessageRecord
+    var isStreaming: Bool
+
+    private var transcript: [ChatTranscriptPiece] {
+        message.displayTranscript
+    }
+
+    var body: some View {
+        HStack(alignment: .bottom) {
+            if message.role == .user {
+                Spacer(minLength: 40)
+                userBubble
+            } else {
+                assistantColumn
+                Spacer(minLength: 40)
+            }
+        }
+    }
+
+    // MARK: - User
+
+    private var userBubble: some View {
+        let text = transcript.filter { $0.kind == .text }.map(\.value).joined()
+        let display = text.isEmpty ? message.content : text
+
+        return Text(display)
+            .font(DesignSystem.Typography.caption)
+            .foregroundStyle(DesignSystem.Colors.textPrimary)
+            .padding(.horizontal, DesignSystem.Spacing.sm + 2)
+            .padding(.vertical, DesignSystem.Spacing.xs + 3)
+            .background {
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 14,
+                    bottomLeadingRadius: 14,
+                    bottomTrailingRadius: 4,
+                    topTrailingRadius: 14,
+                    style: .continuous
+                )
+                .fill(DesignSystem.Colors.whimsy.opacity(0.12))
+            }
+    }
+
+    // MARK: - Assistant
+
+    private var assistantColumn: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Thinking state
+            if isStreaming && transcript.isEmpty {
+                HermesThinkingView()
+                    .scaleEffect(0.85)
+            }
+
+            ForEach(transcript) { piece in
+                switch piece.kind {
+                case .toolUse:
+                    compactToolPill(piece)
+                case .text:
+                    let isLast = piece.id == transcript.last(where: { $0.kind == .text })?.id
+                    let display = piece.value + (isStreaming && isLast ? "▍" : "")
+                    if !display.isEmpty {
+                        Text(display)
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundStyle(DesignSystem.Colors.textPrimary)
+                            .textSelection(.enabled)
+                            .padding(.horizontal, DesignSystem.Spacing.sm + 2)
+                            .padding(.vertical, DesignSystem.Spacing.xs + 3)
+                            .background {
+                                ZStack {
+                                    UnevenRoundedRectangle(
+                                        topLeadingRadius: 4,
+                                        bottomLeadingRadius: 14,
+                                        bottomTrailingRadius: 14,
+                                        topTrailingRadius: 14,
+                                        style: .continuous
+                                    )
+                                    .fill(DesignSystem.Colors.surface)
+
+                                    UnevenRoundedRectangle(
+                                        topLeadingRadius: 4,
+                                        bottomLeadingRadius: 14,
+                                        bottomTrailingRadius: 14,
+                                        topTrailingRadius: 14,
+                                        style: .continuous
+                                    )
+                                    .strokeBorder(DesignSystem.Colors.mercuryGradient, lineWidth: 0.75)
+                                }
+                            }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func compactToolPill(_ piece: ChatTranscriptPiece) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: toolIcon(for: piece.value))
+                .font(.system(size: 9, weight: .semibold))
+            Text(piece.value)
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(DesignSystem.Colors.mercuryGradient)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background {
+            Capsule(style: .continuous)
+                .fill(DesignSystem.Colors.hermesMercury.opacity(0.08))
+        }
+        .overlay {
+            Capsule(style: .continuous)
+                .strokeBorder(DesignSystem.Colors.hermesMercury.opacity(0.25), lineWidth: 0.5)
+        }
+    }
+
+    private func toolIcon(for name: String) -> String {
+        let n = name.lowercased()
+        if n.contains("read") || n.contains("file") || n.contains("write") { return "doc.text" }
+        if n.contains("bash") || n.contains("exec") || n.contains("run") { return "terminal" }
+        if n.contains("search") || n.contains("grep") || n.contains("glob") { return "magnifyingglass" }
+        if n.contains("web") || n.contains("browser") || n.contains("fetch") { return "globe" }
+        if n.contains("edit") || n.contains("patch") { return "pencil.and.outline" }
+        return "wrench.and.screwdriver"
+    }
+}

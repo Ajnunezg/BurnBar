@@ -1,0 +1,22 @@
+# CODEOWNERS — BurnBar
+
+# Default owner for everything
+* @Ajnunezg
+
+# Swift app
+AgentLens/ @Ajnunezg
+
+# Swift packages
+BurnBarCore/ @Ajnunezg
+BurnBarDaemon/ @Ajnunezg
+BurnBarDaemonExecutable/ @Ajnunezg
+
+# Editor extension
+extensions/burnbar/ @Ajnunezg
+
+# CI/CD
+.github/workflows/ @Ajnunezg
+
+# Infrastructure
+firestore.rules @Ajnunezg
+project.yml @Ajnunezg

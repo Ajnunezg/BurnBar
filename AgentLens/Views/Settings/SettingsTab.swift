@@ -1,0 +1,102 @@
+import SwiftUI
+
+// MARK: - Settings Tab
+
+/// Defines the available settings tabs in the settings navigation.
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general
+    case daemon
+    case account
+    case providers
+    case alerts
+    case notifications
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .general: return "General"
+        case .daemon: return "Daemon"
+        case .account: return "Account"
+        case .providers: return "Providers"
+        case .alerts: return "Alerts"
+        case .notifications: return "Notifications"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general: return "gearshape.fill"
+        case .daemon: return "cpu.fill"
+        case .account: return "person.crop.circle.fill"
+        case .providers: return "externaldrive.connected.to.line.below"
+        case .alerts: return "bell.fill"
+        case .notifications: return "bell.badge.fill"
+        }
+    }
+
+    var accentColor: Color {
+        switch self {
+        case .general: return DesignSystem.Colors.amber
+        case .daemon: return DesignSystem.Colors.teal
+        case .account: return DesignSystem.Colors.whimsy
+        case .providers: return DesignSystem.Colors.ember
+        case .alerts: return DesignSystem.Colors.blaze
+        case .notifications: return DesignSystem.Colors.whimsy
+        }
+    }
+}
+
+// MARK: - Shared Settings Components
+
+struct SettingsSectionHeader: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(DesignSystem.Typography.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(DesignSystem.Colors.textSecondary)
+            .padding(.top, DesignSystem.Spacing.xs)
+    }
+}
+
+struct SettingsToggle: View {
+    let title: String
+    let subtitle: String?
+    let icon: String?
+    @Binding var isOn: Bool
+
+    init(title: String, subtitle: String? = nil, icon: String? = nil, isOn: Binding<Bool>) {
+        self.title = title
+        self.subtitle = subtitle
+        self.icon = icon
+        self._isOn = isOn
+    }
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            HStack(spacing: DesignSystem.Spacing.md) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundStyle(DesignSystem.Colors.textMuted)
+                        .frame(width: 20)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundStyle(DesignSystem.Colors.textSecondary)
+
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(DesignSystem.Typography.tiny)
+                            .foregroundStyle(DesignSystem.Colors.textMuted)
+                    }
+                }
+            }
+        }
+        .toggleStyle(SwitchToggleStyle(tint: DesignSystem.Colors.blaze))
+    }
+}

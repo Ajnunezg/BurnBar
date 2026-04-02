@@ -1,0 +1,74 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+
+# Build
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Library/Logs/
+
+# Xcode private settings
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+xcuserdata/
+
+# Thumbnails
+*.swp
+*.swo
+*~
+
+# IDEs
+*.idea/
+*.vscode/
+
+# Secrets
+*.env
+*.pem
+*.p12
+
+# Firebase — never commit the real plist; drop it locally as GoogleService-Info.plist
+GoogleService-Info.plist
+
+# Local test/build artifacts
+.playwright-mcp/
+output/playwright/
+default.profraw
+
+# BurnBar local MCP (Python venv)
+tools/burnbar-mcp/.venv/
+
+# Local Xcode/SwiftPM caches used by scripts/build.sh
+.spm-cache/
+.derived-data/

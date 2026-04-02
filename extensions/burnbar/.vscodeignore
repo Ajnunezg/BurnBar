@@ -1,0 +1,8 @@
+.build/**
+coverage/**
+node_modules/**
+src/**
+test/**
+tsconfig*.json
+vitest.config.ts
+eslint.config.mjs
