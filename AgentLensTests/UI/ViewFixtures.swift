@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 @testable import BurnBar
 
 // MARK: - Token Usage Fixtures

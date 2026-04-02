@@ -7,7 +7,7 @@ import BurnBarCore
 final class AgentLensTests: XCTestCase {
 
     func test_rollingDailyAverage_sevenDays() throws {
-        let store = DataStore()
+        let store = try DataStore()
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         var usages: [TokenUsage] = []
@@ -33,7 +33,7 @@ final class AgentLensTests: XCTestCase {
     }
 
     func test_rollingDailyAverage_zeroFillsMissingDays() throws {
-        let store = DataStore()
+        let store = try DataStore()
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         var usages: [TokenUsage] = []
@@ -57,26 +57,26 @@ final class AgentLensTests: XCTestCase {
         XCTAssertEqual(store.rollingDailyAverage, 30.0 / 7.0, accuracy: 0.0001)
     }
 
-    func test_moodBand_light() {
-        let store = DataStore()
+    func test_moodBand_light() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 0.5, rollingAvg: 1.0))
         XCTAssertEqual(store.moodBand, .light)
     }
 
-    func test_moodBand_onPace() {
-        let store = DataStore()
+    func test_moodBand_onPace() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 1.0, rollingAvg: 1.0))
         XCTAssertEqual(store.moodBand, .onPace)
     }
 
-    func test_moodBand_heavy() {
-        let store = DataStore()
+    func test_moodBand_heavy() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 2.0, rollingAvg: 1.0))
         XCTAssertEqual(store.moodBand, .heavy)
     }
 
-    func test_moodBand_baseline() {
-        let store = DataStore()
+    func test_moodBand_baseline() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u = TokenUsage(
@@ -94,14 +94,14 @@ final class AgentLensTests: XCTestCase {
         XCTAssertEqual(store.moodBand, .baseline)
     }
 
-    func test_moodBand_quiet() {
-        let store = DataStore()
+    func test_moodBand_quiet() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 0, rollingAvg: 5))
         XCTAssertEqual(store.moodBand, .quiet)
     }
 
-    func test_moodBand_zeroAverage() {
-        let store = DataStore()
+    func test_moodBand_zeroAverage() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let d0 = cal.startOfDay(for: Date())
         let d1 = cal.date(byAdding: .day, value: -1, to: d0)!
@@ -167,29 +167,29 @@ final class AgentLensTests: XCTestCase {
         XCTAssertEqual(u.totalTokens, 0)
     }
 
-    func test_insightCard_zeroInsights() {
-        let store = DataStore()
+    func test_insightCard_zeroInsights() throws {
+        let store = try DataStore()
         store.replaceUsages([])
         let insights = InsightEngine.generate(from: store)
         XCTAssertTrue(insights.isEmpty)
     }
 
-    func test_insightCard_oneInsight() {
-        let store = DataStore()
+    func test_insightCard_oneInsight() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 2.0, rollingAvg: 1.0))
         let insights = InsightEngine.generate(from: store)
         XCTAssertTrue(insights.count >= 1)
     }
 
-    func test_narrativeTemplate_noSessions() {
-        let store = DataStore()
+    func test_narrativeTemplate_noSessions() throws {
+        let store = try DataStore()
         store.replaceUsages([])
         let n = InsightEngine.generateNarrative(from: store)
         XCTAssertTrue(n.headline.contains("No sessions"))
     }
 
-    func test_narrativeTemplate_oneSessions() {
-        let store = DataStore()
+    func test_narrativeTemplate_oneSessions() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u = TokenUsage(
@@ -208,8 +208,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertTrue(n.headline.hasPrefix("One ") || n.headline.contains("1"))
     }
 
-    func test_narrativeTemplate_nSessions() {
-        let store = DataStore()
+    func test_narrativeTemplate_nSessions() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -239,8 +239,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertTrue(n.headline.contains("2") || n.headline.contains("sessions"))
     }
 
-    func test_narrativeTemplate_countsDistinctSessionIds() {
-        let store = DataStore()
+    func test_narrativeTemplate_countsDistinctSessionIds() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -270,8 +270,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertTrue(n.headline.hasPrefix("One "))
     }
 
-    func test_insightCard_newSessions_countsDistinctSessionIds() {
-        let store = DataStore()
+    func test_insightCard_newSessions_countsDistinctSessionIds() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -303,8 +303,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertEqual(newSessions?.metric, 1)
     }
 
-    func test_narrativeTemplate_collapsesClaudeSubagentSessionIds() {
-        let store = DataStore()
+    func test_narrativeTemplate_collapsesClaudeSubagentSessionIds() throws {
+        let store = try DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let topLevel = TokenUsage(
@@ -334,8 +334,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertTrue(narrative.headline.hasPrefix("One "))
     }
 
-    func test_sparklineData_alwaysSevenPoints() {
-        let store = DataStore()
+    func test_sparklineData_alwaysSevenPoints() throws {
+        let store = try DataStore()
         XCTAssertEqual(store.last7DayCosts.count, 7)
     }
 
@@ -345,8 +345,8 @@ final class AgentLensTests: XCTestCase {
         XCTAssertEqual(p.outputPerMToken, 15, accuracy: 0.001)
     }
 
-    func test_insightEngine_structuredFields() {
-        let store = DataStore()
+    func test_insightEngine_structuredFields() throws {
+        let store = try DataStore()
         store.replaceUsages(moodFixture(today: 1.0, rollingAvg: 1.0))
         let insights = InsightEngine.generate(from: store)
         XCTAssertFalse(insights.isEmpty)

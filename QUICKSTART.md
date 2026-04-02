@@ -152,6 +152,7 @@ swift run --package-path BurnBarDaemon BurnBarDaemon
 - **Bug reports:** [GitHub Issues](https://github.com/Ajnunezg/BurnBar/issues)
 - **Security issues:** See [SECURITY.md](SECURITY.md)
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Support expectations:** See [SUPPORT.md](SUPPORT.md)
 
 ## Next Steps
 

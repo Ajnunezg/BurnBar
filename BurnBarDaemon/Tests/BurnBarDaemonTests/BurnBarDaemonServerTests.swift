@@ -358,7 +358,7 @@ final class BurnBarDaemonServerTests: XCTestCase {
         let browserService = BurnBarBrowserToolService(
             fileURL: rootURL.appendingPathComponent("browser-tooling.json"),
             fetcher: { url in
-                let html = "<html><head><title>BurnBar</title></head><body><a href=\"https://burnbar.dev\">BurnBar</a></body></html>"
+                let html = "<html><head><title>BurnBar</title></head><body><a href=\"https://example.com\">BurnBar</a></body></html>"
                 let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
                 return (Data(html.utf8), response)
             },
@@ -461,7 +461,7 @@ final class BurnBarDaemonServerTests: XCTestCase {
                 method: .browserAction,
                 params: BurnBarBrowserActionRequest(
                     action: .extractLinks,
-                    url: "https://burnbar.dev",
+                    url: "https://example.com",
                     preferredEngine: .urlSession,
                     maxLinks: 5
                 )
@@ -469,7 +469,7 @@ final class BurnBarDaemonServerTests: XCTestCase {
             socketPath: socketPath
         )
         XCTAssertEqual(browserAction.result?.ok, true)
-        XCTAssertEqual(browserAction.result?.links.first, "https://burnbar.dev")
+        XCTAssertEqual(browserAction.result?.links.first, "https://example.com")
 
         await server.stop()
     }

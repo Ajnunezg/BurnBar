@@ -1,4 +1,5 @@
 import XCTest
+import FirebaseFirestore
 @testable import BurnBar
 
 // MARK: - CloudSync Enums Tests

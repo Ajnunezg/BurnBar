@@ -20,7 +20,7 @@ final class BurnBarConfigStoreTests: XCTestCase {
             BurnBarProviderSettings(
                 providerID: "zai",
                 isEnabled: true,
-                baseURL: "https://proxy.internal/zai",
+                baseURL: "https://proxy.example.com/zai",
                 preferredModelIDs: ["glm-5"]
             )
         )
@@ -29,7 +29,7 @@ final class BurnBarConfigStoreTests: XCTestCase {
         let configuration = try await harness.configStore.resolvedConfiguration(for: "zai")
         XCTAssertTrue(configuration.settings.isEnabled)
         XCTAssertTrue(configuration.hasCredential)
-        XCTAssertEqual(configuration.settings.baseURL, "https://proxy.internal/zai")
+        XCTAssertEqual(configuration.settings.baseURL, "https://proxy.example.com/zai")
         XCTAssertEqual(configuration.preferredModels.map(\.id), ["glm-5"])
         XCTAssertEqual(configuration.apiKey, "zai-secret")
     }

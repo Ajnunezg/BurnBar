@@ -68,6 +68,16 @@ final class UsageAggregator {
     private enum SummaryEndpointCooldownPolicy {
         static let localEndpointFailureCooldown: TimeInterval = 5 * 60
     }
+    private enum ProjectionWorkerPolicy {
+        /// Process indexing incrementally to keep UI work responsive.
+        static let maxJobsPerPass = 12
+        /// Small delay between backlog passes to reduce CPU pressure.
+        static let backlogDelayNanoseconds: UInt64 = 300_000_000
+        /// Coalesce rapid-fire queue requests.
+        static let coalesceDelayNanoseconds: UInt64 = 750_000_000
+        /// Avoid rebuilding workflow insights on every tiny pass.
+        static let insightRefreshCooldown: TimeInterval = 10
+    }
 
     private let dataStore: DataStore
     private let parsers: [AgentProvider: any LogParser]
@@ -98,6 +108,9 @@ final class UsageAggregator {
     private(set) var parserHealth: [AgentProvider: ParserHealth] = [:]
     /// Usage records fetched from provider billing APIs (separate from log-parsed data).
     private(set) var apiUsages: [ProviderUsageRecord] = []
+    private var projectionWorkerTask: Task<Void, Never>?
+    private var projectionSweepRequested = false
+    private var lastProjectionInsightRefreshAt: Date?
 
     init(
         dataStore: DataStore,
@@ -169,7 +182,7 @@ final class UsageAggregator {
                 allUsages.append(contentsOf: usages)
                 if settingsManager.conversationIndexingEnabled {
                     do {
-                        try ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                        try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
                     } catch {
                         let message = "Conversation indexing failed for \(provider.displayName): \(error.localizedDescription)"
                         providerHealth = .degraded(sessionCount: usages.count, error: message)
@@ -381,7 +394,7 @@ final class UsageAggregator {
             try dataStore.insert(result.usages)
             if settingsManager.conversationIndexingEnabled {
                 do {
-                    try ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                    try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
                 } catch {
                     let message = "Conversation indexing failed for \(provider.displayName): \(error.localizedDescription)"
                     providerHealth = .degraded(sessionCount: result.usages.count, error: message)
@@ -513,9 +526,7 @@ private extension UsageAggregator {
     }
 
     func launchProjectionSweep() {
-        Task(priority: .utility) { [weak self] in
-            await self?.runProjectionSweep()
-        }
+        requestProjectionSweep()
     }
 
     func makeProjectionPipelineService() -> ProjectionPipelineService {
@@ -548,13 +559,23 @@ private extension UsageAggregator {
                 // Keep refresh flow alive; retrieval health write failures are non-fatal here.
             }
         }
-        await runProjectionSweep()
+        requestProjectionSweep()
     }
 
-    func runProjectionSweep() async {
+    @discardableResult
+    func runProjectionSweep() async -> Bool {
         do {
-            _ = try await makeProjectionPipelineService().runSweep()
-            _ = WorkflowInsightRollupService(dataStore: dataStore).snapshot(refreshIfStale: true)
+            let report = try await makeProjectionPipelineService().runSweep(
+                maxJobs: ProjectionWorkerPolicy.maxJobsPerPass
+            )
+            let queueDepth = try dataStore.countProjectionJobs(statuses: [.queued, .leased, .running])
+            let hasBacklog = queueDepth > 0 || report.leasedJobs >= ProjectionWorkerPolicy.maxJobsPerPass
+
+            if shouldRefreshProjectionInsights(report: report, hasBacklog: hasBacklog) {
+                _ = WorkflowInsightRollupService(dataStore: dataStore).snapshot(refreshIfStale: true)
+                lastProjectionInsightRefreshAt = Date()
+            }
+            return hasBacklog
         } catch {
             let now = Date()
             do {
@@ -572,6 +593,7 @@ private extension UsageAggregator {
             } catch {
                 // Keep refresh flow alive; health write failures are non-fatal here.
             }
+            return false
         }
     }
 
@@ -729,7 +751,43 @@ private extension UsageAggregator {
 
         hasCompletedInitialSummarySweep = true
         settingsManager.summaryInitialSweepCompleted = true
-        await runProjectionSweep()
+        requestProjectionSweep()
+    }
+
+    private func requestProjectionSweep() {
+        projectionSweepRequested = true
+        guard projectionWorkerTask == nil else { return }
+
+        projectionWorkerTask = Task(priority: .background) { [weak self] in
+            await self?.runProjectionWorkerLoop()
+        }
+    }
+
+    private func runProjectionWorkerLoop() async {
+        defer { projectionWorkerTask = nil }
+
+        while !Task.isCancelled {
+            guard projectionSweepRequested else { break }
+            projectionSweepRequested = false
+
+            let hasBacklog = await runProjectionSweep()
+            if hasBacklog {
+                projectionSweepRequested = true
+                try? await Task.sleep(nanoseconds: ProjectionWorkerPolicy.backlogDelayNanoseconds)
+            } else if projectionSweepRequested {
+                try? await Task.sleep(nanoseconds: ProjectionWorkerPolicy.coalesceDelayNanoseconds)
+            }
+        }
+    }
+
+    private func shouldRefreshProjectionInsights(
+        report: ProjectionSweepReport,
+        hasBacklog: Bool
+    ) -> Bool {
+        guard report.completedJobs > 0 else { return false }
+        if hasBacklog == false { return true }
+        guard let lastProjectionInsightRefreshAt else { return true }
+        return Date().timeIntervalSince(lastProjectionInsightRefreshAt) >= ProjectionWorkerPolicy.insightRefreshCooldown
     }
 
     func summarizeConversation(_ conversation: ConversationRecord) async -> AutoSummaryResult? {
@@ -970,7 +1028,7 @@ private extension UsageAggregator {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         if includeOpenRouterHeaders {
-            request.setValue("https://burnbar.app", forHTTPHeaderField: "HTTP-Referer")
+            request.setValue("https://github.com/Ajnunezg/BurnBar", forHTTPHeaderField: "HTTP-Referer")
             request.setValue("BurnBar", forHTTPHeaderField: "X-Title")
         }
 

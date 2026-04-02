@@ -34,10 +34,10 @@ export class BurnBarPanelView implements vscode.WebviewViewProvider {
     };
 
     const cssUri = webviewView.webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'panel.css')
+      vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview', 'panel.css')
     );
     const jsUri = webviewView.webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'panel.js')
+      vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview', 'panel.js')
     );
     const logoUri = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, 'media', 'app-icon-128.png')

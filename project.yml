@@ -44,20 +44,28 @@ targets:
   BurnBar:
     type: application
     platform: macOS
-    # CFBundleURLTypes does not reliably merge via INFOPLIST_KEY_* with GENERATE_INFOPLIST_FILE; XcodeGen generates this plist (Google Sign-In redirect). Regenerated on `xcodegen generate`.
+    # CFBundleURLTypes does not reliably merge via INFOPLIST_KEY_* with GENERATE_INFOPLIST_FILE.
+    # XcodeGen regenerates this plist on `xcodegen generate`, so keep it aligned with
+    # AgentLens/Resources/BurnBar-Info.plist.
     info:
       path: AgentLens/Resources/BurnBar-Info.plist
       properties:
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
+            CFBundleURLName: com.burnbar.app
             CFBundleURLSchemes:
-              # IMPORTANT: Replace YOUR_CLIENT_ID with your actual Firebase Google OAuth client ID.
-              # Obtain from: Firebase Console > Project Settings > Your apps > macOS app > Client ID (web)
-              - com.googleusercontent.apps.YOUR_CLIENT_ID.apps.googleusercontent.com
+              - burnbar
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.burnbar.app.google-sign-in
+            CFBundleURLSchemes:
+              # IMPORTANT: Replace YOUR_CLIENT_ID_SUFFIX with your actual reversed Firebase client ID suffix.
+              # Obtain from: GoogleService-Info.plist -> REVERSED_CLIENT_ID
+              - com.googleusercontent.apps.YOUR_CLIENT_ID_SUFFIX
     sources:
       - path: AgentLens
         excludes:
           - "**/.DS_Store"
+          - "Services/BurnBarOperatingLayer.swift"
     settings:
       base:
         PRODUCT_NAME: BurnBar
@@ -115,7 +123,11 @@ targets:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: AgentLensTests
+      # Keep the active Xcode test target focused on the replay/eval harness that
+      # ships in public CI. Older app-specific XCTest files remain in the repo but
+      # are not compiled here until they are brought back in sync with the current app APIs.
+      - path: AgentLensTests/AgentLensTests.swift
+      - path: AgentLensTests/BurnBarSearchIntegrationHarness.swift
     settings:
       base:
         PRODUCT_NAME: BurnBarTests

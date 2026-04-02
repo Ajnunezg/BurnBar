@@ -84,11 +84,11 @@ Address all critical blockers and high-priority findings from the open-source re
 
 4. `.github/CODEOWNERS` (move from root)
    ```
-   /AgentLens/ @dewclaw
-   /BurnBarCore/ @dewclaw
-   /BurnBarDaemon/ @dewclaw
-   /extensions/burnbar/ @dewclaw
-   /.github/ @dewclaw
+   /AgentLens/ @maintainer
+   /BurnBarCore/ @maintainer
+   /BurnBarDaemon/ @maintainer
+   /extensions/burnbar/ @maintainer
+   /.github/ @maintainer
    ```
 
 **Verification:** All files exist at specified paths; Dependabot creates PRs within 24 hours
@@ -102,15 +102,15 @@ Address all critical blockers and high-priority findings from the open-source re
 **Files to modify:**
 - `docs/BURNBARDIST_PARITY_PROMPT_PACK.md` (7 occurrences)
 - `docs/BURNBAR_AGENT_PROMPT_PACK.md:10`
-- Any other files with `/Users/dewclaw/` or `/Users/albertonunez/`
+- Any other files with machine-specific `/Users/...` paths
 
 **Implementation:**
-1. Replace `/Users/dewclaw/Documents/Projects/BurnBar` with `$PROJECT_ROOT` or `BurnBar`
-2. Replace `/Users/dewclaw/BurnBarDist` with `$BURNBARDIST_DIR` or `BurnBarDist`
-3. Replace `/Users/albertonunez/Developer/AgentLens` with `$REPO_ROOT`
+1. Replace `/Users/example/Documents/Projects/BurnBar` with `$PROJECT_ROOT` or `BurnBar`
+2. Replace `/Users/example/BurnBarDist` with `$BURNBARDIST_DIR` or `BurnBarDist`
+3. Replace `/Users/other-developer/Developer/AgentLens` with `$REPO_ROOT`
 4. Update any relative paths to use repo-root-relative references
 
-**Verification:** `grep -r "/Users/" docs/` returns no results; `grep -r "albertonunez" .` returns no results
+**Verification:** `grep -r "/Users/" docs/` returns no results; `grep -r "other-developer" .` returns no results
 
 ---
 
@@ -176,10 +176,10 @@ Address all critical blockers and high-priority findings from the open-source re
 
 **Implementation:**
 1. Update `docs/BURNBAR_AGENT_PROMPT_PACK.md:10`
-2. Change from: `You are working in /Users/albertonunez/Developer/AgentLens on branch main.`
+2. Change from: `You are working in /Users/example/Developer/AgentLens on branch main.`
 3. Change to: `You are working in the BurnBar repository on branch main.`
 
-**Verification:** `grep -n "albertonunez" .` returns no results
+**Verification:** `grep -n "/Users/example" .` returns no results
 
 ---
 
@@ -236,8 +236,8 @@ Before declaring release-ready, verify:
 - [ ] `.github/dependabot.yml` exists
 - [ ] `.github/workflows/ci.yml` exists
 - [ ] `.github/CODEOWNERS` exists
-- [ ] `grep -r "/Users/dewclaw/" docs/` returns no results
-- [ ] `grep -r "albertonunez" .` returns no results
+- [ ] `grep -r "/Users/example/" docs/` returns no results
+- [ ] `grep -r "other-developer" .` returns no results
 
 ### High Priority:
 - [ ] `BurnBar.entitlements` contains documented sandbox decision

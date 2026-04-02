@@ -16,7 +16,7 @@ DerivedData/
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
+# Package.resolved — committed for reproducible builds
 
 # CocoaPods
 Pods/
@@ -68,6 +68,11 @@ default.profraw
 
 # BurnBar local MCP (Python venv)
 tools/burnbar-mcp/.venv/
+
+# Internal AI agent memory (not for public consumption)
+.claude/agent-memory/
+.claude/settings.local.json
+.factory/
 
 # Local Xcode/SwiftPM caches used by scripts/build.sh
 .spm-cache/

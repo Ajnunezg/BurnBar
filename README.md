@@ -5,13 +5,15 @@
 
   > A native macOS app that watches your AI coding agents so you don't have to wonder where all your money went.
 
-  **Status:** Beta (v0.1.0) — Feedback welcome!
+  **Status:** Experimental source release (v0.1.0-beta) — best-effort support, feedback welcome.
 
 </div>
 
 If you're the kind of person who has three AI agents running in parallel tabs and only checks the bill at the end of the month, this is for you. BurnBar sits quietly in your menu bar, reads the local session logs your agents leave behind, and gives you a live view of tokens burned and dollars spent across the providers you actually use.
 
 For the paranoid-and-proud crowd: analytics stay **local-first**. No API keys, no account, no cloud — unless you *want* cloud. BurnBar also ships a **Cursor / VS Code extension** that talks to a small **local daemon** so your editor and your meter can be friends.
+
+This repository is safe to inspect and build from source, but it should still be treated as an **experimental** project rather than a polished 1.0 release. Optional cloud sync, tunnels, and editor integration are provided on a best-effort basis.
 
 ## Architecture stance
 
@@ -357,6 +359,10 @@ Use this when you want session logs in **your** Apple ID’s iCloud storage inst
 
 **Where we're headed:** [docs/ROADMAP.md](docs/ROADMAP.md).
 
+## Support
+
+Support expectations live in [SUPPORT.md](SUPPORT.md).
+
 ---
 
 ## Security
@@ -376,7 +382,7 @@ BurnBar intentionally runs **without macOS App Sandbox** (`com.apple.security.ap
 **Security implications**: Without sandboxing, if BurnBar is compromised, the attacker has access to the user's home directory. However:
 
 - API keys are stored in the macOS Keychain (not plaintext)
-- Network access is limited to configured API endpoints only
+- Network access is primarily to configured providers and optional user-enabled integrations; review connector, browser-tooling, and tunnel settings before enabling them
 - The app does not execute untrusted code
 
 ### Credential Storage
@@ -392,3 +398,5 @@ See [SECURITY.md](SECURITY.md) for our vulnerability disclosure policy.
 ## License
 
 Licensed under the MIT License. See [LICENSE](LICENSE) file for details.
+
+Third-party asset and branding notes live in [THIRD_PARTY.md](THIRD_PARTY.md).

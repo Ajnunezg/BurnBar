@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Swift `try?` in `BurnBarRunService.restorePersistedRunsIfNeeded()` replaced with explicit error handling
 - npm mocha vulnerability (GHSA-5c6j-r48x-rmvq, GHSA-73rr-hh4g-fpgx) resolved by upgrading to mocha@11
 - Removed duplicate `CODEOWNERS` file (keeping `.github/CODEOWNERS`)
-- Removed personal tool configuration (`tools/com.albertonunez.xcode-deriveddata-switcher.plist`)
+- Removed personal tool configuration from `tools/`
 - Firebase credentials file removed from working tree
 
 ### Security

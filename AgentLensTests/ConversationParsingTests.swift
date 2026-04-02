@@ -111,7 +111,7 @@ final class ConversationParsingTests: XCTestCase {
         XCTAssertEqual(blocks.filter { $0.kind == .assistantMessage }.count, 1)
     }
 
-    func test_conversationIndexer_skips_same_mtime() throws {
+    func test_conversationIndexer_skips_same_mtime() async throws {
         let store = try makeInMemoryStore()
         let past = Date(timeIntervalSince1970: 1_700_000_000)
         let rec = makeFactoryConversationRecord(
@@ -120,12 +120,12 @@ final class ConversationParsingTests: XCTestCase {
             fileModifiedAt: past
         )
         try store.upsertConversation(rec)
-        try ConversationIndexer.shared.index([rec], in: store)
+        try await ConversationIndexer.shared.index([rec], in: store)
         let row = try store.fetchConversation(id: rec.id)
         XCTAssertNotNil(row)
     }
 
-    func test_conversationIndexer_skips_mtime_precision_drift_underOneMillisecond() throws {
+    func test_conversationIndexer_skips_mtime_precision_drift_underOneMillisecond() async throws {
         let store = try makeInMemoryStore()
         let indexedAt = Date(timeIntervalSince1970: 1_700_000_100)
         let mtime = Date(timeIntervalSince1970: 1_700_000_000.123)
@@ -141,7 +141,7 @@ final class ConversationParsingTests: XCTestCase {
             indexedAt: indexedAt.addingTimeInterval(300),
             fileModifiedAt: mtime.addingTimeInterval(0.0006)
         )
-        try ConversationIndexer.shared.index([incoming], in: store)
+        try await ConversationIndexer.shared.index([incoming], in: store)
 
         guard let row = try store.fetchConversation(id: stored.id) else {
             return XCTFail("Expected existing conversation row.")
@@ -149,7 +149,7 @@ final class ConversationParsingTests: XCTestCase {
         XCTAssertEqual(row.indexedAt.timeIntervalSince1970, indexedAt.timeIntervalSince1970, accuracy: 0.0001)
     }
 
-    func test_conversationIndexer_skips_unchanged_payload_when_fileModifiedAt_nil() throws {
+    func test_conversationIndexer_skips_unchanged_payload_when_fileModifiedAt_nil() async throws {
         let store = try makeInMemoryStore()
         let indexedAt = Date(timeIntervalSince1970: 1_700_000_200)
         let stored = makeFactoryConversationRecord(
@@ -164,7 +164,7 @@ final class ConversationParsingTests: XCTestCase {
             indexedAt: indexedAt.addingTimeInterval(600),
             fileModifiedAt: nil
         )
-        try ConversationIndexer.shared.index([incoming], in: store)
+        try await ConversationIndexer.shared.index([incoming], in: store)
 
         guard let row = try store.fetchConversation(id: stored.id) else {
             return XCTFail("Expected existing conversation row.")

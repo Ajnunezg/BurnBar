@@ -2,11 +2,7 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.x     | :white_check_mark: |
-
-All versions receive security updates. Users are encouraged to run the latest available release.
+Before `1.0`, BurnBar only supports the latest tagged prerelease and the current `main` branch. Older commits may contain known issues and may not receive fixes.
 
 ## Reporting a Vulnerability
 
@@ -14,13 +10,10 @@ We take security bugs seriously. If you discover a security vulnerability, pleas
 
 **Please do not file a public GitHub issue for security vulnerabilities.**
 
-Instead, report it via one of the following:
+Preferred private path:
 
-1. **GitHub Security Advisories** (preferred):
-   Navigate to this repository's **Security** tab → **Advisories** → **Report a vulnerability**.
-
-2. **Email**:
-   Send details to the repository maintainers.
+1. Use GitHub's private vulnerability reporting or a draft security advisory if it is enabled for this repository.
+2. If private reporting is not available, contact the maintainer privately through the repository owner's GitHub profile before disclosing details.
 
 ### What to Include
 
@@ -33,12 +26,7 @@ A good vulnerability report should include:
 - Proof-of-concept or exploit code (if possible)
 - Impact assessment — how an attacker could exploit this
 
-### Response Timeline
-
-- **Acknowledgement**: Within 48 hours of report receipt
-- **Initial assessment**: Within 7 days
-- **Remediation plan**: Within 30 days (for confirmed issues)
-- **Disclosure**: Coordinated with reporter before public release
+We do not promise formal SLA response times. Reports are handled on a best-effort basis.
 
 ## Security Best Practices for BurnBar Users
 
@@ -47,6 +35,7 @@ A good vulnerability report should include:
 - **OAuth flows**: Firebase Auth handles Google and Apple sign-in. Verify redirect URIs match `com.burnbar.app`.
 - **Extension permissions**: The BurnBar extension requests minimal capabilities. Review workspace trust settings in Cursor/VS Code.
 - **Daemon socket**: The local daemon uses a UNIX domain socket. Ensure filesystem permissions restrict access to your user account only.
+- **Optional integrations**: Connector-plane, browser-tooling, and tunnel features expand the network surface area. Enable only the integrations you actually plan to use.
 
 ## Known Limitations
 

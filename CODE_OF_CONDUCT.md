@@ -36,7 +36,7 @@ This Code of Conduct applies within all project spaces, and also applies when an
 
 ## Enforcement
 
-Report Code of Conduct violations to the project maintainers through the private reporting path described in [SECURITY.md](SECURITY.md). If the report is not security-related, clearly label it as a conduct issue.
+Report Code of Conduct violations to the project maintainers through the private contact guidance in [SUPPORT.md](SUPPORT.md). If the report is security-related, use [SECURITY.md](SECURITY.md) instead.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

@@ -44,7 +44,8 @@ private struct SemanticRetrievalHealthDetails: Codable {
 
 /// Provider that uses vector similarity for semantic search.
 /// Manages ANN/exact backends and handles embedding resolution.
-actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
+@MainActor
+final class VectorSemanticCandidateProvider: SemanticCandidateProviding {
     private struct ActiveEmbeddingSelection {
         let model: EmbeddingModelRecord
         let version: EmbeddingVersionRecord
@@ -57,7 +58,7 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
         var fallbackExactLatencyMs: Double?
     }
 
-    private let dataAccess: DataStoreBackgroundAccess
+    private let dataStore: DataStore
     private let queryEmbedder: QueryEmbeddingProviding
     private let configuredEmbeddingVersionID: String?
     private let backend: VectorBackendKind
@@ -76,27 +77,6 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
     private(set) var lastHealthWriteError: String?
 
     init(
-        dataAccess: DataStoreBackgroundAccess,
-        queryEmbedder: QueryEmbeddingProviding,
-        embeddingVersionID: String? = nil,
-        backend: VectorBackendKind = .ann,
-        exactRerankEnabled: Bool = true,
-        exactRerankLimit: Int = 320,
-        annCandidateMultiplier: Int = 6,
-        nowProvider: @escaping () -> Date = Date.init
-    ) {
-        self.dataAccess = dataAccess
-        self.queryEmbedder = queryEmbedder
-        self.configuredEmbeddingVersionID = embeddingVersionID?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.backend = backend
-        self.exactRerankEnabled = exactRerankEnabled
-        self.exactRerankLimit = max(1, min(exactRerankLimit, 5_000))
-        self.nowProvider = nowProvider
-        self.annBackend = SignpostANNVectorCandidateBackend(candidateMultiplier: annCandidateMultiplier)
-        self.exactBackend = ExactVectorCandidateBackend()
-    }
-
-    init(
         dataStore: DataStore,
         queryEmbedder: QueryEmbeddingProviding,
         embeddingVersionID: String? = nil,
@@ -106,16 +86,15 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
         annCandidateMultiplier: Int = 6,
         nowProvider: @escaping () -> Date = Date.init
     ) {
-        self.init(
-            dataAccess: dataStore.backgroundAccess,
-            queryEmbedder: queryEmbedder,
-            embeddingVersionID: embeddingVersionID,
-            backend: backend,
-            exactRerankEnabled: exactRerankEnabled,
-            exactRerankLimit: exactRerankLimit,
-            annCandidateMultiplier: annCandidateMultiplier,
-            nowProvider: nowProvider
-        )
+        self.dataStore = dataStore
+        self.queryEmbedder = queryEmbedder
+        self.configuredEmbeddingVersionID = embeddingVersionID?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.backend = backend
+        self.exactRerankEnabled = exactRerankEnabled
+        self.exactRerankLimit = max(1, min(exactRerankLimit, 5_000))
+        self.nowProvider = nowProvider
+        self.annBackend = SignpostANNVectorCandidateBackend(candidateMultiplier: annCandidateMultiplier)
+        self.exactBackend = ExactVectorCandidateBackend()
     }
 
     func semanticCandidates(for query: String, filters _: RetrievalFilters, limit: Int) async throws -> [SemanticCandidate] {
@@ -355,7 +334,7 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
             return
         }
 
-        let embeddings = try await dataAccess.fetchChunkEmbeddings(embeddingVersionID: selection.version.id)
+        let embeddings = try dataStore.fetchChunkEmbeddings(embeddingVersionID: selection.version.id)
         let sortedEmbeddings = embeddings.sorted {
             if $0.chunkID == $1.chunkID {
                 return $0.updatedAt < $1.updatedAt
@@ -416,10 +395,10 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
     }
 
     private func resolveEmbeddingSelection() async throws -> ActiveEmbeddingSelection? {
-        let models = try await dataAccess.fetchEmbeddingModels()
+        let models = try dataStore.fetchEmbeddingModels()
         guard models.isEmpty == false else { return nil }
         let modelByID = Dictionary(uniqueKeysWithValues: models.map { ($0.id, $0) })
-        let versions = try await dataAccess.fetchEmbeddingVersions()
+        let versions = try dataStore.fetchEmbeddingVersions()
         guard versions.isEmpty == false else { return nil }
 
         let selectedVersion: EmbeddingVersionRecord?
@@ -476,7 +455,7 @@ actor VectorSemanticCandidateProvider: SemanticCandidateProviding {
         )
         let detailsData = try JSONEncoder().encode(details)
         let detailsJSON = String(data: detailsData, encoding: .utf8)
-        try await dataAccess.upsertRetrievalHealth(
+        try dataStore.upsertRetrievalHealth(
             RetrievalHealthRecord(
                 subsystem: .semantic,
                 status: status,

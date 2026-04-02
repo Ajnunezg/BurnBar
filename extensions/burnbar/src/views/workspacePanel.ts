@@ -89,10 +89,10 @@ export class BurnBarWorkspacePanel implements vscode.Disposable {
     const webview = this.panel.webview;
 
     const cssUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'workspace.css')
+      vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview', 'workspace.css')
     );
     const jsUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'src', 'webview', 'workspace.js')
+      vscode.Uri.joinPath(this.extensionUri, 'dist', 'webview', 'workspace.js')
     );
     const logoUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, 'media', 'app-icon-128.png')

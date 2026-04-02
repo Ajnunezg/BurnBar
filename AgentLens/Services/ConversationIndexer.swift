@@ -7,6 +7,7 @@ final class ConversationIndexer {
     static let shared = ConversationIndexer()
     private static let fileModifiedAtToleranceSeconds: TimeInterval = 0.001
     private static let dateFieldToleranceSeconds: TimeInterval = 0.001
+    private static let writeYieldInterval = 64
 
     private init() {}
 
@@ -14,8 +15,8 @@ final class ConversationIndexer {
     /// file modified timestamps are equivalent (with millisecond tolerance).
     /// Tolerance is needed because persisted SQLite datetimes are millisecond-precision,
     /// while filesystem mtimes can include micro/nanoseconds.
-    func index(_ records: [ConversationRecord], in dataStore: DataStore) throws {
-        for record in records {
+    func index(_ records: [ConversationRecord], in dataStore: DataStore) async throws {
+        for (index, record) in records.enumerated() {
             let existingConversation = try dataStore.fetchConversation(id: record.id)
 
             if let existingConversation,
@@ -26,6 +27,10 @@ final class ConversationIndexer {
             try dataStore.upsertConversation(record)
             let jobType: ProjectionJobType = existingConversation == nil ? .project : .reproject
             try dataStore.enqueueConversationProjectionJob(conversationID: record.id, jobType: jobType)
+
+            if index > 0, index.isMultiple(of: Self.writeYieldInterval) {
+                await Task.yield()
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 import * as assert from "node:assert/strict";
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
@@ -17,6 +18,23 @@ suite("BurnBar extension host local workspace", () => {
     const extension = vscode.extensions.all.find((candidate) => candidate.packageJSON.name === "burnbar");
     assert.ok(extension, "Expected the BurnBar extension to be present in the extension host.");
     await extension.activate();
+
+    const workspaceRoot = process.env.BURNBAR_TEST_WORKSPACE;
+    assert.ok(workspaceRoot, "Expected BURNBAR_TEST_WORKSPACE to be configured for extension-host tests.");
+    assert.ok(fs.existsSync(workspaceRoot), `Expected fixture workspace to exist at ${workspaceRoot}.`);
+
+    const existingFolder = vscode.workspace.workspaceFolders?.find(
+      (folder) => folder.uri.fsPath === workspaceRoot
+    );
+    if (!existingFolder) {
+      const added = vscode.workspace.updateWorkspaceFolders(
+        vscode.workspace.workspaceFolders?.length ?? 0,
+        null,
+        { uri: vscode.Uri.file(workspaceRoot), name: path.basename(workspaceRoot) }
+      );
+      assert.equal(added, true, "Expected extension-host suite to add the fixture workspace.");
+      await vscode.commands.executeCommand("workbench.action.closeEditorsInOtherGroups");
+    }
   });
 
   test("executes workspace companion commands against a real workspace folder", async () => {

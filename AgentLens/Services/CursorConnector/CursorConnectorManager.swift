@@ -36,6 +36,7 @@ final class CursorConnectorManager {
     private var routePollTask: Task<Void, Never>?
     private var usageReadOffset: UInt64 = 0
     private var routeReadOffset: UInt64 = 0
+    private var sessionToken: String = ""
     private weak var dataStore: DataStore?
 
     private init() {
@@ -287,8 +288,14 @@ final class CursorConnectorManager {
                 )
             }
         })
+        if sessionToken.isEmpty {
+            var bytes = [UInt8](repeating: 0, count: 32)
+            _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+            sessionToken = bytes.map { String(format: "%02x", $0) }.joined()
+        }
         let payload: [String: Any] = [
             "port": Int(config.preferredPort),
+            "session_token": sessionToken,
             "routes": routes.mapValues { [
                 "provider": $0.provider,
                 "base_url": $0.baseURL,
@@ -298,6 +305,7 @@ final class CursorConnectorManager {
         ]
         let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: proxyConfigURL, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: proxyConfigURL.path)
     }
 
     private func writeProxyScript() throws {
@@ -321,6 +329,7 @@ final class CursorConnectorManager {
     private func stopProxy() {
         proxyProcess?.terminate()
         proxyProcess = nil
+        sessionToken = ""
         health.routerListening = false
     }
 
@@ -370,7 +379,9 @@ final class CursorConnectorManager {
         guard let base = config.tunnel.publicBaseURL else {
             throw NSError(domain: "CursorConnector", code: 4, userInfo: [NSLocalizedDescriptionKey: "Tunnel is missing a public URL"])
         }
-        let url = URL(string: base + "/models")!
+        guard let url = URL(string: base + "/models") else {
+            throw NSError(domain: "CursorConnector", code: 4, userInfo: [NSLocalizedDescriptionKey: "Invalid tunnel URL: \(base)"])
+        }
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
             throw NSError(domain: "CursorConnector", code: 5, userInfo: [NSLocalizedDescriptionKey: "Public endpoint verification failed"])
@@ -414,7 +425,7 @@ final class CursorConnectorManager {
         let data = try JSONSerialization.data(withJSONObject: updated, options: [])
         let newJSON = String(data: data, encoding: .utf8) ?? "{}"
         try Self.writeSQLiteValue(db: db, key: key, value: newJSON)
-        try Self.writeSQLiteValue(db: db, key: "cursorAuth/openAIKey", value: "sk-burnbar-cursor-connector")
+        try Self.writeSQLiteValue(db: db, key: "cursorAuth/openAIKey", value: sessionToken)
         saveConfig()
     }
 
@@ -849,8 +860,8 @@ final class CursorConnectorManager {
 
     private static func runWhich(named name: String) -> String? {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        process.arguments = ["-lc", "command -v \(name)"]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+        process.arguments = [name]
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = Pipe()
@@ -1199,6 +1210,8 @@ final class CursorConnectorManager {
             with open(config["usage_log"], "a", encoding="utf-8") as f:
                 f.write(json.dumps(event) + "\\n")
 
+        SESSION_TOKEN = load_config().get("session_token", "")
+
         class Handler(BaseHTTPRequestHandler):
             protocol_version = "HTTP/1.1"
 
@@ -1213,7 +1226,21 @@ final class CursorConnectorManager {
                 self.end_headers()
                 self.wfile.write(body)
 
+            def check_auth(self):
+                if not SESSION_TOKEN:
+                    return True
+                auth = self.headers.get("Authorization", "")
+                if auth == f"Bearer {SESSION_TOKEN}":
+                    return True
+                # Also accept as query param for health checks
+                if self.path in ("/health", "/healthz"):
+                    return True
+                self.send_json(HTTPStatus.UNAUTHORIZED, {"error": {"message": "unauthorized"}})
+                return False
+
             def do_GET(self):
+                if not self.check_auth():
+                    return
                 config = load_config()
                 if self.path in ("/health", "/healthz"):
                     self.send_json(HTTPStatus.OK, {"ok": True})
@@ -1225,6 +1252,8 @@ final class CursorConnectorManager {
                 self.send_json(HTTPStatus.NOT_FOUND, {"error": {"message": "not found"}})
 
             def do_POST(self):
+                if not self.check_auth():
+                    return
                 config = load_config()
                 is_chat = self.path.startswith("/v1/chat/completions")
                 is_responses = self.path.startswith("/v1/responses")

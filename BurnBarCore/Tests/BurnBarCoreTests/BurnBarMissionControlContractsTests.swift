@@ -366,7 +366,7 @@ final class BurnBarMissionControlContractsTests: XCTestCase {
             approval: BurnBarMissionApprovalSnapshot(
                 approved: true,
                 approvedAt: now.addingTimeInterval(5),
-                approvedBy: "dewclaw",
+                approvedBy: "maintainer",
                 note: "Proceed, but keep rollout observable."
             ),
             packets: [packet],

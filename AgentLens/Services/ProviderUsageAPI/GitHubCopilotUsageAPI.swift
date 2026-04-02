@@ -43,13 +43,14 @@ final class GitHubCopilotUsageAPI: ProviderUsageAPI, @unchecked Sendable {
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "en_US_POSIX")
 
-        var components = URLComponents(string: "\(baseURL)/user/copilot/metrics")!
+        guard var components = URLComponents(string: "\(baseURL)/user/copilot/metrics") else { return [] }
         components.queryItems = [
             URLQueryItem(name: "since", value: formatter.string(from: since)),
             URLQueryItem(name: "until", value: formatter.string(from: Date()))
         ]
+        guard let metricsURL = components.url else { return [] }
 
-        var request = URLRequest(url: components.url!)
+        var request = URLRequest(url: metricsURL)
         request.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
@@ -74,7 +75,8 @@ final class GitHubCopilotUsageAPI: ProviderUsageAPI, @unchecked Sendable {
 
     private func fetchOrgMetrics(since: Date) async throws -> [ProviderUsageRecord] {
         // List user's orgs first
-        var orgRequest = URLRequest(url: URL(string: "\(baseURL)/user/orgs")!)
+        guard let orgsURL = URL(string: "\(baseURL)/user/orgs") else { return [] }
+        var orgRequest = URLRequest(url: orgsURL)
         orgRequest.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")
         orgRequest.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
 
@@ -94,13 +96,14 @@ final class GitHubCopilotUsageAPI: ProviderUsageAPI, @unchecked Sendable {
         for org in orgs.prefix(3) {
             guard let orgLogin = org["login"] as? String else { continue }
 
-            var components = URLComponents(string: "\(baseURL)/orgs/\(orgLogin)/copilot/metrics")!
+            guard var components = URLComponents(string: "\(baseURL)/orgs/\(orgLogin)/copilot/metrics") else { continue }
             components.queryItems = [
                 URLQueryItem(name: "since", value: formatter.string(from: since)),
                 URLQueryItem(name: "until", value: formatter.string(from: Date()))
             ]
+            guard let orgMetricsURL = components.url else { continue }
 
-            var request = URLRequest(url: components.url!)
+            var request = URLRequest(url: orgMetricsURL)
             request.setValue("Bearer \(pat)", forHTTPHeaderField: "Authorization")
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
             request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")

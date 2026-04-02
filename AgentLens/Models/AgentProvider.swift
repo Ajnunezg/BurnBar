@@ -50,7 +50,7 @@ enum AgentProvider: String, Codable, CaseIterable, Identifiable {
     var logoURL: URL? {
         switch self {
         case .factory:
-            return Bundle.main.url(forResource: "66e1b25cc9185ef537421b18_Factory.ai", withExtension: "webp")
+            return nil
         case .claudeCode:
             return URL(string: "https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/claudecode-color.png")
         case .copilot:

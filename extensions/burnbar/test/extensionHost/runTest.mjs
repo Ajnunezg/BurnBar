@@ -2,7 +2,7 @@ import { cpSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { runTests } from "@vscode/test-electron";
+import { downloadAndUnzipVSCode, runTests } from "@vscode/test-electron";
 
 async function main() {
   const extensionDevelopmentPath = resolve(new URL(".", import.meta.url).pathname, "..", "..");
@@ -22,15 +22,15 @@ async function main() {
   process.env.BURNBAR_TEST_WORKSPACE = tempWorkspacePath;
 
   try {
+    const downloadedExecutablePath = await downloadAndUnzipVSCode();
+    const vscodeExecutablePath = process.platform === "darwin"
+      ? resolve(downloadedExecutablePath, "..", "..", "Resources", "app", "bin", "code")
+      : downloadedExecutablePath;
+
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [
-        tempWorkspacePath,
-        "--disable-extensions",
-        "--skip-welcome",
-        "--skip-release-notes"
-      ]
+      vscodeExecutablePath
     });
   } finally {
     rmSync(tempWorkspacePath, { force: true, recursive: true });

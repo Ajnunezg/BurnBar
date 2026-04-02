@@ -53,7 +53,7 @@ const isWorkspaceTrusted = Boolean(state.workspace) && !(state.workspace?.untrus
 
 | Task | Description | Files | Effort |
 |------|-------------|-------|--------|
-| 1.2.1 | Remove personal plist file | `tools/com.albertonunez.xcode-deriveddata-switcher.plist` | 2 min |
+| 1.2.1 | Remove personal plist file | `tools/com.example.xcode-deriveddata-switcher.plist` | 2 min |
 | 1.2.2 | Update `.gitignore` to exclude `tools/*.plist` | `.gitignore` | 2 min |
 | 1.2.3 | Create portable version of xcode-deriveddata-switcher script | `tools/` | 30 min |
 

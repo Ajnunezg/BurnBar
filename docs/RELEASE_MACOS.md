@@ -1,5 +1,7 @@
 # macOS release checklist (drag-to-Applications)
 
+This is a manual maintainer checklist for future public releases. It does not imply that notarized binaries are currently published.
+
 BurnBar ships as a Developer ID–signed app with the `BurnBarDaemon` helper embedded under `Contents/Helpers/` (see `BurnBarDaemonBinaryResolver`).
 
 ## Build

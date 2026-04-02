@@ -13,6 +13,13 @@
     "Other"
   ],
   "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "media/**",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "extensionKind": [
     "ui",
     "workspace"
@@ -191,7 +198,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p ./tsconfig.json",
+    "build": "tsc -p ./tsconfig.json && node ./scripts/copy-webview-assets.mjs",
     "build:extension-host": "tsc -p ./tsconfig.extension-host.json",
     "clean": "rm -rf dist coverage",
     "lint": "eslint src --ext .ts,.js",

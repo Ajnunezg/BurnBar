@@ -30,7 +30,7 @@ enum HybridFusionStrategy: String, Codable, Sendable, CaseIterable {
 }
 
 /// RRF smoothing constant for reciprocal rank fusion.
-private enum HybridRetrievalConstants {
+enum HybridRetrievalConstants {
     /// Standard RRF smoothing constant (see Cormack et al. / Elasticsearch RRF).
     static let rrfK: Double = 60
 }

@@ -21,6 +21,21 @@ private enum BurnBarProjectionPerformanceTimer {
     }
 }
 
+private enum ProjectionPipelineRuntimeTuning {
+    /// Keep per-pass work bounded so indexing remains low-impact.
+    static let defaultSweepMaxJobs = 24
+    /// Batch chunk embedding/upsert to avoid large CPU and memory spikes.
+    static let embeddingBatchSize = 24
+    /// Yield periodically while persisting embeddings.
+    static let embeddingWriteYieldInterval = 8
+    /// Brief pause between embedding batches to reduce contention.
+    static let interEmbeddingBatchPauseNanoseconds: UInt64 = 20_000_000
+    /// Yield every N leased jobs during sweep processing.
+    static let sweepYieldInterval = 4
+    /// Yield every N enqueues during rebuild fan-out.
+    static let rebuildEnqueueYieldInterval = 100
+}
+
 enum ProjectionIdentity {
     static let projectorVersion = "burnbar-projector-v1"
     static let chunkerVersion = "burnbar-chunker-v1"
@@ -282,7 +297,10 @@ final class ProjectionPipelineService {
         )
     }
 
-    func runSweep(maxJobs: Int = 128, leaseDuration: TimeInterval = 45) async throws -> ProjectionSweepReport {
+    func runSweep(
+        maxJobs: Int = ProjectionPipelineRuntimeTuning.defaultSweepMaxJobs,
+        leaseDuration: TimeInterval = 45
+    ) async throws -> ProjectionSweepReport {
         guard maxJobs > 0 else { return ProjectionSweepReport() }
         guard isSweeping == false else { return ProjectionSweepReport() }
         isSweeping = true
@@ -345,6 +363,10 @@ final class ProjectionPipelineService {
                     lastErrorMessage = "Failed to persist projection subsystem failure health: \(error.localizedDescription)"
                 }
             }
+
+            if report.leasedJobs.isMultiple(of: ProjectionPipelineRuntimeTuning.sweepYieldInterval) {
+                await Task.yield()
+            }
         }
 
         let sweepDurationMs = BurnBarProjectionPerformanceTimer.elapsedMilliseconds(since: sweepStartedAt)
@@ -388,7 +410,7 @@ final class ProjectionPipelineService {
             }
             try dataStore.deleteSearchDocuments(sourceKind: sourceKind, sourceID: sourceID)
         case .rebuild:
-            try processRebuild()
+            try await processRebuild()
         case .reembed:
             try await processReembed(job)
         }
@@ -430,7 +452,7 @@ final class ProjectionPipelineService {
         }
     }
 
-    private func processRebuild() throws {
+    private func processRebuild() async throws {
         var enqueuedReprojects = 0
         var enqueuedPurges = 0
 
@@ -445,6 +467,9 @@ final class ProjectionPipelineService {
                 priority: 15
             )
             enqueuedReprojects += 1
+            if enqueuedReprojects.isMultiple(of: ProjectionPipelineRuntimeTuning.rebuildEnqueueYieldInterval) {
+                await Task.yield()
+            }
         }
 
         let artifacts = try dataStore.fetchSourceArtifacts(
@@ -471,6 +496,10 @@ final class ProjectionPipelineService {
                     priority: 10
                 )
                 enqueuedReprojects += 1
+            }
+            let totalEnqueued = enqueuedReprojects + enqueuedPurges
+            if totalEnqueued.isMultiple(of: ProjectionPipelineRuntimeTuning.rebuildEnqueueYieldInterval) {
+                await Task.yield()
             }
         }
 
@@ -531,30 +560,51 @@ final class ProjectionPipelineService {
         try ensureEmbeddingLineage(now: now)
 
         do {
-            let vectors = try await chunkEmbedder.embeddings(for: chunks.map(\.text))
-            guard vectors.count == chunks.count else {
-                throw ProjectionPipelineError.embeddingFailure("Embedding provider returned a mismatched vector count.")
+            let expectedDimensions = chunkEmbedder.descriptor.dimensions
+            let batchSize = max(1, ProjectionPipelineRuntimeTuning.embeddingBatchSize)
+            var indexedCount = 0
+
+            for batchStart in stride(from: 0, to: chunks.count, by: batchSize) {
+                if Task.isCancelled { break }
+
+                let batchEnd = min(chunks.count, batchStart + batchSize)
+                let batch = Array(chunks[batchStart..<batchEnd])
+                let vectors = try await chunkEmbedder.embeddings(for: batch.map(\.text))
+                guard vectors.count == batch.count else {
+                    throw ProjectionPipelineError.embeddingFailure("Embedding provider returned a mismatched vector count.")
+                }
+
+                for (index, pair) in zip(batch, vectors).enumerated() {
+                    let chunk = pair.0
+                    let vector = pair.1
+                    guard vector.count == expectedDimensions else {
+                        throw ProjectionPipelineError.embeddingFailure(
+                            "Embedding dimensions mismatch for chunk \(chunk.id). Expected \(expectedDimensions), got \(vector.count)."
+                        )
+                    }
+                    let normalized = chunkEmbedder.descriptor.distanceMetric == .cosine ? VectorMath.l2Normalized(vector) : vector
+                    try dataStore.upsertChunkEmbedding(
+                        ChunkEmbeddingRecord(
+                            chunkID: chunk.id,
+                            embeddingVersionID: embeddingVersionID,
+                            vectorBlob: VectorBlobCodec.encode(normalized),
+                            createdAt: now,
+                            updatedAt: now
+                        )
+                    )
+
+                    if index.isMultiple(of: ProjectionPipelineRuntimeTuning.embeddingWriteYieldInterval) {
+                        await Task.yield()
+                    }
+                }
+
+                indexedCount += batch.count
+                if batchEnd < chunks.count {
+                    try? await Task.sleep(nanoseconds: ProjectionPipelineRuntimeTuning.interEmbeddingBatchPauseNanoseconds)
+                }
             }
 
-            let expectedDimensions = chunkEmbedder.descriptor.dimensions
-            for (chunk, vector) in zip(chunks, vectors) {
-                guard vector.count == expectedDimensions else {
-                    throw ProjectionPipelineError.embeddingFailure(
-                        "Embedding dimensions mismatch for chunk \(chunk.id). Expected \(expectedDimensions), got \(vector.count)."
-                    )
-                }
-                let normalized = chunkEmbedder.descriptor.distanceMetric == .cosine ? VectorMath.l2Normalized(vector) : vector
-                try dataStore.upsertChunkEmbedding(
-                    ChunkEmbeddingRecord(
-                        chunkID: chunk.id,
-                        embeddingVersionID: embeddingVersionID,
-                        vectorBlob: VectorBlobCodec.encode(normalized),
-                        createdAt: now,
-                        updatedAt: now
-                    )
-                )
-            }
-            return chunks.count
+            return indexedCount
         } catch {
             try upsertSemanticProjectionHealth(
                 status: strict ? .failed : .degraded,

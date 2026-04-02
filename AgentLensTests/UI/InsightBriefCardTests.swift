@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 import ViewInspector
 @testable import BurnBar
 

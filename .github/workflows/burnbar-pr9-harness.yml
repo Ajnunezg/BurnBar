@@ -1,5 +1,8 @@
 name: BurnBar PR9 Harness
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:

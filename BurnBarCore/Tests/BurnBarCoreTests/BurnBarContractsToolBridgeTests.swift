@@ -146,7 +146,7 @@ final class BurnBarContractsToolBridgeTests: XCTestCase {
             summary: "Extracted 2 links.",
             title: "BurnBar",
             document: "BurnBar ships daemon-first tooling.",
-            links: ["https://burnbar.dev", "https://docs.burnbar.dev"],
+            links: ["https://example.com", "https://example.com/docs"],
             recordedAt: Date(timeIntervalSince1970: 1_710_300_040)
         )
 

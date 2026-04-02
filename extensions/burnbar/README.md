@@ -4,7 +4,7 @@ BurnBar is a local-first sidebar companion for Cursor and VS Code. The extension
 
 ## Status
 
-This extension is part of BurnBar's current **beta** source release. It is intended for local development and early adopters rather than marketplace-style installation.
+This extension is part of BurnBar's current **experimental source release**. It is intended for local development and early adopters rather than a polished marketplace install.
 
 ## Build
 
@@ -22,7 +22,7 @@ npm run test:extension-host
 
 ## Packaging
 
-The public package includes only the runtime bundle, media assets, and package metadata. Source and test files stay in the repository but are not part of the publish artifact.
+The publish artifact is intentionally minimal: compiled runtime files under `dist/`, media assets, and package metadata.
 
 ## Workspace trust
 

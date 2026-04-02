@@ -94,7 +94,8 @@ final class OpenAIUsageAPI: ProviderUsageAPI, @unchecked Sendable {
             items.append(URLQueryItem(name: "group_by[]", value: groupBy))
         }
         components.queryItems = items
-        return components.url!
+        // URLComponents.url is guaranteed non-nil here — scheme, host, and path are hardcoded
+        return components.url ?? URL(string: "\(baseURL)/organization/costs")!
     }
 
     private func parseBucket(_ bucket: [String: Any]) -> [ProviderUsageRecord]? {
