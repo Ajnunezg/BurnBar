@@ -77,3 +77,4 @@ tools/burnbar-mcp/.venv/
 # Local Xcode/SwiftPM caches used by scripts/build.sh
 .spm-cache/
 .derived-data/
+.gstack/

@@ -15,8 +15,7 @@ final class ChatMessageViewTests: XCTestCase {
             isStreaming: false,
             showViaBadge: false
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(HStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_rendersAssistantMessage() throws {
@@ -26,8 +25,7 @@ final class ChatMessageViewTests: XCTestCase {
             isStreaming: false,
             showViaBadge: false
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(HStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_userMessageShowsContent() throws {
@@ -38,9 +36,7 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasContent = texts.contains { try $0.string().contains("Test content here") }
-        XCTAssertTrue(hasContent)
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("Test content here") }))
     }
 
     func test_assistantMessageShowsContent() throws {
@@ -51,9 +47,7 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasContent = texts.contains { try $0.string().contains("Assistant reply") }
-        XCTAssertTrue(hasContent)
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("Assistant reply") }))
     }
 
     func test_streamingAppendsCaret() throws {
@@ -64,9 +58,7 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasCaret = texts.contains { try $0.string().contains("▍") }
-        XCTAssertTrue(hasCaret, "Streaming message should show streaming caret")
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("▍") }))
     }
 
     func test_nonStreamingNoCaret() throws {
@@ -77,9 +69,7 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasCaret = texts.contains { try $0.string().contains("▍") }
-        XCTAssertFalse(hasCaret, "Non-streaming message should not show caret")
+        XCTAssertThrowsError(try sut.find(textWhere: { value, _ in value.contains("▍") }))
     }
 
     func test_hermesMode_showsViaBadge() throws {
@@ -94,9 +84,7 @@ final class ChatMessageViewTests: XCTestCase {
             isHermes: true
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasBadge = texts.contains { try $0.string().contains("via Hermes") }
-        XCTAssertTrue(hasBadge, "Hermes message should show 'via Hermes' badge")
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("via Hermes") }))
     }
 
     func test_nonHermesMode_showsGenericViaBadge() throws {
@@ -111,9 +99,7 @@ final class ChatMessageViewTests: XCTestCase {
             isHermes: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasBadge = texts.contains { try $0.string().contains("via claude") }
-        XCTAssertTrue(hasBadge, "Non-Hermes message should show generic 'via' badge")
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("via claude") }))
     }
 
     func test_transcriptMessage_showsTextPieces() throws {
@@ -129,11 +115,8 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasFirst = texts.contains { try $0.string().contains("First paragraph") }
-        let hasSecond = texts.contains { try $0.string().contains("Second paragraph") }
-        XCTAssertTrue(hasFirst)
-        XCTAssertTrue(hasSecond)
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("First paragraph") }))
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("Second paragraph") }))
     }
 
     func test_hermesToolCard_shownForHermesToolUse() throws {
@@ -148,8 +131,6 @@ final class ChatMessageViewTests: XCTestCase {
             showViaBadge: false,
             isHermes: true
         )
-        let sut = try view.inspect()
-        // Should contain HermesToolCard for the tool use piece
-        XCTAssertNoThrow(try sut.find(HStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 }

@@ -7,21 +7,21 @@ final class InsightEngineTests: XCTestCase {
     // MARK: - Insight Card Tests
 
     func test_insightCard_zeroInsights() {
-        let store = DataStore()
+        let store = try! DataStore()
         store.replaceUsages([])
         let insights = InsightEngine.generate(from: store)
         XCTAssertTrue(insights.isEmpty)
     }
 
     func test_insightCard_oneInsight() {
-        let store = DataStore()
+        let store = try! DataStore()
         store.replaceUsages(moodFixture(today: 2.0, rollingAvg: 1.0))
         let insights = InsightEngine.generate(from: store)
         XCTAssertTrue(insights.count >= 1)
     }
 
     func test_insightCard_newSessions_countsDistinctSessionIds() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -54,14 +54,14 @@ final class InsightEngineTests: XCTestCase {
     // MARK: - Narrative Template Tests
 
     func test_narrativeTemplate_noSessions() {
-        let store = DataStore()
+        let store = try! DataStore()
         store.replaceUsages([])
         let n = InsightEngine.generateNarrative(from: store)
         XCTAssertTrue(n.headline.contains("No sessions"))
     }
 
     func test_narrativeTemplate_oneSessions() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u = TokenUsage(
@@ -81,7 +81,7 @@ final class InsightEngineTests: XCTestCase {
     }
 
     func test_narrativeTemplate_nSessions() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -112,7 +112,7 @@ final class InsightEngineTests: XCTestCase {
     }
 
     func test_narrativeTemplate_countsDistinctSessionIds() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -143,7 +143,7 @@ final class InsightEngineTests: XCTestCase {
     }
 
     func test_narrativeTemplate_collapsesClaudeSubagentSessionIds() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
         let u1 = TokenUsage(
@@ -177,7 +177,7 @@ final class InsightEngineTests: XCTestCase {
     // MARK: - Sparkline Tests
 
     func test_sparklineData_alwaysSevenPoints() {
-        let store = DataStore()
+        let store = try! DataStore()
         store.replaceUsages([])
         let sparkline = store.last7DayCosts
         XCTAssertEqual(sparkline.count, 7)
@@ -187,13 +187,14 @@ final class InsightEngineTests: XCTestCase {
 
     func test_modelPricing_knownModel() {
         let pricing = ModelPricing.lookup(model: "gpt-4o")
-        XCTAssertGreaterThan(pricing.inputPerM, 0)
+        XCTAssertGreaterThan(pricing.inputPerMToken, 0)
     }
 
     func test_insightEngine_structuredFields() {
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let day = cal.startOfDay(for: Date())
+        let yesterday = cal.date(byAdding: .day, value: -1, to: day)!
         let u = TokenUsage(
             provider: .factory,
             sessionId: "1",
@@ -205,7 +206,18 @@ final class InsightEngineTests: XCTestCase {
             startTime: day.addingTimeInterval(100),
             endTime: day.addingTimeInterval(200)
         )
-        store.replaceUsages([u])
+        let prior = TokenUsage(
+            provider: .factory,
+            sessionId: "2",
+            projectName: "TestProject",
+            model: "m",
+            inputTokens: 80,
+            outputTokens: 120,
+            costUSD: 0.25,
+            startTime: yesterday.addingTimeInterval(100),
+            endTime: yesterday.addingTimeInterval(200)
+        )
+        store.replaceUsages([prior, u])
         let insights = InsightEngine.generate(from: store)
         XCTAssertFalse(insights.isEmpty)
     }

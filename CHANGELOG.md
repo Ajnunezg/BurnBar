@@ -21,9 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - project versioning aligned on `0.1.0-beta` for the app, daemon, and extension
+- docs now treat `0.1.0-beta` as declared repo metadata until the first matching public git tag is cut
 - README and quick start copy updated for experimental-source-release positioning
 - public docs scrubbed to remove stale personal repository URLs and inaccurate storage/version claims
 - public docs now clarify the source-release model, current cloud-sync scope, and the current split between Keychain-backed secrets and non-secret local app-preference storage
+- the authoritative app XCTest surface is wired back into the checked-in Xcode project and repo-native scripts
 
 ### Security
 - Hermes/OpenClaw bearer tokens and the controller Telegram bot token now migrate into macOS Keychain-backed storage instead of remaining in app preferences

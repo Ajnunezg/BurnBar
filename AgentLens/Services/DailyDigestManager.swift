@@ -1,19 +1,30 @@
 import Foundation
 import UserNotifications
 
+protocol BurnBarUserNotificationCentering {
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
+    func add(_ request: UNNotificationRequest, withCompletionHandler completionHandler: ((Error?) -> Void)?)
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String])
+}
+
+extension UNUserNotificationCenter: BurnBarUserNotificationCentering {}
+
 @MainActor
 final class DailyDigestManager {
     static let shared = DailyDigestManager()
 
-    private init() {}
+    private let notificationCenter: any BurnBarUserNotificationCentering
+
+    init(notificationCenter: any BurnBarUserNotificationCentering = UNUserNotificationCenter.current()) {
+        self.notificationCenter = notificationCenter
+    }
 
     func requestAuthorization() async {
-        _ = try? await UNUserNotificationCenter.current()
-            .requestAuthorization(options: [.alert, .sound])
+        _ = try? await notificationCenter.requestAuthorization(options: [.alert, .sound])
     }
 
     func scheduleDigest(from dataStore: DataStore, at hour: Int = 18) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
+        notificationCenter.removePendingNotificationRequests(
             withIdentifiers: [BurnBarIdentity.dailyDigestNotificationIdentifier] + BurnBarIdentity.legacyDailyDigestNotificationIdentifiers
         )
         let narrative = InsightEngine.generateNarrative(from: dataStore)
@@ -31,11 +42,11 @@ final class DailyDigestManager {
             content: content,
             trigger: trigger
         )
-        UNUserNotificationCenter.current().add(request)
+        notificationCenter.add(request, withCompletionHandler: nil)
     }
 
     func cancelDigest() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(
+        notificationCenter.removePendingNotificationRequests(
             withIdentifiers: [BurnBarIdentity.dailyDigestNotificationIdentifier] + BurnBarIdentity.legacyDailyDigestNotificationIdentifiers
         )
     }

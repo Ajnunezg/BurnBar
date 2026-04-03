@@ -30,6 +30,9 @@ jobs:
       - name: Run Swift tests
         run: ./scripts/test-burnbar-swift.sh
 
+      - name: Run BurnBar app tests
+        run: ./scripts/test-burnbar-app.sh
+
       - name: Run TypeScript tests
         run: ./scripts/test-burnbar-ts.sh
 

@@ -65,6 +65,19 @@ AgentLens/
 
 ## How to Test
 
+Repo-native authoritative verification paths:
+
+1. `./scripts/test-burnbar-swift.sh`
+2. `./scripts/test-burnbar-app.sh`
+3. `./scripts/test-burnbar-retrieval-evals.sh`
+4. `cd extensions/burnbar && npm run test:ci`
+
+Optional real-provider smoke coverage remains opt-in:
+
+1. `BURNBAR_REAL_PROVIDER_SMOKE=1 ./scripts/test-burnbar-app.sh`
+
+Manual app sanity check:
+
 1. Build and run the app
 2. Open Settings (gear icon in the popover)
 3. Verify provider log paths are correct for your machine

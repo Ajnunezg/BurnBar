@@ -6,18 +6,16 @@ import UserNotifications
 final class DailyDigestManagerTests: XCTestCase {
 
     private var mockNotificationCenter: MockUNUserNotificationCenter!
-    private var originalCenter: UNUserNotificationCenter!
+    private var manager: DailyDigestManager!
 
     override func setUp() {
         super.setUp()
-        // Store the original notification center
-        originalCenter = UNUserNotificationCenter.current()
-
-        // Create mock notification center
         mockNotificationCenter = MockUNUserNotificationCenter()
+        manager = DailyDigestManager(notificationCenter: mockNotificationCenter)
     }
 
     override func tearDown() {
+        manager = nil
         mockNotificationCenter = nil
         super.tearDown()
     }
@@ -29,7 +27,7 @@ final class DailyDigestManagerTests: XCTestCase {
         mockNotificationCenter.authorizationStatus = .authorized
 
         // When
-        await DailyDigestManager.shared.requestAuthorization()
+        await manager.requestAuthorization()
 
         // Then - no error thrown
         XCTAssertTrue(true)
@@ -40,7 +38,7 @@ final class DailyDigestManagerTests: XCTestCase {
         mockNotificationCenter.authorizationStatus = .denied
 
         // When/Then - should not throw
-        await DailyDigestManager.shared.requestAuthorization()
+        await manager.requestAuthorization()
         XCTAssertTrue(true)
     }
 
@@ -49,7 +47,7 @@ final class DailyDigestManagerTests: XCTestCase {
         mockNotificationCenter.authorizationStatus = .notDetermined
 
         // When/Then - should not throw
-        await DailyDigestManager.shared.requestAuthorization()
+        await manager.requestAuthorization()
         XCTAssertTrue(true)
     }
 
@@ -57,11 +55,11 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_createsNotificationRequest() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         let hour = 18
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store, at: hour)
+        manager.scheduleDigest(from: store, at: hour)
 
         // Then - notification request should be added
         XCTAssertFalse(mockNotificationCenter.addedRequests.isEmpty)
@@ -69,10 +67,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_usesCorrectHour() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When - schedule for 9 AM
-        DailyDigestManager.shared.scheduleDigest(from: store, at: 9)
+        manager.scheduleDigest(from: store, at: 9)
 
         // Then - verify request was added
         XCTAssertFalse(mockNotificationCenter.addedRequests.isEmpty)
@@ -80,10 +78,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_usesCorrectIdentifier() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -92,14 +90,14 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_removesPendingNotifications() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         mockNotificationCenter.pendingRequests = [
             UNNotificationRequest(identifier: BurnBarIdentity.dailyDigestNotificationIdentifier, content: UNMutableNotificationContent(), trigger: nil),
             UNNotificationRequest(identifier: "legacy-id-1", content: UNMutableNotificationContent(), trigger: nil)
         ]
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then - old requests should be removed
         // The manager should have called removePendingNotificationRequests
@@ -108,10 +106,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_includesLegacyIdentifiers() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then - legacy identifiers should be removed
         for legacyId in BurnBarIdentity.legacyDailyDigestNotificationIdentifiers {
@@ -121,10 +119,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_notificationContent_hasCorrectTitle() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -133,10 +131,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_notificationContent_hasDefaultSound() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -145,10 +143,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_notificationContent_includesNarrative() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then - content body should not be empty
         let request = mockNotificationCenter.addedRequests.first
@@ -157,11 +155,11 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_trigger_isCalendarBased() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         let hour = 20
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store, at: hour)
+        manager.scheduleDigest(from: store, at: hour)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -170,10 +168,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_trigger_repeatsDaily() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -186,10 +184,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_trigger_minuteIsZero() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store, at: 14)
+        manager.scheduleDigest(from: store, at: 14)
 
         // Then
         let request = mockNotificationCenter.addedRequests.first
@@ -207,7 +205,7 @@ final class DailyDigestManagerTests: XCTestCase {
         ]
 
         // When
-        DailyDigestManager.shared.cancelDigest()
+        manager.cancelDigest()
 
         // Then
         XCTAssertTrue(mockNotificationCenter.removedIdentifiers.contains(BurnBarIdentity.dailyDigestNotificationIdentifier))
@@ -221,7 +219,7 @@ final class DailyDigestManagerTests: XCTestCase {
         ]
 
         // When
-        DailyDigestManager.shared.cancelDigest()
+        manager.cancelDigest()
 
         // Then
         for legacyId in BurnBarIdentity.legacyDailyDigestNotificationIdentifiers {
@@ -234,8 +232,8 @@ final class DailyDigestManagerTests: XCTestCase {
         mockNotificationCenter.pendingRequests = []
 
         // When - cancel multiple times
-        DailyDigestManager.shared.cancelDigest()
-        DailyDigestManager.shared.cancelDigest()
+        manager.cancelDigest()
+        manager.cancelDigest()
 
         // Then - should not crash
         XCTAssertTrue(true)
@@ -245,11 +243,11 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleThenCancel_lifecycle() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
-        DailyDigestManager.shared.cancelDigest()
+        manager.scheduleDigest(from: store)
+        manager.cancelDigest()
 
         // Then - scheduled request should be removed
         XCTAssertTrue(mockNotificationCenter.removedIdentifiers.contains(BurnBarIdentity.dailyDigestNotificationIdentifier))
@@ -257,13 +255,13 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_reschedule_replacesExistingNotification() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         mockNotificationCenter.pendingRequests = [
             UNNotificationRequest(identifier: BurnBarIdentity.dailyDigestNotificationIdentifier, content: UNMutableNotificationContent(), trigger: nil)
         ]
 
         // When - reschedule
-        DailyDigestManager.shared.scheduleDigest(from: store, at: 10)
+        manager.scheduleDigest(from: store, at: 10)
 
         // Then - old notification should be removed
         XCTAssertTrue(mockNotificationCenter.removedIdentifiers.contains(BurnBarIdentity.dailyDigestNotificationIdentifier))
@@ -275,7 +273,7 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_differentHours() {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         let hours = [0, 6, 12, 18, 23]
 
         for hour in hours {
@@ -283,7 +281,8 @@ final class DailyDigestManagerTests: XCTestCase {
             mockNotificationCenter = MockUNUserNotificationCenter()
 
             // When
-            DailyDigestManager.shared.scheduleDigest(from: store, at: hour)
+            manager = DailyDigestManager(notificationCenter: mockNotificationCenter)
+            manager.scheduleDigest(from: store, at: hour)
 
             // Then
             let request = mockNotificationCenter.addedRequests.first
@@ -295,10 +294,10 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_emptyStore() {
         // Given - empty data store
-        let store = DataStore()
+        let store = try! DataStore()
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then - should still create notification with empty narrative
         let request = mockNotificationCenter.addedRequests.first
@@ -307,7 +306,7 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_withUsages() {
         // Given - store with usages
-        let store = DataStore()
+        let store = try! DataStore()
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         var usages: [TokenUsage] = []
@@ -330,7 +329,7 @@ final class DailyDigestManagerTests: XCTestCase {
         store.replaceUsages(usages)
 
         // When
-        DailyDigestManager.shared.scheduleDigest(from: store)
+        manager.scheduleDigest(from: store)
 
         // Then - notification should be created
         let request = mockNotificationCenter.addedRequests.first
@@ -343,7 +342,7 @@ final class DailyDigestManagerTests: XCTestCase {
 
     func test_scheduleDigest_performance() throws {
         // Given
-        let store = DataStore()
+        let store = try! DataStore()
         var usages: [TokenUsage] = []
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
@@ -366,29 +365,21 @@ final class DailyDigestManagerTests: XCTestCase {
         store.replaceUsages(usages)
 
         measure {
-            DailyDigestManager.shared.scheduleDigest(from: store)
+            manager.scheduleDigest(from: store)
         }
     }
 }
 
 // MARK: - Mock UNUserNotificationCenter
 
-private class MockUNUserNotificationCenter: NSObject, UNUserNotificationCenter {
+private final class MockUNUserNotificationCenter: BurnBarUserNotificationCentering {
     var authorizationStatus: UNAuthorizationStatus = .notDetermined
     var pendingRequests: [UNNotificationRequest] = []
     var addedRequests: [UNNotificationRequest] = []
     var removedIdentifiers: [String] = []
 
-    override func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
         return authorizationStatus == .authorized
-    }
-
-    func getNotificationSettings() async -> UNNotificationSettings {
-        return UNNotificationSettings()
-    }
-
-    func add(_ request: UNNotificationRequest) async throws {
-        addedRequests.append(request)
     }
 
     func add(_ request: UNNotificationRequest, withCompletionHandler completionHandler: ((Error?) -> Void)?) {
@@ -398,37 +389,5 @@ private class MockUNUserNotificationCenter: NSObject, UNUserNotificationCenter {
 
     func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
         removedIdentifiers.append(contentsOf: identifiers)
-    }
-
-    func removeAllPendingNotificationRequests() {
-        removedIdentifiers = pendingRequests.map { $0.identifier }
-    }
-
-    func getPendingNotificationRequests() async -> [UNNotificationRequest] {
-        return pendingRequests
-    }
-
-    func removeDeliveredNotifications(withIdentifiers identifiers: [String]) {
-        // No-op for testing
-    }
-
-    func removeAllDeliveredNotifications() {
-        // No-op for testing
-    }
-
-    func getDeliveredNotificationRequests() async -> [UNNotificationRequest] {
-        return []
-    }
-
-    func setNotificationCategories(_ categories: Set<UNNotificationCategory>) {
-        // No-op for testing
-    }
-
-    func getNotificationCategories() async -> Set<UNNotificationCategory> {
-        return []
-    }
-
-    func getIsNotificationEnabled() async -> Bool {
-        return authorizationStatus == .authorized
     }
 }

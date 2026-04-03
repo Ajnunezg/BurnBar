@@ -4,6 +4,8 @@ Get up and running with BurnBar in 5 minutes.
 
 Current release model: build from source. BurnBar does not currently publish a notarized app bundle, Homebrew package, or marketplace extension install.
 
+The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
+
 ## Prerequisites
 
 - macOS 14 Sonoma or later
@@ -37,6 +39,7 @@ swift run --package-path BurnBarDaemon BurnBarCLI -- help
 # Run tests
 swift test --package-path BurnBarCore
 swift test --package-path BurnBarDaemon
+./scripts/test-burnbar-app.sh
 ```
 
 ## Running the App
@@ -108,6 +111,7 @@ With cloud sync enabled today, BurnBar uploads usage rows and in-app BurnBar cha
 # Swift tests
 swift test --package-path BurnBarCore
 swift test --package-path BurnBarDaemon
+./scripts/test-burnbar-app.sh
 
 # TypeScript tests
 cd extensions/burnbar && npm run test:ci
@@ -124,6 +128,7 @@ cd extensions/burnbar && npm run test:ci
 ```bash
 # Swift practical verification
 ./scripts/test-burnbar-swift.sh
+./scripts/test-burnbar-app.sh
 ./scripts/test-burnbar-retrieval-evals.sh
 
 # TypeScript
@@ -131,6 +136,8 @@ cd extensions/burnbar && npm run lint
 ```
 
 `swiftlint` is configured for maintainer cleanup, but the current source release is not yet fully SwiftLint-clean. Use the repo-native Swift test/eval scripts above as the practical verification path today.
+
+The authoritative app XCTest target is `BurnBarTests`, and it now includes the wider `AgentLensTests/` surface again. Optional real-provider smoke coverage remains opt-in via `BURNBAR_REAL_PROVIDER_SMOKE=1`.
 
 ## Troubleshooting
 

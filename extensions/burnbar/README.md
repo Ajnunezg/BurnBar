@@ -6,6 +6,8 @@ BurnBar is a local-first sidebar companion for Cursor and VS Code. The extension
 
 This extension is part of BurnBar's current **experimental source release**. It is intended for local development and early adopters rather than a polished marketplace install. There is no public VS Marketplace / Open VSX release or signed VSIX shipped from this repository today.
 
+The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
+
 ## Build
 
 ```bash

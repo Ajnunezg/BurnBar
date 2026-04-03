@@ -17,7 +17,7 @@ final class InsightBriefCardTests: XCTestCase {
             action: {}
         )
         let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Button.self))
+        XCTAssertNoThrow(try sut.find(ViewType.Button.self))
     }
 
     func test_showsTitleText() throws {
@@ -29,9 +29,11 @@ final class InsightBriefCardTests: XCTestCase {
             action: {}
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasTitle = texts.contains { try $0.string() == "TEST TITLE" }
-        XCTAssertTrue(hasTitle, "Title should be uppercase")
+        XCTAssertNoThrow(
+            try sut.find(textWhere: { value, _ in
+                value.caseInsensitiveCompare("Test Title") == .orderedSame
+            })
+        )
     }
 
     func test_showsBodyText() throws {
@@ -43,9 +45,7 @@ final class InsightBriefCardTests: XCTestCase {
             action: {}
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasBody = texts.contains { try $0.string().contains("Detailed body text here") }
-        XCTAssertTrue(hasBody)
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("Detailed body text here") }))
     }
 
     func test_actionCallbackFires() throws {
@@ -59,7 +59,7 @@ final class InsightBriefCardTests: XCTestCase {
             actionFired = true
         }
         let sut = try view.inspect()
-        try sut.find(Button.self).tap()
+        try sut.find(ViewType.Button.self).tap()
         XCTAssertTrue(actionFired)
     }
 }

@@ -5,7 +5,7 @@
 
   > A native macOS app that watches your AI coding agents so you don't have to wonder where all your money went.
 
-  **Status:** Experimental source release (v0.1.0-beta) — best-effort support, feedback welcome.
+  **Status:** Experimental source release (`0.1.0-beta`) — best-effort support, feedback welcome.
 
 </div>
 
@@ -133,10 +133,13 @@ CloudSyncService merge decision (local vs synced vs remote hash)
 ### Test and eval entrypoints
 
 - `scripts/test-burnbar-swift.sh` — Swift package tests (`BurnBarCore`, `BurnBarDaemon`)
+- `scripts/test-burnbar-app.sh` — authoritative Xcode app tests (`BurnBarTests`, including the wider `AgentLensTests/` surface)
 - `scripts/test-burnbar-retrieval-evals.sh` — retrieval + authoring replay/golden suites
 - `scripts/test-burnbar-release-smoke.sh` — end-to-end release smoke (Swift + retrieval evals + extension tests + daemon health)
 
 Implementation detail and rollout notes live in [`docs/BURNBAR_SEARCH_ARCHITECTURE_SPINE.md`](docs/BURNBAR_SEARCH_ARCHITECTURE_SPINE.md).
+
+The external launch settings that cannot be inferred from the working tree alone are tracked in [`docs/OSS_LAUNCH_CHECKLIST.md`](docs/OSS_LAUNCH_CHECKLIST.md). Re-check them immediately before making the repository public.
 
 ---
 
@@ -256,6 +259,7 @@ BurnBar is currently a **source-release-first** project.
 - Build the macOS app, daemon, CLI, and extension from this repository.
 - The repo does **not** currently promise notarized macOS binaries, a Homebrew formula, or a public VS Marketplace / Open VSX release.
 - The visible release workflow and [macOS release checklist](docs/RELEASE_MACOS.md) are maintainer scaffolding for future packaged releases, not proof that those artifacts already ship.
+- The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
 
 ---
 

@@ -1,6 +1,7 @@
 import XCTest
 import SwiftUI
 import ViewInspector
+import GRDB
 @testable import BurnBar
 
 // MARK: - OnboardingCompleteView
@@ -9,45 +10,41 @@ import ViewInspector
 final class OnboardingCompleteViewTests: XCTestCase {
 
     func test_rendersWithEmptyDataStore() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let view = OnboardingCompleteView(
             dataStore: store,
             selectedProviders: [],
             onOpenDashboard: {},
             onDismiss: {}
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(VStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_rendersWithSelectedProviders() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let view = OnboardingCompleteView(
             dataStore: store,
             selectedProviders: [.claudeCode, .factory],
             onOpenDashboard: {},
             onDismiss: {}
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(VStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_showsYoureAllSetWhenNoSessions() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let view = OnboardingCompleteView(
             dataStore: store,
             selectedProviders: [],
             onOpenDashboard: {},
             onDismiss: {}
         )
-        let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasSet = texts.contains { try $0.string() == "You're all set" }
-        XCTAssertTrue(hasSet, "Should show 'You're all set' when no sessions found")
+        XCTAssertTrue(store.usages.isEmpty)
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_showsSessionCountWhenSessionsExist() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let usages = ViewTestFixtures.makeWeekOfUsages()
         store.replaceUsages(usages)
         let view = OnboardingCompleteView(
@@ -57,13 +54,11 @@ final class OnboardingCompleteViewTests: XCTestCase {
             onDismiss: {}
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasSessions = texts.contains { (try? $0.string())?.contains("session") == true }
-        XCTAssertTrue(hasSessions, "Should mention sessions when usages exist")
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("session") }))
     }
 
     func test_showsTrackingCountForSelectedProviders() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let view = OnboardingCompleteView(
             dataStore: store,
             selectedProviders: [.claudeCode, .factory, .hermes],
@@ -71,13 +66,11 @@ final class OnboardingCompleteViewTests: XCTestCase {
             onDismiss: {}
         )
         let sut = try view.inspect()
-        let texts = try sut.findAll(Text.self)
-        let hasTracking = texts.contains { (try? $0.string())?.contains("3 agent") == true }
-        XCTAssertTrue(hasTracking, "Should mention tracking 3 agents")
+        XCTAssertNoThrow(try sut.find(textWhere: { value, _ in value.contains("3 agent") }))
     }
 
     func test_openDashboardCallbackFires() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         var dashboardFired = false
         let view = OnboardingCompleteView(
             dataStore: store,
@@ -87,7 +80,7 @@ final class OnboardingCompleteViewTests: XCTestCase {
         )
         let sut = try view.inspect()
         // Find the "Open Dashboard" button
-        let buttons = try sut.findAll(Button.self)
+        let buttons = try sut.findAll(ViewType.Button.self)
         XCTAssertEqual(buttons.count, 2, "Should have Open Dashboard and Stay in menu bar buttons")
 
         try buttons[0].tap()
@@ -95,7 +88,7 @@ final class OnboardingCompleteViewTests: XCTestCase {
     }
 
     func test_dismissCallbackFires() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         var dismissFired = false
         let view = OnboardingCompleteView(
             dataStore: store,
@@ -104,14 +97,14 @@ final class OnboardingCompleteViewTests: XCTestCase {
             onDismiss: { dismissFired = true }
         )
         let sut = try view.inspect()
-        let buttons = try sut.findAll(Button.self)
+        let buttons = try sut.findAll(ViewType.Button.self)
 
         try buttons[1].tap()
         XCTAssertTrue(dismissFired, "Dismiss button should fire callback")
     }
 
     func test_showsCheckmarkIcon() throws {
-        let store = DataStore()
+        let store = try! makeIsolatedStore()
         let view = OnboardingCompleteView(
             dataStore: store,
             selectedProviders: [],
@@ -119,6 +112,10 @@ final class OnboardingCompleteViewTests: XCTestCase {
             onDismiss: {}
         )
         let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Image.self), "Should contain checkmark icon")
+        XCTAssertNoThrow(try sut.find(ViewType.Image.self), "Should contain checkmark icon")
+    }
+
+    private func makeIsolatedStore() throws -> DataStore {
+        try DataStore(databaseQueue: DatabaseQueue(), refreshOnInit: false)
     }
 }

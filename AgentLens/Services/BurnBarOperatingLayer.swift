@@ -1,6 +1,14 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Note
+//
+// This file is intentionally excluded from the `BurnBar.app` Xcode build target
+// via `project.yml` (excludes: ["Services/BurnBarOperatingLayer.swift"]).
+// The compiled operating layer lives in `Services/BurnBarOperating/BurnBarOperatingLayer.swift`.
+// This file is kept in the repo for reference, diffing, and future potential integration.
+// Do not add it back to the build without removing its twin.
+
 // MARK: - Operating Layer Models
 
 enum BurnBarOperatingAvailability: String, Equatable, Sendable {

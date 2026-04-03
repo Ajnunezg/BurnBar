@@ -2,7 +2,9 @@
 
 ## Supported Versions
 
-Before `1.0`, BurnBar only supports the latest tagged prerelease and the current `main` branch. Older commits may contain known issues and may not receive fixes.
+Before `1.0`, BurnBar supports the current `main` branch and the version declared in the repo metadata (`0.1.0-beta` in this source release). Older commits may contain known issues and may not receive fixes.
+
+If you want tag-based support language to be literally true, cut the first public git tag as `v0.1.0-beta` when the repository is made public.
 
 ## Reporting a Vulnerability
 

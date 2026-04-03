@@ -7,9 +7,12 @@ final class CLIBridgeTests: XCTestCase {
     // MARK: - Executable Path Parsing Tests
 
     func test_cliBridge_parseExecutablePath_prefersAbsolutePathLine() {
-        let output = "/usr/local/bin/codex\n/usr/bin/env codex"
+        let output = """
+        Loading shell config...
+        /Users/tester/.nvm/versions/node/v24.14.0/bin/codex
+        """
         let path = CLIBridge.parseExecutablePath(fromCommandOutput: output)
-        XCTAssertEqual(path, "/usr/local/bin/codex")
+        XCTAssertEqual(path, "/Users/tester/.nvm/versions/node/v24.14.0/bin/codex")
     }
 
     func test_cliBridge_parseExecutablePath_handlesEmptyOutput() {
@@ -95,7 +98,7 @@ final class CLIBridgeTests: XCTestCase {
 
     func test_cliBridge_codexArguments_includesReasoningEffort() {
         let args = CLIBridge.codexArguments(prompt: "test")
-        XCTAssertTrue(args.contains("model_reasoning_effort=medium"))
+        XCTAssertTrue(args.contains(#"model_reasoning_effort="medium""#))
     }
 
     // MARK: - User Managed Search Directories Tests
@@ -113,22 +116,10 @@ final class CLIBridgeTests: XCTestCase {
 
     // MARK: - Executable Resolution Tests
 
-    func test_cliBridge_resolveExecutable_findsVersionManagerInstall() async {
-        // This test verifies the search order logic
-        let result = await CLIBridge().resolveExecutable(named: "swift")
-        // Should find swift in standard locations or not at all
-        // Just verify it completes without error
+    func test_cliBridge_resolveExecutable_findsKnownExecutableInProvidedDirectories() {
+        let searchDirectories = ["/usr/bin", "/bin"]
+        let result = CLIBridge.resolveExecutable(named: "swift", searchDirectories: searchDirectories)
         XCTAssertNotNil(result)
-    }
-
-    // MARK: - Shell Quoting Tests
-
-    func test_cliBridge_shellQuoted_escapesSingleQuotes() {
-        let input = "test's value"
-        let quoted = CLIBridge.shellQuoted(input)
-        XCTAssertTrue(quoted.hasPrefix("'"))
-        XCTAssertTrue(quoted.hasSuffix("'"))
-        XCTAssertFalse(quoted.contains("'test'"))
     }
 
     // MARK: - Base Executable Search Tests
@@ -142,16 +133,6 @@ final class CLIBridgeTests: XCTestCase {
         XCTAssertTrue(dirs.contains("/usr/bin"))
         XCTAssertTrue(dirs.contains("/bin"))
         XCTAssertTrue(dirs.contains("/Users/test/.local/bin"))
-    }
-
-    // MARK: - Enriched Environment Tests
-
-    func test_cliBridge_enrichedProcessEnvironment_includesCommonCLIPaths() {
-        let env = CLIBridge.enrichedProcessEnvironment()
-        let path = env["PATH"] ?? ""
-        let components = path.split(separator: ":").map(String.init)
-        XCTAssertTrue(components.contains("/opt/homebrew/bin"))
-        XCTAssertTrue(components.contains("/usr/local/bin"))
     }
 
     func test_cliBridge_openAICompatibleUsage_parsesUsagePayload() {

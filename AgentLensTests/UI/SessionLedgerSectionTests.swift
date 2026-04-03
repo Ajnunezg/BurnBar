@@ -52,7 +52,7 @@ final class SessionLedgerSupportTests: XCTestCase {
     }
 
     func test_matchesSearch_noMatch_returnsFalse() {
-        let usage = ViewTestFixtures.makeUsage(projectName: "BurnBar", model: "claude-3-opus", sessionId: "s1")
+        let usage = ViewTestFixtures.makeUsage(sessionId: "s1", projectName: "BurnBar", model: "claude-3-opus")
         XCTAssertFalse(SessionLedgerSupport.matchesSearch(usage, query: "nonexistent"))
     }
 

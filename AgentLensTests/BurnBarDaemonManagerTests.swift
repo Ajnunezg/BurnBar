@@ -482,7 +482,7 @@ final class BurnBarDaemonManagerTests: XCTestCase {
         let appActivityQuestionID = BurnBarQuestionID(rawValue: "question-app-activity")
         let daemonQuestionID = BurnBarQuestionID(rawValue: "question-operator")
 
-        let snapshot = BurnBarDaemonManager.makeControllerRuntimeSnapshot(
+        let snapshot = BurnBarDaemonSocketClient.makeControllerRuntimeSnapshot(
             summary: BurnBarControllerSummary(
                 updatedAt: now,
                 counts: BurnBarControllerCounts(

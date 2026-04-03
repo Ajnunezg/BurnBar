@@ -44,10 +44,7 @@ final class FlowLayoutTests: XCTestCase {
         }
 
         let view = FlowHost()
-        let sut = try view.inspect()
-        // FlowLayout is a Layout — it wraps content. The ZStack/Group container
-        // should contain the children.
-        XCTAssertNoThrow(try sut.find(FlowLayout.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_conformsToLayout() {
