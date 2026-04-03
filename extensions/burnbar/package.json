@@ -1,0 +1,250 @@
+{
+  "name": "burnbar",
+  "displayName": "BurnBar",
+  "description": "BurnBar sidebar shell for Cursor and VS Code.",
+  "version": "0.1.0-beta",
+  "publisher": "burnbar",
+  "icon": "media/app-icon-128.png",
+  "license": "MIT",
+  "homepage": "https://github.com/Ajnunezg/BurnBar/tree/main/extensions/burnbar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ajnunezg/BurnBar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ajnunezg/BurnBar/issues"
+  },
+  "keywords": [
+    "burnbar",
+    "cursor",
+    "vscode",
+    "ai",
+    "daemon",
+    "local-first"
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "media/**",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "BurnBar stays available in restricted mode, but apply_patch and run_terminal remain gated until the workspace is trusted. The sidebar explains any gated workspace features."
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:burnbar.panel",
+    "onView:burnbar.health",
+    "onView:burnbar.runs",
+    "onView:burnbar.runDetail",
+    "onCommand:burnbar.reconnect",
+    "onCommand:burnbar.repairDaemon",
+    "onCommand:burnbar.refresh",
+    "onCommand:burnbar.startRun",
+    "onCommand:burnbar.cancelRun",
+    "onCommand:burnbar.retryRun",
+    "onCommand:burnbar.approveRun",
+    "onCommand:burnbar.rejectRun",
+    "onCommand:burnbar.private.workspace.rpc",
+    "onCommand:burnbar.openWorkspace",
+    "onCommand:burnbar.openConversationSearch"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "burnbar",
+          "title": "BurnBar",
+          "icon": "./media/burnbar-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "burnbar": [
+        {
+          "id": "burnbar.panel",
+          "type": "webview",
+          "name": "BurnBar"
+        },
+        {
+          "id": "burnbar.health",
+          "name": "Health",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "burnbar.runs",
+          "name": "Runs",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "burnbar.runDetail",
+          "name": "Run Detail",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "burnbar.reconnect",
+        "title": "BurnBar: Reconnect"
+      },
+      {
+        "command": "burnbar.repairDaemon",
+        "title": "BurnBar: Repair Daemon"
+      },
+      {
+        "command": "burnbar.refresh",
+        "title": "BurnBar: Refresh"
+      },
+      {
+        "command": "burnbar.startRun",
+        "title": "BurnBar: Start Run"
+      },
+      {
+        "command": "burnbar.cancelRun",
+        "title": "BurnBar: Cancel Run"
+      },
+      {
+        "command": "burnbar.retryRun",
+        "title": "BurnBar: Retry Run"
+      },
+      {
+        "command": "burnbar.approveRun",
+        "title": "BurnBar: Approve Run"
+      },
+      {
+        "command": "burnbar.rejectRun",
+        "title": "BurnBar: Reject Run"
+      },
+      {
+        "command": "burnbar.openWorkspace",
+        "title": "BurnBar: Open Workspace"
+      },
+      {
+        "command": "burnbar.openConversationSearch",
+        "title": "BurnBar: Search Conversations"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "burnbar.reconnect",
+          "when": "view == burnbar.health",
+          "group": "navigation@1"
+        },
+        {
+          "command": "burnbar.repairDaemon",
+          "when": "view == burnbar.health",
+          "group": "navigation@2"
+        },
+        {
+          "command": "burnbar.refresh",
+          "when": "view == burnbar.runs",
+          "group": "navigation@1"
+        },
+        {
+          "command": "burnbar.startRun",
+          "when": "view == burnbar.runs",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "burnbar.cancelRun",
+          "when": "view == burnbar.runs && viewItem == burnbar.run.daemon",
+          "group": "inline@1"
+        },
+        {
+          "command": "burnbar.retryRun",
+          "when": "view == burnbar.runs && viewItem == burnbar.run.daemon",
+          "group": "inline@2"
+        },
+        {
+          "command": "burnbar.approveRun",
+          "when": "view == burnbar.runs && viewItem == burnbar.run.daemon",
+          "group": "inline@3"
+        },
+        {
+          "command": "burnbar.rejectRun",
+          "when": "view == burnbar.runs && viewItem == burnbar.run.daemon",
+          "group": "inline@4"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "BurnBar",
+      "properties": {
+        "burnbar.cursorSmoke.outputPath": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test output path for BurnBar Cursor validation."
+        },
+        "burnbar.cursorSmoke.filePath": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test workspace file path for BurnBar Cursor validation."
+        },
+        "burnbar.cursorSmoke.modelID": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test model identifier for BurnBar Cursor validation."
+        },
+        "burnbar.sidebar.statusLine": {
+          "type": "string",
+          "enum": ["smart", "workspace", "models", "activeRun", "socket", "off"],
+          "default": "smart",
+          "description": "Controls what BurnBar shows in the sidebar status line."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.json && node ./scripts/copy-webview-assets.mjs",
+    "build:extension-host": "tsc -p ./tsconfig.extension-host.json",
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "pretest": "npm run build",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run --coverage.enabled false",
+    "test:replay": "vitest run --coverage.enabled false test/replayEval.test.ts",
+    "test:extension-host": "npm run build && npm run build:extension-host && node ./test/extensionHost/runTest.mjs",
+    "test:cursor-smoke": "node ./test/cursorSmoke/runSmoke.mjs",
+    "test:ci": "npm run test:unit && npm run test:replay && npm run test:extension-host",
+    "watch": "tsc -w -p ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.6.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.22.0",
+    "mocha": "^11.7.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "globals": "^17.4.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.0"
+  }
+}

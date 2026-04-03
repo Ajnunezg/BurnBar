@@ -1,0 +1,56 @@
+name: BurnBar Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: extensions/burnbar/package-lock.json
+
+      - name: Install extension dependencies
+        run: npm ci --prefix extensions/burnbar
+
+      - name: Run Swift tests
+        run: ./scripts/test-burnbar-swift.sh
+
+      - name: Run BurnBar app tests
+        run: ./scripts/test-burnbar-app.sh
+
+      - name: Run TypeScript tests
+        run: ./scripts/test-burnbar-ts.sh
+
+      - name: Build extension
+        run: npm run --prefix extensions/burnbar build
+
+      - name: Build daemon
+        run: swift build --package-path BurnBarDaemon -c release
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "BurnBar ${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            --draft
