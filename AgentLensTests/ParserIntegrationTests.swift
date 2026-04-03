@@ -477,7 +477,7 @@ final class ParserIntegrationTests: XCTestCase {
         // Arrange
         let sessionContent = ParserTestFixtures.claudeCodeSession()
         _ = try harness.createClaudeCodeProject(
-            projectName: "~/Documents/TestProject",
+            projectName: "-Users-test-Documents-TestProject",
             sessions: [("session-001", sessionContent)]
         )
 
@@ -820,7 +820,7 @@ final class ParserIntegrationTests: XCTestCase {
         XCTAssertEqual(usage.inputTokens, 120)
         XCTAssertEqual(usage.cacheReadTokens, 40)
         XCTAssertEqual(usage.outputTokens, 16)
-        XCTAssertEqual(usage.totalTokens, 176)
+        XCTAssertEqual(usage.totalTokens, 136)
     }
 
     func test_codexParser_accumulatesLastTokenUsageWhenTotalsAreUnavailable() async throws {
@@ -853,7 +853,7 @@ final class ParserIntegrationTests: XCTestCase {
         XCTAssertEqual(usage.inputTokens, 120)
         XCTAssertEqual(usage.cacheReadTokens, 40)
         XCTAssertEqual(usage.outputTokens, 16)
-        XCTAssertEqual(usage.totalTokens, 176)
+        XCTAssertEqual(usage.totalTokens, 136)
     }
 
     func test_tokenExtractionUtility_extractsCacheCreationTokens() {
@@ -914,12 +914,10 @@ final class ParserIntegrationTests: XCTestCase {
         }
 
         // Assert
-        let storedUsages = try harness.dataStore.fetchAllUsage()
+        let storedUsages = harness.dataStore.usages
         XCTAssertFalse(storedUsages.isEmpty, "Should have stored usages in DataStore")
 
-        let storedConversations = try harness.databaseQueue.read { db in
-            try ConversationRecord.fetchAll(db)
-        }
+        let storedConversations = try harness.dataStore.fetchSessionLogSummaries(limit: 1000)
         XCTAssertFalse(storedConversations.isEmpty, "Should have stored conversations in DataStore")
     }
 
@@ -963,10 +961,10 @@ final class ParserIntegrationTests: XCTestCase {
         harness.dataStore.replaceUsages(claudeResult.usages + factoryResult.usages)
 
         // Assert
-        let allUsages = try harness.dataStore.fetchAllUsage()
+        let allUsages = harness.dataStore.usages
         XCTAssertEqual(allUsages.count, 2, "Should have exactly 2 usage records")
 
-        let providers = Set(allUsages.map(\.provider))
+        let providers: Set<AgentProvider> = Set(allUsages.map(\.provider))
         XCTAssertTrue(providers.contains(.claudeCode))
         XCTAssertTrue(providers.contains(.factory))
     }
@@ -1080,7 +1078,7 @@ final class TestableClaudeCodeParser: LogParser, @unchecked Sendable {
             return ParseResult(usages: [], conversations: [])
         }
 
-        for projectDir in projectDirs.filter({ ($0.path as NSString).hasDirectoryPath }) {
+        for projectDir in projectDirs.filter(\.hasDirectoryPath) {
             let projectName = decodeProjectName(projectDir.lastPathComponent)
 
             guard let files = try? fileManager.contentsOfDirectory(at: projectDir, includingPropertiesForKeys: nil) else {
@@ -1092,10 +1090,10 @@ final class TestableClaudeCodeParser: LogParser, @unchecked Sendable {
             for jsonlFile in jsonlFiles {
                 let sessionId = jsonlFile.deletingPathExtension().lastPathComponent
                 if let parsed = try? parseSession(file: jsonlFile, sessionId: sessionId, projectName: projectName) {
-                    if let usage = parsed?.usage {
+                    if let usage = parsed.usage {
                         usages.append(usage)
                     }
-                    if let conversation = parsed?.conversation {
+                    if let conversation = parsed.conversation {
                         conversations.append(conversation)
                     }
                 }
@@ -1235,7 +1233,7 @@ final class TestableClaudeCodeParser: LogParser, @unchecked Sendable {
             keyCommands: [],
             keyTools: [],
             inferredTaskTitle: projectName,
-            lastAssistantMessage: nil,
+            lastAssistantMessage: "",
             fullText: "",
             indexedAt: Date(),
             fileModifiedAt: mtime,
@@ -1261,8 +1259,13 @@ final class TestableClaudeCodeParser: LogParser, @unchecked Sendable {
 
     private static func parseTimestamp(_ raw: Any?) -> Date? {
         if let string = raw as? String {
-            if let parsed = iso8601Fractional.date(from: string) { return parsed }
-            if let parsed = iso8601Basic.date(from: string) { return parsed }
+            let fractional = ISO8601DateFormatter()
+            fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let parsed = fractional.date(from: string) { return parsed }
+
+            let basic = ISO8601DateFormatter()
+            basic.formatOptions = [.withInternetDateTime]
+            if let parsed = basic.date(from: string) { return parsed }
             return nil
         }
 
@@ -1331,7 +1334,7 @@ final class TestableFactoryDroidParser: LogParser, @unchecked Sendable {
             return ParseResult(usages: [], conversations: [])
         }
 
-        for projectDir in projectDirs.filter({ ($0.path as NSString).hasDirectoryPath }) {
+        for projectDir in projectDirs.filter(\.hasDirectoryPath) {
             let projectName = decodeProjectName(projectDir.lastPathComponent)
 
             guard let files = try? fileManager.contentsOfDirectory(at: projectDir, includingPropertiesForKeys: nil) else {
@@ -1352,10 +1355,10 @@ final class TestableFactoryDroidParser: LogParser, @unchecked Sendable {
                     sessionId: baseName,
                     projectName: projectName
                 ) {
-                    if let usage = parsed?.usage {
+                    if let usage = parsed.usage {
                         usages.append(usage)
                     }
-                    if let conversation = parsed?.conversation {
+                    if let conversation = parsed.conversation {
                         conversations.append(conversation)
                     }
                 }
@@ -1483,7 +1486,7 @@ final class TestableFactoryDroidParser: LogParser, @unchecked Sendable {
             keyCommands: [],
             keyTools: [],
             inferredTaskTitle: projectName,
-            lastAssistantMessage: nil,
+            lastAssistantMessage: "",
             fullText: "",
             indexedAt: Date(),
             fileModifiedAt: mtime,

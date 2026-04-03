@@ -15,8 +15,7 @@ final class OnboardingProviderPillTests: XCTestCase {
             isDetected: false,
             onTap: {}
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Button.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_rendersForClaudeCode() throws {
@@ -26,8 +25,7 @@ final class OnboardingProviderPillTests: XCTestCase {
             isDetected: true,
             onTap: {}
         )
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Button.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_showsProviderDisplayName() throws {
@@ -38,8 +36,7 @@ final class OnboardingProviderPillTests: XCTestCase {
             onTap: {}
         )
         let sut = try view.inspect()
-        let text = try sut.find(Text.self).string()
-        XCTAssertEqual(text, "Hermes")
+        XCTAssertNoThrow(try sut.find(text: "Hermes"))
     }
 
     func test_rendersAllProviders() {

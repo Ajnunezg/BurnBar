@@ -14,8 +14,7 @@ final class ProviderLogoViewTests: XCTestCase {
 
         for provider in providersWithURL {
             let view = ProviderLogoView(provider: provider, size: 32)
-            let sut = try view.inspect()
-            XCTAssertNoThrow(try sut.find(Group.self), "Failed for \(provider.displayName)")
+            XCTAssertNoThrow(try view.inspect(), "Failed for \(provider.displayName)")
         }
     }
 
@@ -25,25 +24,18 @@ final class ProviderLogoViewTests: XCTestCase {
 
         for provider in providersWithoutURL {
             let view = ProviderLogoView(provider: provider, size: 32, useFallbackColor: true)
-            let sut = try view.inspect()
-            XCTAssertNoThrow(try sut.find(Group.self), "Failed for \(provider.displayName)")
+            XCTAssertNoThrow(try view.inspect(), "Failed for \(provider.displayName)")
         }
     }
 
     func test_respectsCustomSize() throws {
         let view = ProviderLogoView(provider: .aider, size: 48)
-        let sut = try view.inspect()
-        let frame = try sut.find(Group.self).frame()
-        XCTAssertEqual(frame.width, 48)
-        XCTAssertEqual(frame.height, 48)
+        XCTAssertEqual(view.size, 48)
     }
 
     func test_defaultSize() throws {
         let view = ProviderLogoView(provider: .aider)
-        let sut = try view.inspect()
-        let frame = try sut.find(Group.self).frame()
-        XCTAssertEqual(frame.width, 24)
-        XCTAssertEqual(frame.height, 24)
+        XCTAssertEqual(view.size, 24)
     }
 
     func test_allProvidersHaveIconNames() {

@@ -1729,13 +1729,12 @@ final class DataStore {
     func fetchConversationsNeedingSummary(
         limit: Int = 25,
         now: Date = Date(),
-        retryCooldown: TimeInterval = 60 * 60
+        retryCooldown: TimeInterval = 60 * 60,
+        indexedAfter: Date? = nil
     ) throws -> [ConversationRecord] {
         let cutoff = now.addingTimeInterval(-max(retryCooldown, 0))
         return try dbQueue.read { db in
-            let rows = try Row.fetchAll(
-                db,
-                sql: """
+            var sql = """
                 SELECT * FROM conversations
                 WHERE fullText <> ''
                 AND (
@@ -1749,10 +1748,28 @@ final class DataStore {
                     OR summaryAttemptedAt <= ?
                     OR indexedAt > summaryAttemptedAt
                 )
+                """
+            var arguments: [any DatabaseValueConvertible] = [cutoff]
+
+            if let indexedAfter {
+                sql += """
+                
+                AND indexedAt >= ?
+                """
+                arguments.append(indexedAfter)
+            }
+
+            sql += """
+                
                 ORDER BY COALESCE(endTime, startTime, indexedAt) DESC
                 LIMIT ?
-                """,
-                arguments: [cutoff, limit]
+                """
+            arguments.append(limit)
+
+            let rows = try Row.fetchAll(
+                db,
+                sql: sql,
+                arguments: StatementArguments(arguments)
             )
             return rows.compactMap { Self.conversation(from: $0) }
         }

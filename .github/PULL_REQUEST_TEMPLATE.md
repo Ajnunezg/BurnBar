@@ -11,7 +11,7 @@
 
 ## Testing
 
-- [ ] Tests pass (`swift test` for Swift, `npm test` for TypeScript)
+- [ ] Repo-native tests/checks pass for the touched area (`./scripts/test-burnbar-swift.sh`, retrieval evals, `npm run lint`, `npm run test:ci`, etc.)
 - [ ] New tests added for new functionality
 - [ ] No regression in existing tests
 
@@ -19,7 +19,7 @@
 
 - [ ] Code follows project style guidelines
 - [ ] TypeScript: `npm run lint` passes with no errors
-- [ ] Swift: `swiftlint` passes
+- [ ] Swift verification was run using the repo's current supported scripts or Xcode/SPM test targets
 
 ## Documentation
 

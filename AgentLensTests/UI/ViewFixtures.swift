@@ -135,7 +135,8 @@ enum ViewTestFixtures {
         heaviestTaskProject: String? = "BurnBar",
         modelShiftHeadline: String? = nil,
         incompleteHint: String? = nil,
-        rollupFreshness: InsightRollupFreshness = .fresh
+        rollupFreshness: InsightRollupFreshness = .fresh,
+        rollupStatusMessage: String? = nil
     ) -> InsightBriefSnapshot {
         InsightBriefSnapshot(
             whereLeftOff: whereLeftOff,
@@ -145,7 +146,8 @@ enum ViewTestFixtures {
             heaviestTaskProject: heaviestTaskProject,
             modelShiftHeadline: modelShiftHeadline,
             incompleteHint: incompleteHint,
-            rollupFreshness: rollupFreshness
+            rollupFreshness: rollupFreshness,
+            rollupStatusMessage: rollupStatusMessage
         )
     }
 }

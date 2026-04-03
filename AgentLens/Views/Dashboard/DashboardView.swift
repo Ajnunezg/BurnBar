@@ -8,7 +8,6 @@ private enum DashboardMainRoute: Hashable {
     case overview
     case database
     case projects
-    case missions
     case sessionLogs
     case provider(AgentProvider)
     case model(String)
@@ -103,7 +102,6 @@ struct DashboardView: View {
         case .overview: return "Overview"
         case .database: return "Database"
         case .projects: return "Projects"
-        case .missions: return "gstack"
         case .sessionLogs: return "Session Logs"
         case .provider(let provider): return provider.displayName
         case .model(let modelName): return modelName
@@ -241,10 +239,6 @@ struct DashboardView: View {
             case .conversationSearch, .chatPanel:
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
                     chatPanelOpen = true
-                }
-            case .missions:
-                withAnimation(DesignSystem.Animation.standard) {
-                    navigate(to: .missions)
                 }
             default:
                 break
@@ -591,7 +585,7 @@ struct DashboardView: View {
         Set(filteredUsages.map(\.projectName)).count
     }
 
-    /// Database, Projects, Missions, Session Logs — moved from the sidebar into the main pane.
+    /// Database, Projects, Session Logs — moved from the sidebar into the main pane.
     private var dashboardWorkspaceNavStrip: some View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
@@ -617,18 +611,6 @@ struct DashboardView: View {
                     ) {
                         withAnimation(DesignSystem.Animation.standard) {
                             navigate(to: .projects)
-                        }
-                    }
-
-                    DashboardWorkspaceNavButton(
-                        title: "gstack",
-                        subtitle: "Mission command center",
-                        systemImage: "scope",
-                        accent: DesignSystem.Colors.hermesAureate,
-                        isSelected: mainRoute == .missions
-                    ) {
-                        withAnimation(DesignSystem.Animation.standard) {
-                            navigate(to: .missions)
                         }
                     }
 
@@ -674,12 +656,6 @@ struct DashboardView: View {
                     )
                 case .projects:
                     ProjectsView(dataStore: dataStore, operatingLayer: operatingLayer)
-                case .missions:
-                    MissionsView(
-                        operatingLayer: operatingLayer,
-                        dataStore: dataStore,
-                        onNavigateToSessionLogs: { navigate(to: .sessionLogs) }
-                    )
                 case .sessionLogs:
                     SessionLogsView(
                         dataStore: dataStore,

@@ -17,14 +17,13 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_codexRefresh_readsLatestLocalQuotaSnapshot() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let rolloutDirectory = home
-            .appendingPathComponent(".codex", isDirectory: true)
-            .appendingPathComponent("sessions/2026/03/24", isDirectory: true)
+        let eventDate = recentUTCDate(daysAgo: 1, hour: 10)
+        let rolloutDirectory = codexRolloutDirectory(home: home, date: eventDate)
         try FileManager.default.createDirectory(at: rolloutDirectory, withIntermediateDirectories: true)
 
-        let rolloutURL = rolloutDirectory.appendingPathComponent("rollout-2026-03-24T10-00-00.jsonl")
+        let rolloutURL = codexRolloutFileURL(directory: rolloutDirectory, date: eventDate)
         let payload = """
-        {"timestamp":"2026-03-24T10:00:01Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":22.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":20.0,"window_minutes":10080,"resets_at":1774801258}}}}
+        {"timestamp":"\(iso8601String(eventDate))","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":22.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":20.0,"window_minutes":10080,"resets_at":1774801258}}}}
         """
         try Data(payload.utf8).write(to: rolloutURL)
 
@@ -33,7 +32,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             appSupportRoot: appSupport
         )
 
-        await service.refresh(provider: .codex, dataStore: DataStore())
+        await service.refresh(provider: .codex, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .codex))
 
         XCTAssertEqual(snapshot.source, .localSession)
@@ -46,15 +45,15 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_codexRefresh_readsQuotaSnapshotFromLargeRolloutTail() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let rolloutDirectory = home
-            .appendingPathComponent(".codex", isDirectory: true)
-            .appendingPathComponent("sessions/2026/03/24", isDirectory: true)
+        let eventDate = recentUTCDate(daysAgo: 1, hour: 11)
+        let fillerDate = eventDate.addingTimeInterval(-61)
+        let rolloutDirectory = codexRolloutDirectory(home: home, date: eventDate)
         try FileManager.default.createDirectory(at: rolloutDirectory, withIntermediateDirectories: true)
 
-        let rolloutURL = rolloutDirectory.appendingPathComponent("rollout-2026-03-24T11-00-00.jsonl")
-        let fillerLine = #"{"timestamp":"2026-03-24T10:59:00Z","type":"event_msg","payload":{"type":"assistant_message","text":"filler"}}"#
+        let rolloutURL = codexRolloutFileURL(directory: rolloutDirectory, date: eventDate)
+        let fillerLine = #"{"timestamp":"\#(iso8601String(fillerDate))","type":"event_msg","payload":{"type":"assistant_message","text":"filler"}}"#
         let quotaLine = """
-        {"timestamp":"2026-03-24T11:00:01Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":35.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":42.0,"window_minutes":10080,"resets_at":1774801258}}}}
+        {"timestamp":"\(iso8601String(eventDate))","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":35.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":42.0,"window_minutes":10080,"resets_at":1774801258}}}}
         """
         let payload = Array(repeating: fillerLine, count: 7000).joined(separator: "\n") + "\n" + quotaLine
         try Data(payload.utf8).write(to: rolloutURL)
@@ -64,7 +63,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             appSupportRoot: appSupport
         )
 
-        await service.refresh(provider: .codex, dataStore: DataStore())
+        await service.refresh(provider: .codex, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .codex))
 
         XCTAssertEqual(snapshot.source, .localSession)
@@ -75,26 +74,25 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_codexRefresh_reusesPersistedScanCacheForUnchangedFiles() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let rolloutDirectory = home
-            .appendingPathComponent(".codex", isDirectory: true)
-            .appendingPathComponent("sessions/2026/03/24", isDirectory: true)
+        let eventDate = recentUTCDate(daysAgo: 1, hour: 12)
+        let rolloutDirectory = codexRolloutDirectory(home: home, date: eventDate)
         try FileManager.default.createDirectory(at: rolloutDirectory, withIntermediateDirectories: true)
 
-        let rolloutURL = rolloutDirectory.appendingPathComponent("rollout-2026-03-24T12-00-00.jsonl")
+        let rolloutURL = codexRolloutFileURL(directory: rolloutDirectory, date: eventDate)
         let payload = """
-        {"timestamp":"2026-03-24T12:00:01Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":41.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":33.0,"window_minutes":10080,"resets_at":1774801258}}}}
+        {"timestamp":"\(iso8601String(eventDate))","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":41.0,"window_minutes":300,"resets_at":1774359600},"secondary":{"used_percent":33.0,"window_minutes":10080,"resets_at":1774801258}}}}
         """
         try Data(payload.utf8).write(to: rolloutURL)
 
         let paths = BurnBarAppPaths(applicationSupportRoot: appSupport)
         let first = makeService(home: home, appSupportRoot: appSupport)
-        await first.refresh(provider: .codex, dataStore: DataStore())
+        await first.refresh(provider: .codex, dataStore: try! DataStore())
         XCTAssertTrue(FileManager.default.fileExists(atPath: paths.codexRolloutScanCacheURL.path))
 
         try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: rolloutURL.path)
 
         let second = makeService(home: home, appSupportRoot: appSupport)
-        await second.refresh(provider: .codex, dataStore: DataStore())
+        await second.refresh(provider: .codex, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(second.snapshot(for: .codex))
 
         XCTAssertEqual(snapshot.source, .localSession)
@@ -106,20 +104,19 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_codexRefresh_normalizesWeeklyOnlyWindowIntoSecondaryBucket() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let rolloutDirectory = home
-            .appendingPathComponent(".codex", isDirectory: true)
-            .appendingPathComponent("sessions/2026/03/25", isDirectory: true)
+        let eventDate = recentUTCDate(daysAgo: 1, hour: 13)
+        let rolloutDirectory = codexRolloutDirectory(home: home, date: eventDate)
         try FileManager.default.createDirectory(at: rolloutDirectory, withIntermediateDirectories: true)
 
-        let rolloutURL = rolloutDirectory.appendingPathComponent("rollout-2026-03-25T10-00-00.jsonl")
+        let rolloutURL = codexRolloutFileURL(directory: rolloutDirectory, date: eventDate)
         let payload = """
-        {"timestamp":"2026-03-25T10:00:01Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"free","primary":{"used_percent":12.0,"window_minutes":10080,"resets_at":1774801258}}}}
+        {"timestamp":"\(iso8601String(eventDate))","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"free","primary":{"used_percent":12.0,"window_minutes":10080,"resets_at":1774801258}}}}
         """
         try Data(payload.utf8).write(to: rolloutURL)
 
         let service = makeService(home: home, appSupportRoot: appSupport)
 
-        await service.refresh(provider: .codex, dataStore: DataStore())
+        await service.refresh(provider: .codex, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .codex))
 
         XCTAssertEqual(snapshot.buckets.count, 1)
@@ -131,20 +128,19 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_codexRefresh_normalizesReversedSessionAndWeeklyWindows() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let rolloutDirectory = home
-            .appendingPathComponent(".codex", isDirectory: true)
-            .appendingPathComponent("sessions/2026/03/26", isDirectory: true)
+        let eventDate = recentUTCDate(daysAgo: 1, hour: 14)
+        let rolloutDirectory = codexRolloutDirectory(home: home, date: eventDate)
         try FileManager.default.createDirectory(at: rolloutDirectory, withIntermediateDirectories: true)
 
-        let rolloutURL = rolloutDirectory.appendingPathComponent("rollout-2026-03-26T10-00-00.jsonl")
+        let rolloutURL = codexRolloutFileURL(directory: rolloutDirectory, date: eventDate)
         let payload = """
-        {"timestamp":"2026-03-26T10:00:01Z","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":43.0,"window_minutes":10080,"resets_at":1774801258},"secondary":{"used_percent":17.0,"window_minutes":300,"resets_at":1774359600}}}}
+        {"timestamp":"\(iso8601String(eventDate))","type":"event_msg","payload":{"type":"token_count","rate_limits":{"plan_type":"pro","primary":{"used_percent":43.0,"window_minutes":10080,"resets_at":1774801258},"secondary":{"used_percent":17.0,"window_minutes":300,"resets_at":1774359600}}}}
         """
         try Data(payload.utf8).write(to: rolloutURL)
 
         let service = makeService(home: home, appSupportRoot: appSupport)
 
-        await service.refresh(provider: .codex, dataStore: DataStore())
+        await service.refresh(provider: .codex, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .codex))
 
         XCTAssertEqual(snapshot.buckets.count, 2)
@@ -204,7 +200,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             environment: ["ANTHROPIC_API_KEY": "sk-ant-test"]
         )
 
-        await service.refresh(provider: .claudeCode, dataStore: DataStore())
+        await service.refresh(provider: .claudeCode, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .claudeCode))
 
         XCTAssertEqual(snapshot.confidence, .unavailable)
@@ -249,7 +245,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             environment: ["ANTHROPIC_API_KEY": "sk-ant-test"]
         )
 
-        await service.refresh(provider: .claudeCode, dataStore: DataStore())
+        await service.refresh(provider: .claudeCode, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .claudeCode))
 
         XCTAssertEqual(snapshot.source, .localCLI)
@@ -269,7 +265,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             factoryPlanProvider: { .pro }
         )
 
-        let store = DataStore()
+        let store = try! DataStore()
         let start = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date())) ?? Date()
         store.replaceUsages([
             TokenUsage(
@@ -295,32 +291,9 @@ final class ProviderQuotaServiceTests: XCTestCase {
         XCTAssertEqual(bucket.limitValue?.rounded(), 20_000_000)
     }
 
-    func test_factoryRefresh_prefersExactFactoryAPIUsingCodexBarSession() async throws {
+    func test_factoryRefresh_prefersExactFactoryAPIUsingExplicitEnvironmentCredentials() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let codexBarDirectory = home
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("CodexBar", isDirectory: true)
-        try FileManager.default.createDirectory(at: codexBarDirectory, withIntermediateDirectories: true)
-
-        let sessionURL = codexBarDirectory.appendingPathComponent("factory-session.json")
-        let sessionPayload = """
-        {
-          "bearerToken": "factory-bearer",
-          "cookies": [
-            {
-              "Name": "access-token",
-              "Value": "factory-bearer"
-            },
-            {
-              "Name": "session",
-              "Value": "factory-session"
-            }
-          ]
-        }
-        """
-        try Data(sessionPayload.utf8).write(to: sessionURL)
 
         let session = makeStubSession { request in
             let url = try XCTUnwrap(request.url)
@@ -380,15 +353,19 @@ final class ProviderQuotaServiceTests: XCTestCase {
             home: home,
             appSupportRoot: appSupport,
             session: session,
+            environment: [
+                "FACTORY_BEARER_TOKEN": "factory-bearer",
+                "FACTORY_COOKIE_HEADER": "session=factory-session"
+            ],
             factoryPlanProvider: { .pro }
         )
 
-        await service.refresh(provider: .factory, dataStore: DataStore())
+        await service.refresh(provider: .factory, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .factory))
 
         XCTAssertEqual(snapshot.source, .officialAPI)
         XCTAssertEqual(snapshot.confidence, .exact)
-        XCTAssertTrue(snapshot.statusMessage.contains("CodexBar session"))
+        XCTAssertTrue(snapshot.statusMessage.contains("environment override"))
         XCTAssertTrue(snapshot.buckets.contains(where: {
             $0.label == "Standard tokens"
                 && $0.limitValue?.rounded() == 1_000
@@ -414,7 +391,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             factoryPlanProvider: { .pro }
         )
 
-        let store = DataStore()
+        let store = try! DataStore()
         await first.refreshAll(dataStore: store)
         XCTAssertTrue(FileManager.default.fileExists(atPath: paths.providerQuotaSnapshotsURL.path))
 
@@ -462,7 +439,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             miniMaxModeProvider: { .tokenPlan }
         )
 
-        await service.refresh(provider: .minimax, dataStore: DataStore())
+        await service.refresh(provider: .minimax, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .minimax))
 
         XCTAssertEqual(snapshot.source, .officialAPI)
@@ -487,7 +464,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             miniMaxModeProvider: { .tokenPlan }
         )
 
-        await service.refresh(provider: .minimax, dataStore: DataStore())
+        await service.refresh(provider: .minimax, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .minimax))
 
         XCTAssertEqual(snapshot.confidence, .unavailable)
@@ -533,7 +510,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             miniMaxModeProvider: { .tokenPlan }
         )
 
-        await service.refresh(provider: .minimax, dataStore: DataStore())
+        await service.refresh(provider: .minimax, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .minimax))
 
         XCTAssertEqual(snapshot.buckets.count, 2)
@@ -577,7 +554,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             miniMaxModeProvider: { .tokenPlan }
         )
 
-        await service.refresh(provider: .minimax, dataStore: DataStore())
+        await service.refresh(provider: .minimax, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .minimax))
         let bucket = try XCTUnwrap(snapshot.primaryBucket)
 
@@ -649,7 +626,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             session: session
         )
 
-        await service.refresh(provider: .zai, dataStore: DataStore())
+        await service.refresh(provider: .zai, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .zai))
 
         XCTAssertEqual(snapshot.source, .officialAPI)
@@ -694,7 +671,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             session: session
         )
 
-        await service.refresh(provider: .zai, dataStore: DataStore())
+        await service.refresh(provider: .zai, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .zai))
 
         XCTAssertEqual(snapshot.source, .officialAPI)
@@ -723,7 +700,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             session: session
         )
 
-        await service.refresh(provider: .zai, dataStore: DataStore())
+        await service.refresh(provider: .zai, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .zai))
 
         XCTAssertEqual(snapshot.confidence, .unavailable)
@@ -733,10 +710,10 @@ final class ProviderQuotaServiceTests: XCTestCase {
     func test_cursorRefresh_usesBillingCycleQuotaWhenCookieConfigured() async throws {
         let home = try makeTemporaryDirectory()
         let appSupport = try makeTemporaryDirectory()
-        let keyStore = try makeKeyStore(provider: "cursor_cookie", value: "WorkosCursorSessionToken=test")
+        let keyStore = try makeKeyStore(provider: "cursor_cookie", value: "session=test")
         let session = makeStubSession { request in
             let url = try XCTUnwrap(request.url)
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Cookie"), "WorkosCursorSessionToken=test")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Cookie"), "session=test")
 
             switch url.path {
             case "/api/usage-summary":
@@ -791,7 +768,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             session: session
         )
 
-        await service.refresh(provider: .cursor, dataStore: DataStore())
+        await service.refresh(provider: .cursor, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .cursor))
         let primary = try XCTUnwrap(snapshot.primaryBucket)
 
@@ -822,7 +799,7 @@ final class ProviderQuotaServiceTests: XCTestCase {
             session: session
         )
 
-        await service.refresh(provider: .cursor, dataStore: DataStore())
+        await service.refresh(provider: .cursor, dataStore: try! DataStore())
         let snapshot = try XCTUnwrap(service.snapshot(for: .cursor))
 
         XCTAssertEqual(snapshot.source, .unavailable)
@@ -934,6 +911,40 @@ final class ProviderQuotaServiceTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         tempDirectories.append(directory)
         return directory
+    }
+
+    private func recentUTCDate(daysAgo: Int, hour: Int) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let base = calendar.startOfDay(for: Date())
+        let shiftedDay = calendar.date(byAdding: .day, value: -daysAgo, to: base) ?? base
+        return calendar.date(bySettingHour: hour, minute: 0, second: 1, of: shiftedDay) ?? shiftedDay
+    }
+
+    private func codexRolloutDirectory(home: URL, date: Date) -> URL {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy/MM/dd"
+        let path = formatter.string(from: date)
+        return home
+            .appendingPathComponent(".codex", isDirectory: true)
+            .appendingPathComponent("sessions/\(path)", isDirectory: true)
+    }
+
+    private func codexRolloutFileURL(directory: URL, date: Date) -> URL {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd'T'HH-mm-ss"
+        return directory.appendingPathComponent("rollout-\(formatter.string(from: date)).jsonl")
+    }
+
+    private func iso8601String(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.string(from: date)
     }
 }
 

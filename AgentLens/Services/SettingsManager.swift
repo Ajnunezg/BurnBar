@@ -28,10 +28,70 @@ enum AppearanceMode: String, CaseIterable, Codable {
     }
 }
 
+private enum SettingsSecretDefaultsKey {
+    static let controllerTelegramBotToken = "controllerTelegramBotToken"
+    static let openClawBearerToken = "openClawBearerToken"
+    static let hermesBearerToken = "hermesBearerToken"
+}
+
+struct SettingsSecretPersistence {
+    let defaults: UserDefaults
+    let keychain: KeychainStore
+
+    func load(account: String, legacyDefaultsKey: String) -> String {
+        if let stored = try? keychain.string(for: account) {
+            if defaults.object(forKey: legacyDefaultsKey) != nil {
+                defaults.removeObject(forKey: legacyDefaultsKey)
+            }
+            return stored
+        }
+
+        guard let legacy = defaults.string(forKey: legacyDefaultsKey),
+              !legacy.isEmpty else {
+            if defaults.object(forKey: legacyDefaultsKey) != nil {
+                defaults.removeObject(forKey: legacyDefaultsKey)
+            }
+            return ""
+        }
+
+        do {
+            try keychain.set(legacy, for: account)
+            defaults.removeObject(forKey: legacyDefaultsKey)
+        } catch {
+            defaults.removeObject(forKey: legacyDefaultsKey)
+        }
+
+        return legacy
+    }
+
+    func persist(_ value: String, account: String, legacyDefaultsKey: String) {
+        do {
+            if value.isEmpty {
+                try keychain.delete(account: account)
+            } else {
+                try keychain.set(value, for: account)
+            }
+            defaults.removeObject(forKey: legacyDefaultsKey)
+        } catch {
+            defaults.removeObject(forKey: legacyDefaultsKey)
+        }
+    }
+}
+
 @Observable
 @MainActor
 final class SettingsManager {
     static let shared = SettingsManager()
+
+    private static let controllerRuntimeSecrets = KeychainStore(
+        service: BurnBarIdentity.controllerRuntimeKeychainService,
+        legacyServices: []
+    )
+
+    private static let chatGatewaySecrets = KeychainStore(
+        service: BurnBarIdentity.chatGatewayKeychainService,
+        legacyServices: []
+    )
     
     // MARK: - Settings
     
@@ -360,6 +420,10 @@ final class SettingsManager {
         didSet { save() }
     }
 
+    private let defaults: UserDefaults
+    private let controllerSecretPersistence: SettingsSecretPersistence
+    private let chatGatewaySecretPersistence: SettingsSecretPersistence
+
     // MARK: - Computed
     
     var refreshIntervalMinutes: Double {
@@ -412,11 +476,23 @@ final class SettingsManager {
     
     // MARK: - Initialization
     
-    private init() {
-        BurnBarMigration.migrateUserDefaults()
+    init(
+        defaults: UserDefaults = .standard,
+        controllerRuntimeSecrets: KeychainStore = SettingsManager.controllerRuntimeSecrets,
+        chatGatewaySecrets: KeychainStore = SettingsManager.chatGatewaySecrets
+    ) {
+        self.defaults = defaults
+        self.controllerSecretPersistence = SettingsSecretPersistence(
+            defaults: defaults,
+            keychain: controllerRuntimeSecrets
+        )
+        self.chatGatewaySecretPersistence = SettingsSecretPersistence(
+            defaults: defaults,
+            keychain: chatGatewaySecrets
+        )
+        BurnBarMigration.migrateUserDefaults(defaults: defaults)
 
         // Load from UserDefaults
-        let defaults = UserDefaults.standard
         
         var loadedLogPaths: [AgentProvider: String] = [:]
         for provider in AgentProvider.allCases {
@@ -477,7 +553,10 @@ final class SettingsManager {
             self.controllerLocalNotificationsEnabled = true
         }
         self.controllerTelegramEnabled = defaults.bool(forKey: "controllerTelegramEnabled")
-        self.controllerTelegramBotToken = defaults.string(forKey: "controllerTelegramBotToken") ?? ""
+        self.controllerTelegramBotToken = controllerSecretPersistence.load(
+            account: BurnBarIdentity.controllerTelegramBotTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.controllerTelegramBotToken
+        )
         self.controllerTelegramChatID = defaults.string(forKey: "controllerTelegramChatID") ?? ""
         if defaults.object(forKey: "controllerCalendarIntegrationEnabled") != nil {
             self.controllerCalendarIntegrationEnabled = defaults.bool(forKey: "controllerCalendarIntegrationEnabled")
@@ -534,8 +613,14 @@ final class SettingsManager {
         }
 
         self.openClawGatewayBaseURL = defaults.string(forKey: "openClawGatewayBaseURL") ?? "http://127.0.0.1:18789"
-        self.openClawBearerToken = defaults.string(forKey: "openClawBearerToken") ?? ""
-        self.hermesBearerToken = defaults.string(forKey: "hermesBearerToken") ?? ""
+        self.openClawBearerToken = chatGatewaySecretPersistence.load(
+            account: BurnBarIdentity.openClawBearerTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.openClawBearerToken
+        )
+        self.hermesBearerToken = chatGatewaySecretPersistence.load(
+            account: BurnBarIdentity.hermesBearerTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.hermesBearerToken
+        )
         self.hermesChatModelOverride = defaults.string(forKey: "hermesChatModelOverride") ?? ""
         self.chatBackendOnboardingCompleted = defaults.bool(forKey: "chatBackendOnboardingCompleted")
         self.selectedOnboardingProvidersCSV = defaults.string(forKey: "selectedOnboardingProvidersCSV") ?? ""
@@ -665,7 +750,7 @@ final class SettingsManager {
     // MARK: - Persistence
     
     private func save() {
-        let defaults = UserDefaults.standard
+        let defaults = self.defaults
         defaults.set(true, forKey: "hasLaunchedBefore")
         
         for (provider, path) in logPaths {
@@ -691,7 +776,6 @@ final class SettingsManager {
         defaults.set(controllerRuntimeRefreshMinutes, forKey: "controllerRuntimeRefreshMinutes")
         defaults.set(controllerLocalNotificationsEnabled, forKey: "controllerLocalNotificationsEnabled")
         defaults.set(controllerTelegramEnabled, forKey: "controllerTelegramEnabled")
-        defaults.set(controllerTelegramBotToken, forKey: "controllerTelegramBotToken")
         defaults.set(controllerTelegramChatID, forKey: "controllerTelegramChatID")
         defaults.set(controllerCalendarIntegrationEnabled, forKey: "controllerCalendarIntegrationEnabled")
         defaults.set(controllerCalendarDefaultMinutes, forKey: "controllerCalendarDefaultMinutes")
@@ -712,13 +796,27 @@ final class SettingsManager {
         defaults.set(cliAssistantAllowed, forKey: "cliAssistantAllowed")
         defaults.set(cliAssistantConsentShown, forKey: "cliAssistantConsentShown")
         defaults.set(openClawGatewayBaseURL, forKey: "openClawGatewayBaseURL")
-        defaults.set(openClawBearerToken, forKey: "openClawBearerToken")
-        defaults.set(hermesBearerToken, forKey: "hermesBearerToken")
         defaults.set(hermesChatModelOverride, forKey: "hermesChatModelOverride")
         defaults.set(chatBackendOnboardingCompleted, forKey: "chatBackendOnboardingCompleted")
         defaults.set(selectedOnboardingProvidersCSV, forKey: "selectedOnboardingProvidersCSV")
         defaults.set(enabledChatBackendIDsCSV, forKey: "enabledChatBackendIDsCSV")
         defaults.set(usageDisplayMode.rawValue, forKey: "usageDisplayMode")
+
+        controllerSecretPersistence.persist(
+            controllerTelegramBotToken,
+            account: BurnBarIdentity.controllerTelegramBotTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.controllerTelegramBotToken
+        )
+        chatGatewaySecretPersistence.persist(
+            openClawBearerToken,
+            account: BurnBarIdentity.openClawBearerTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.openClawBearerToken
+        )
+        chatGatewaySecretPersistence.persist(
+            hermesBearerToken,
+            account: BurnBarIdentity.hermesBearerTokenAccount,
+            legacyDefaultsKey: SettingsSecretDefaultsKey.hermesBearerToken
+        )
 
         defaults.set(autoSessionSummariesEnabled, forKey: "autoSessionSummariesEnabled")
         defaults.set(summaryProviderOrderCSV, forKey: "summaryProviderOrderCSV")

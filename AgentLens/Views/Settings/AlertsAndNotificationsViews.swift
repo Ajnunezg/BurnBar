@@ -137,7 +137,7 @@ struct NotificationsSettingsView: View {
                         if settingsManager.controllerTelegramEnabled {
                             Divider().background(DesignSystem.Colors.border)
                             VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-                                TextField("Telegram bot token", text: $settingsManager.controllerTelegramBotToken)
+                                SecureField("Telegram bot token", text: $settingsManager.controllerTelegramBotToken)
                                     .textFieldStyle(.roundedBorder)
                                 TextField("Telegram chat ID", text: $settingsManager.controllerTelegramChatID)
                                     .textFieldStyle(.roundedBorder)

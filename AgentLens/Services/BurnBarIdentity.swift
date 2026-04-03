@@ -17,6 +17,9 @@ enum BurnBarIdentity {
     static let legacyCursorConnectorKeychainServices = ["com.agentlens.cursor-connector"]
     static let controllerRuntimeKeychainService = "com.burnbar.controller-runtime"
     static let controllerTelegramBotTokenAccount = "provider.controller.telegram.apiKey"
+    static let chatGatewayKeychainService = "com.burnbar.chat-gateway-secrets"
+    static let openClawBearerTokenAccount = "settings.chat.openclaw.bearerToken"
+    static let hermesBearerTokenAccount = "settings.chat.hermes.bearerToken"
 
     static let dailyDigestNotificationIdentifier = "burnbar.daily-digest"
     static let legacyDailyDigestNotificationIdentifiers = ["agentlens.daily-digest"]
@@ -146,9 +149,14 @@ struct BurnBarFilesystemMigration {
         }
 
         if !directoryExists(at: paths.supportDirectory) {
-            try fileManager.createDirectory(at: paths.supportDirectory, withIntermediateDirectories: true)
+            try fileManager.createDirectory(
+                at: paths.supportDirectory,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
         }
 
+        try enforceSupportDirectoryPermissions()
         try migrateDatabaseIfNeeded()
         return paths.supportDirectory
     }
@@ -182,11 +190,21 @@ struct BurnBarFilesystemMigration {
 
         for candidate in paths.legacyDatabaseCandidates where fileManager.fileExists(atPath: candidate.path) {
             if !directoryExists(at: paths.supportDirectory) {
-                try fileManager.createDirectory(at: paths.supportDirectory, withIntermediateDirectories: true)
+                try fileManager.createDirectory(
+                    at: paths.supportDirectory,
+                    withIntermediateDirectories: true,
+                    attributes: [.posixPermissions: 0o700]
+                )
             }
+            try enforceSupportDirectoryPermissions()
             try fileManager.moveItem(at: candidate, to: paths.databaseURL)
             break
         }
+    }
+
+    private func enforceSupportDirectoryPermissions() throws {
+        guard fileManager.fileExists(atPath: paths.supportDirectory.path) else { return }
+        try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: paths.supportDirectory.path)
     }
 
     private func directoryExists(at url: URL) -> Bool {

@@ -126,30 +126,7 @@ struct FactoryQuotaAdapter: ProviderQuotaAdapter {
                 sourceLabel: "environment override"
             )
         }
-
-        let sessionURL = context.homeDirectoryURL
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("CodexBar", isDirectory: true)
-            .appendingPathComponent("factory-session.json")
-
-        guard let session = try? context.snapshotStore.readJSONObject(from: sessionURL) else {
-            return nil
-        }
-
-        let cookieHeader = factoryCookieHeader(fromSessionJSON: session)
-        let bearerToken = quotaNonEmpty(session["bearerToken"] as? String)
-            ?? factoryBearerToken(fromCookieHeader: cookieHeader)
-
-        guard cookieHeader != nil || bearerToken != nil else {
-            return nil
-        }
-
-        return FactorySessionCredentialEnvelope(
-            cookieHeader: cookieHeader,
-            bearerToken: bearerToken,
-            sourceLabel: "CodexBar session"
-        )
+        return nil
     }
 
     private func fetchFactoryAuth(
@@ -300,23 +277,6 @@ struct FactoryQuotaAdapter: ProviderQuotaAdapter {
             unit: .tokens,
             isEstimated: false
         )
-    }
-
-    private func factoryCookieHeader(fromSessionJSON session: [String: Any]) -> String? {
-        guard let cookies = session["cookies"] as? [[String: Any]] else {
-            return nil
-        }
-        let pairs = cookies.compactMap { cookie -> String? in
-            guard
-                let name = cookie["Name"] as? String ?? cookie["name"] as? String,
-                let value = cookie["Value"] as? String ?? cookie["value"] as? String,
-                !name.isEmpty
-            else {
-                return nil
-            }
-            return "\(name)=\(value)"
-        }
-        return quotaNonEmpty(pairs.joined(separator: "; "))
     }
 
     private func factoryBearerToken(fromCookieHeader header: String?) -> String? {

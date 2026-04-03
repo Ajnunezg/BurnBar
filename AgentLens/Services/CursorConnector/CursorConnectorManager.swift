@@ -156,6 +156,9 @@ final class CursorConnectorManager {
             saveConfig()
             beginPollingLogsIfNeeded()
         } catch {
+            stopTunnel()
+            stopProxy()
+            try? restoreCursorSettings()
             config.statusMessage = "Connection failed"
             saveConfig()
             lastError = error.localizedDescription
@@ -267,14 +270,20 @@ final class CursorConnectorManager {
     }
 
     private func ensureSupportDirectory() throws {
-        try FileManager.default.createDirectory(at: supportDirectory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: supportDirectory,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: supportDirectory.path)
     }
 
     private func writeProxyConfig() throws {
         struct RouteEntry: Codable {
             let provider: String
             let baseURL: String
-            let apiKey: String
+            let keychainService: String
+            let keychainAccount: String
         }
         let routes = Dictionary(uniqueKeysWithValues: config.enabledProviderConfigs.flatMap { providerConfig in
             providerConfig.exposedModels.map { model in
@@ -283,7 +292,8 @@ final class CursorConnectorManager {
                     RouteEntry(
                         provider: providerConfig.id.rawValue,
                         baseURL: providerConfig.baseURL,
-                        apiKey: apiKey(for: providerConfig.id)
+                        keychainService: BurnBarIdentity.cursorConnectorKeychainService,
+                        keychainAccount: keychainAccount(for: providerConfig.id)
                     )
                 )
             }
@@ -299,7 +309,8 @@ final class CursorConnectorManager {
             "routes": routes.mapValues { [
                 "provider": $0.provider,
                 "base_url": $0.baseURL,
-                "api_key": $0.apiKey
+                "keychain_service": $0.keychainService,
+                "keychain_account": $0.keychainAccount
             ] },
             "usage_log": usageLogURL.path
         ]
@@ -331,6 +342,7 @@ final class CursorConnectorManager {
         proxyProcess = nil
         sessionToken = ""
         health.routerListening = false
+        try? FileManager.default.removeItem(at: proxyConfigURL)
     }
 
     private func startTunnel() async throws {
@@ -569,9 +581,15 @@ final class CursorConnectorManager {
     }
 
     private func ensureLogFile(at url: URL) throws -> URL {
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
         if !FileManager.default.fileExists(atPath: url.path) {
             FileManager.default.createFile(atPath: url.path, contents: Data())
         }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         return url
     }
 
@@ -911,7 +929,7 @@ final class CursorConnectorManager {
     static func proxyScript() -> String {
         """
         #!/usr/bin/env python3
-        import json, ssl, sys, uuid, datetime
+        import json, ssl, subprocess, sys, uuid, datetime
         from http import HTTPStatus
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
         from urllib.error import HTTPError, URLError
@@ -922,6 +940,34 @@ final class CursorConnectorManager {
         def load_config():
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
                 return json.load(f)
+
+        KEYCHAIN_CACHE = {}
+
+        def resolve_route_api_key(route):
+            direct = route.get("api_key")
+            if isinstance(direct, str) and direct.strip():
+                return direct.strip()
+            service = route.get("keychain_service")
+            account = route.get("keychain_account")
+            if not isinstance(service, str) or not isinstance(account, str):
+                return None
+            cache_key = (service, account)
+            if cache_key in KEYCHAIN_CACHE:
+                return KEYCHAIN_CACHE[cache_key]
+            try:
+                result = subprocess.run(
+                    ["/usr/bin/security", "find-generic-password", "-w", "-s", service, "-a", account],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                return None
+            secret = result.stdout.strip()
+            if not secret:
+                return None
+            KEYCHAIN_CACHE[cache_key] = secret
+            return secret
 
         def extract_text_parts(content):
             if content is None:
@@ -1268,6 +1314,10 @@ final class CursorConnectorManager {
                 if not route:
                     self.send_json(HTTPStatus.BAD_REQUEST, {"error": {"message": f"unknown model {model}"}})
                     return
+                api_key = resolve_route_api_key(route)
+                if not api_key:
+                    self.send_json(HTTPStatus.BAD_GATEWAY, {"error": {"message": f"missing keychain credential for {route['provider']}"}})
+                    return
                 sys.stderr.write(f"[cursor_connector] route path={self.path} model={model} upstream={route['base_url']}\\n")
                 outbound = payload if is_chat else responses_to_chat_payload(payload)
                 outbound_body = json.dumps(outbound).encode("utf-8")
@@ -1275,7 +1325,7 @@ final class CursorConnectorManager {
                     route["base_url"].rstrip("/") + "/chat/completions",
                     data=outbound_body,
                     method="POST",
-                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {route['api_key']}"}
+                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
                 )
                 ctx = ssl.create_default_context()
                 try:

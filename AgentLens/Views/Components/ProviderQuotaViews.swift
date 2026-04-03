@@ -1635,7 +1635,7 @@ struct QuotaCommandRow: View {
                 .font(DesignSystem.Typography.tiny)
                 .foregroundStyle(DesignSystem.Colors.textMuted)
 
-            SecureField("WorkosCursorSessionToken=…", text: $localCursorCookie)
+            SecureField("session=…; access-token=…", text: $localCursorCookie)
                 .font(DesignSystem.Typography.monoSmall)
                 .textFieldStyle(.plain)
                 .padding(DesignSystem.Spacing.sm)
@@ -1649,6 +1649,10 @@ struct QuotaCommandRow: View {
                 )
 
             Text("Paste a `Cookie:` header from a signed-in `cursor.com` request to fetch billing-cycle quota.")
+                .font(DesignSystem.Typography.tiny)
+                .foregroundStyle(DesignSystem.Colors.textMuted)
+
+            Text("BurnBar stores this header in the local macOS Keychain and only uses it for explicit Cursor quota requests.")
                 .font(DesignSystem.Typography.tiny)
                 .foregroundStyle(DesignSystem.Colors.textMuted)
 

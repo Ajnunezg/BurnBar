@@ -1189,6 +1189,7 @@ public actor BurnBarMissionControlStore {
         } else {
             try data.write(to: eventsFileURL, options: .atomic)
         }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: eventsFileURL.path)
         try apply(event)
         if cachedEvents == nil {
             cachedEvents = [event]
@@ -1251,6 +1252,7 @@ public actor BurnBarMissionControlStore {
         guard let projection else { return }
         let data = try encoder.encode(projection)
         try data.write(to: projectionFileURL, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: projectionFileURL.path)
     }
 
     private func decodePayload<Value: Decodable>(_ type: Value.Type, from event: BurnBarControllerEvent) throws -> Value {

@@ -2,6 +2,14 @@ import Foundation
 
 // MARK: - Conversation Indexer
 
+struct ConversationIndexingReport: Equatable {
+    var changedRecordCount: Int = 0
+    var skippedRecordCount: Int = 0
+    var enqueuedProjectionJobCount: Int = 0
+
+    static let empty = ConversationIndexingReport()
+}
+
 @MainActor
 final class ConversationIndexer {
     static let shared = ConversationIndexer()
@@ -15,23 +23,30 @@ final class ConversationIndexer {
     /// file modified timestamps are equivalent (with millisecond tolerance).
     /// Tolerance is needed because persisted SQLite datetimes are millisecond-precision,
     /// while filesystem mtimes can include micro/nanoseconds.
-    func index(_ records: [ConversationRecord], in dataStore: DataStore) async throws {
+    func index(_ records: [ConversationRecord], in dataStore: DataStore) async throws -> ConversationIndexingReport {
+        var report = ConversationIndexingReport.empty
+
         for (index, record) in records.enumerated() {
             let existingConversation = try dataStore.fetchConversation(id: record.id)
 
             if let existingConversation,
                shouldSkipUpsert(existing: existingConversation, incoming: record) {
+                report.skippedRecordCount += 1
                 continue
             }
 
             try dataStore.upsertConversation(record)
             let jobType: ProjectionJobType = existingConversation == nil ? .project : .reproject
             try dataStore.enqueueConversationProjectionJob(conversationID: record.id, jobType: jobType)
+            report.changedRecordCount += 1
+            report.enqueuedProjectionJobCount += 1
 
             if index > 0, index.isMultiple(of: Self.writeYieldInterval) {
                 await Task.yield()
             }
         }
+
+        return report
     }
 
     private func shouldSkipUpsert(existing: ConversationRecord, incoming: ConversationRecord) -> Bool {

@@ -78,6 +78,15 @@ final class UsageAggregator {
         /// Avoid rebuilding workflow insights on every tiny pass.
         static let insightRefreshCooldown: TimeInterval = 10
     }
+    private enum AutoSummaryPolicy {
+        /// Keep automatic summaries lightweight so background refreshes do not
+        /// churn through entire historical backlogs or oversized prompts.
+        static let maxPromptChars = 18_000
+        static let maxOutputTokens = 220
+        static let maxBatchSize = 8
+        static let maxFirstLoadBatchSize = 16
+        static let maxConcurrency = 2
+    }
 
     private let dataStore: DataStore
     private let parsers: [AgentProvider: any LogParser]
@@ -172,7 +181,9 @@ final class UsageAggregator {
         parserImportError = nil
         parserHealth = [:]
 
+        let refreshStartedAt = Date()
         var allUsages: [TokenUsage] = []
+        var indexedConversationChanges = 0
 
         for (provider, parser) in parsers {
             do {
@@ -182,7 +193,8 @@ final class UsageAggregator {
                 allUsages.append(contentsOf: usages)
                 if settingsManager.conversationIndexingEnabled {
                     do {
-                        try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                        let indexingReport = try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                        indexedConversationChanges += indexingReport.changedRecordCount
                     } catch {
                         let message = "Conversation indexing failed for \(provider.displayName): \(error.localizedDescription)"
                         providerHealth = .degraded(sessionCount: usages.count, error: message)
@@ -219,9 +231,14 @@ final class UsageAggregator {
         // Unblock scan UI immediately after local parsing/persistence completes.
         isRefreshing = false
 
+        let pendingProjectionJobs = (try? dataStore.countProjectionJobs(statuses: [.queued, .leased, .running])) ?? 0
         launchArtifactDiscoverySweep()
-        launchAutoSummarySweep()
-        launchProjectionSweep()
+        if indexedConversationChanges > 0 {
+            launchAutoSummarySweep(indexedAfter: refreshStartedAt)
+        }
+        if indexedConversationChanges > 0 || pendingProjectionJobs > 0 {
+            launchProjectionSweep()
+        }
 
         // Fetch from provider billing APIs (complementary to log parsing)
         var apiSupplementalUsages: [TokenUsage] = []
@@ -387,6 +404,8 @@ final class UsageAggregator {
 
     func refresh(provider: AgentProvider) async {
         guard let parser = parsers[provider] else { return }
+        let refreshStartedAt = Date()
+        var indexedConversationChanges = 0
 
         do {
             let result = try await parser.parse()
@@ -394,7 +413,8 @@ final class UsageAggregator {
             try dataStore.insert(result.usages)
             if settingsManager.conversationIndexingEnabled {
                 do {
-                    try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                    let indexingReport = try await ConversationIndexer.shared.index(result.conversations, in: dataStore)
+                    indexedConversationChanges += indexingReport.changedRecordCount
                 } catch {
                     let message = "Conversation indexing failed for \(provider.displayName): \(error.localizedDescription)"
                     providerHealth = .degraded(sessionCount: result.usages.count, error: message)
@@ -414,9 +434,14 @@ final class UsageAggregator {
             } catch {
                 parserImportError = "Failed to persist parser/import health: \(error.localizedDescription)"
             }
+            let pendingProjectionJobs = (try? dataStore.countProjectionJobs(statuses: [.queued, .leased, .running])) ?? 0
             launchArtifactDiscoverySweep()
-            launchAutoSummarySweep()
-            launchProjectionSweep()
+            if indexedConversationChanges > 0 {
+                launchAutoSummarySweep(indexedAfter: refreshStartedAt)
+            }
+            if indexedConversationChanges > 0 || pendingProjectionJobs > 0 {
+                launchProjectionSweep()
+            }
             if ProviderQuotaService.supportedProviders.contains(provider) {
                 await quotaService.refresh(provider: provider, dataStore: dataStore)
             }
@@ -520,6 +545,8 @@ private extension UsageAggregator {
     }
 
     func launchArtifactDiscoverySweep() {
+        guard settingsManager.artifactDiscoveryEnabled else { return }
+
         Task(priority: .utility) { [weak self] in
             await self?.runArtifactDiscoverySweep()
         }
@@ -597,12 +624,12 @@ private extension UsageAggregator {
         }
     }
 
-    func launchAutoSummarySweep() {
+    func launchAutoSummarySweep(indexedAfter: Date) {
         guard settingsManager.conversationIndexingEnabled,
               settingsManager.autoSessionSummariesEnabled else { return }
 
         Task(priority: .utility) { [weak self] in
-            await self?.runAutoSummarySweep()
+            await self?.runAutoSummarySweep(indexedAfter: indexedAfter)
         }
     }
 
@@ -636,7 +663,7 @@ private extension UsageAggregator {
             ? conversation.sessionId : conversation.inferredTaskTitle
     }
 
-    func runAutoSummarySweep() async {
+    func runAutoSummarySweep(indexedAfter: Date) async {
         guard settingsManager.conversationIndexingEnabled,
               settingsManager.autoSessionSummariesEnabled,
               !isSummarizing else { return }
@@ -654,9 +681,7 @@ private extension UsageAggregator {
         }
 
         let isInitialSweep = !hasCompletedInitialSummarySweep
-        let batchLimit = isInitialSweep
-            ? max(settingsManager.summaryFirstLoadBatchSize, 1)
-            : max(settingsManager.summaryBatchSize, 1)
+        let batchLimit = effectiveAutoSummaryBatchLimit(isInitialSweep: isInitialSweep)
 
         // Compute optional wall-clock deadline
         let limitMinutes = settingsManager.summaryTimeLimitMinutes
@@ -680,7 +705,8 @@ private extension UsageAggregator {
         let allPending = (try? dataStore.fetchConversationsNeedingSummary(
             limit: 10_000,
             now: Date(),
-            retryCooldown: Self.summaryFailureRetryCooldown
+            retryCooldown: Self.summaryFailureRetryCooldown,
+            indexedAfter: indexedAfter
         )) ?? []
         summaryProgressTotal = allPending.count
         summaryQueue = allPending.map {
@@ -691,7 +717,7 @@ private extension UsageAggregator {
         }
 
         var failedIDs = Set<String>()
-        var loopsRemaining = isInitialSweep ? 12 : 1
+        var loopsRemaining = 1
 
         while loopsRemaining > 0, !Task.isCancelled {
             // Respect time limit
@@ -700,7 +726,8 @@ private extension UsageAggregator {
             guard var candidates = try? dataStore.fetchConversationsNeedingSummary(
                 limit: batchLimit,
                 now: Date(),
-                retryCooldown: Self.summaryFailureRetryCooldown
+                retryCooldown: Self.summaryFailureRetryCooldown,
+                indexedAfter: indexedAfter
             ),
                   !candidates.isEmpty else { break }
             candidates.removeAll { failedIDs.contains($0.id) }
@@ -709,7 +736,7 @@ private extension UsageAggregator {
             // Unified parallel pool — local and cloud compete for the same slots.
             // summarizeConversation already falls through the full provider list, so
             // sessions that miss local capacity naturally spill to cloud and vice versa.
-            let maxConcurrent = max(settingsManager.summaryMaxConcurrency, 1)
+            let maxConcurrent = effectiveAutoSummaryMaxConcurrency
 
             await withTaskGroup(of: (String, AutoSummaryResult?).self) { group in
                 var inFlight = 0
@@ -746,7 +773,7 @@ private extension UsageAggregator {
             }
 
             loopsRemaining -= 1
-            if !isInitialSweep || candidates.count < batchLimit { break }
+            if candidates.count < batchLimit { break }
         }
 
         hasCompletedInitialSummarySweep = true
@@ -790,10 +817,32 @@ private extension UsageAggregator {
         return Date().timeIntervalSince(lastProjectionInsightRefreshAt) >= ProjectionWorkerPolicy.insightRefreshCooldown
     }
 
+    private func effectiveAutoSummaryBatchLimit(isInitialSweep: Bool) -> Int {
+        let configured = isInitialSweep
+            ? max(settingsManager.summaryFirstLoadBatchSize, 1)
+            : max(settingsManager.summaryBatchSize, 1)
+        let ceiling = isInitialSweep
+            ? AutoSummaryPolicy.maxFirstLoadBatchSize
+            : AutoSummaryPolicy.maxBatchSize
+        return min(configured, ceiling)
+    }
+
+    private var effectiveAutoSummaryMaxConcurrency: Int {
+        min(max(settingsManager.summaryMaxConcurrency, 1), AutoSummaryPolicy.maxConcurrency)
+    }
+
+    private var effectiveAutoSummaryPromptChars: Int {
+        min(max(settingsManager.summaryMaxPromptChars, 4_000), AutoSummaryPolicy.maxPromptChars)
+    }
+
+    private var effectiveAutoSummaryOutputTokens: Int {
+        min(max(settingsManager.summaryMaxOutputTokens, 120), AutoSummaryPolicy.maxOutputTokens)
+    }
+
     func summarizeConversation(_ conversation: ConversationRecord) async -> AutoSummaryResult? {
         let prompt = ContextBuilder.summarizeSessionJSONPrompt(
             fullText: conversation.fullText,
-            maxChars: settingsManager.summaryMaxPromptChars
+            maxChars: effectiveAutoSummaryPromptChars
         )
 
         for provider in settingsManager.summaryProviderOrder {
@@ -897,7 +946,7 @@ private extension UsageAggregator {
         openRouterHeaders: Bool = false
     ) async -> AutoSummaryResult? {
         let requestTimeout = settingsManager.summaryRequestTimeoutSeconds
-        let outputTokens = settingsManager.summaryMaxOutputTokens
+        let outputTokens = effectiveAutoSummaryOutputTokens
         let estimatedInputTokens = max(prompt.count / 4, 1)
         let estimatedOutputTokens = max(outputTokens / 2, 100)
         let estimatedCost = estimateCostUSD(
@@ -970,7 +1019,7 @@ private extension UsageAggregator {
             "stream": false,
             "options": [
                 "temperature": 0.1,
-                "num_predict": settingsManager.summaryMaxOutputTokens
+                "num_predict": effectiveAutoSummaryOutputTokens
             ]
         ]
 
@@ -1972,8 +2021,12 @@ final class CodexParser: LogParser, @unchecked Sendable {
                 let totalCacheRead = totalUsage["cached_input_tokens"] as? Int
                     ?? totalUsage["cache_read_input_tokens"] as? Int
                     ?? 0
+                let totalOutput = totalUsage["output_tokens"] as? Int ?? 0
+                // Skip zeroed-out bogus events where Codex reports total_tokens equal
+                // to the model context window but zero breakdown fields.
+                guard totalInput > 0 || totalOutput > 0 else { continue }
                 inputTokens = max(totalInput - totalCacheRead, 0)
-                outputTokens = totalUsage["output_tokens"] as? Int ?? 0
+                outputTokens = totalOutput
                 cacheReadTokens = totalCacheRead
                 found = true
                 continue

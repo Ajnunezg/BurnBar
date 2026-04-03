@@ -27,9 +27,21 @@ updates:
           - "minor"
           - "patch"
 
-  # Enable version updates for Swift packages (via Xcode/ SPM)
+  # SwiftPM manifests live under each package (no Package.swift at repo root)
   - package-ecosystem: "swift"
-    directory: "/"
+    directory: "/BurnBarCore"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  - package-ecosystem: "swift"
+    directory: "/BurnBarDaemon"
     schedule:
       interval: "weekly"
       day: "monday"

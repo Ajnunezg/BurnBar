@@ -42,17 +42,18 @@ struct InsightBriefSnapshot {
     @MainActor
     static func build(
         from dataStore: DataStore,
-        intelligenceService: SearchService? = nil,
-        rollupService: WorkflowInsightRollupService? = nil
+        intelligenceService _: SearchService? = nil,
+        rollupService: WorkflowInsightRollupService? = nil,
+        refreshRollups: Bool = true
     ) -> InsightBriefSnapshot {
         let calendar = Calendar.current
         let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         let weekUsages = dataStore.usages.filter { $0.startTime >= weekAgo }
-        let retrieval = intelligenceService ?? SearchService.makeConversationSearchService(dataStore: dataStore)
         let rollups = rollupService ?? WorkflowInsightRollupService(dataStore: dataStore)
-        let rollupSnapshot = rollups.snapshot(refreshIfStale: true)
-        let conversations = retrieval.recentConversations(limit: 200)
-        let latestConv = retrieval.latestConversation(in: conversations)
+        let rollupSnapshot = rollups.snapshot(refreshIfStale: refreshRollups)
+        // Chat bootstrap only needs lightweight conversation metadata; avoid hydrating transcript bodies.
+        let conversations = (try? dataStore.fetchSessionLogSummaries(limit: 200)) ?? []
+        let latestConv = latestConversation(in: conversations)
 
         let whereLeftOff = latestConv?.lastAssistantMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         let whereProject = latestConv?.projectName
@@ -89,6 +90,14 @@ struct InsightBriefSnapshot {
             rollupFreshness: rollupSnapshot.freshness,
             rollupStatusMessage: rollupSnapshot.statusMessage
         )
+    }
+
+    private static func latestConversation(in conversations: [ConversationRecord]) -> ConversationRecord? {
+        conversations.max(by: { a, b in
+            let ad = a.endTime ?? a.startTime ?? .distantPast
+            let bd = b.endTime ?? b.startTime ?? .distantPast
+            return ad < bd
+        })
     }
 }
 

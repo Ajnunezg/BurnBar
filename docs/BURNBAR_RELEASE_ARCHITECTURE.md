@@ -122,7 +122,7 @@ Current intentional limitation:
 
 ## Memory-Sync Decision
 
-BurnBar does not adopt BurnBarDist's cloud-canonical memory-sync architecture in this release.
+BurnBar does not adopt a cloud-canonical memory-sync architecture in this release.
 
 Intentional divergence:
 

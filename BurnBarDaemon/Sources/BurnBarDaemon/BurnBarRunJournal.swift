@@ -32,6 +32,7 @@ public actor BurnBarRunJournal {
         } else {
             try encodedEvent.write(to: fileURL, options: .atomic)
         }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
 
         if cachedEvents != nil {
             cachedEvents?.append(event)
@@ -63,6 +64,7 @@ public actor BurnBarRunJournal {
         let checkpointURL = checkpointFileURL(for: checkpoint.runID)
         let data = try encoder.encode(checkpoint)
         try data.write(to: checkpointURL, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: checkpointURL.path)
 
         logger.debug(
             "run_journal_checkpoint_written",

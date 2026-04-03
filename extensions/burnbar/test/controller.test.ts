@@ -175,7 +175,7 @@ const localWorkspaceCapabilities = {
   workspaceHost: "ui" as const,
   availableTools: ["read_file", "search_workspace", "apply_patch", "run_terminal"],
   gatedTools: [],
-  explanation: "Workspace tools are running in the local extension host. All PR6 workspace tools are available."
+  explanation: "Workspace tools are running in the local extension host. All workspace tools are available."
 };
 
 describe("BurnBarExtensionController", () => {

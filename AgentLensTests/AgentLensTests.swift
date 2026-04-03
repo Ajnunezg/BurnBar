@@ -5010,3 +5010,225 @@ final class BurnBarChatEvidenceFormattingTests: XCTestCase {
         XCTAssertTrue(snapshot.controllerRuntimeCached)
     }
 }
+
+@MainActor
+final class SettingsManagerSecretStorageTests: XCTestCase {
+    func test_initMigratesLegacyDefaultsTokensIntoKeychain() throws {
+        let suiteName = "com.burnbar.tests.settings.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults suite")
+        }
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        defaults.set("legacy-openclaw-token", forKey: "openClawBearerToken")
+        defaults.set("legacy-hermes-token", forKey: "hermesBearerToken")
+        defaults.set("legacy-telegram-token", forKey: "controllerTelegramBotToken")
+
+        let controllerSecrets = KeychainStore(
+            service: "tests.controller.\(UUID().uuidString)",
+            legacyServices: [],
+            backend: SettingsManagerTestKeychainBackend()
+        )
+        let gatewaySecrets = KeychainStore(
+            service: "tests.gateway.\(UUID().uuidString)",
+            legacyServices: [],
+            backend: SettingsManagerTestKeychainBackend()
+        )
+
+        let settings = SettingsManager(
+            defaults: defaults,
+            controllerRuntimeSecrets: controllerSecrets,
+            chatGatewaySecrets: gatewaySecrets
+        )
+
+        XCTAssertEqual(settings.openClawBearerToken, "legacy-openclaw-token")
+        XCTAssertEqual(settings.hermesBearerToken, "legacy-hermes-token")
+        XCTAssertEqual(settings.controllerTelegramBotToken, "legacy-telegram-token")
+        XCTAssertNil(defaults.object(forKey: "openClawBearerToken"))
+        XCTAssertNil(defaults.object(forKey: "hermesBearerToken"))
+        XCTAssertNil(defaults.object(forKey: "controllerTelegramBotToken"))
+        XCTAssertEqual(
+            try gatewaySecrets.string(for: BurnBarIdentity.openClawBearerTokenAccount),
+            "legacy-openclaw-token"
+        )
+        XCTAssertEqual(
+            try gatewaySecrets.string(for: BurnBarIdentity.hermesBearerTokenAccount),
+            "legacy-hermes-token"
+        )
+        XCTAssertEqual(
+            try controllerSecrets.string(for: BurnBarIdentity.controllerTelegramBotTokenAccount),
+            "legacy-telegram-token"
+        )
+    }
+
+    func test_savePersistsTokensToKeychainWithoutUserDefaultsCopies() throws {
+        let suiteName = "com.burnbar.tests.settings.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Could not create isolated defaults suite")
+        }
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let controllerSecrets = KeychainStore(
+            service: "tests.controller.\(UUID().uuidString)",
+            legacyServices: [],
+            backend: SettingsManagerTestKeychainBackend()
+        )
+        let gatewaySecrets = KeychainStore(
+            service: "tests.gateway.\(UUID().uuidString)",
+            legacyServices: [],
+            backend: SettingsManagerTestKeychainBackend()
+        )
+        let settings = SettingsManager(
+            defaults: defaults,
+            controllerRuntimeSecrets: controllerSecrets,
+            chatGatewaySecrets: gatewaySecrets
+        )
+
+        settings.controllerTelegramBotToken = "controller-token"
+        settings.controllerTelegramChatID = "chat-id"
+        settings.openClawBearerToken = "openclaw-token"
+        settings.hermesBearerToken = "hermes-token"
+
+        XCTAssertNil(defaults.object(forKey: "controllerTelegramBotToken"))
+        XCTAssertNil(defaults.object(forKey: "openClawBearerToken"))
+        XCTAssertNil(defaults.object(forKey: "hermesBearerToken"))
+        XCTAssertEqual(defaults.string(forKey: "controllerTelegramChatID"), "chat-id")
+        XCTAssertEqual(
+            try controllerSecrets.string(for: BurnBarIdentity.controllerTelegramBotTokenAccount),
+            "controller-token"
+        )
+        XCTAssertEqual(
+            try gatewaySecrets.string(for: BurnBarIdentity.openClawBearerTokenAccount),
+            "openclaw-token"
+        )
+        XCTAssertEqual(
+            try gatewaySecrets.string(for: BurnBarIdentity.hermesBearerTokenAccount),
+            "hermes-token"
+        )
+
+        settings.controllerTelegramBotToken = ""
+        settings.openClawBearerToken = ""
+        settings.hermesBearerToken = ""
+
+        XCTAssertNil(try controllerSecrets.string(for: BurnBarIdentity.controllerTelegramBotTokenAccount))
+        XCTAssertNil(try gatewaySecrets.string(for: BurnBarIdentity.openClawBearerTokenAccount))
+        XCTAssertNil(try gatewaySecrets.string(for: BurnBarIdentity.hermesBearerTokenAccount))
+    }
+
+}
+
+@MainActor
+final class InsightBriefStartupTests: XCTestCase {
+
+    func test_fetchSessionLogSummaries_omitsTranscriptBodies() throws {
+        let store = try makeInMemoryStore()
+        try store.upsertConversation(
+            makeConversation(
+                id: "Factory:brief-summary",
+                title: "Auth refactor",
+                lastAssistantMessage: "Ship the auth patch after QA.",
+                fullText: String(repeating: "Large transcript block. ", count: 2_000)
+            )
+        )
+
+        let summaries = try store.fetchSessionLogSummaries(limit: 10)
+
+        XCTAssertEqual(summaries.count, 1)
+        XCTAssertEqual(summaries[0].inferredTaskTitle, "Auth refactor")
+        XCTAssertEqual(summaries[0].lastAssistantMessage, "Ship the auth patch after QA.")
+        XCTAssertEqual(summaries[0].fullText, "")
+    }
+
+    func test_build_usesConversationSummaryMetadataForBrief() throws {
+        let store = try makeInMemoryStore()
+        let now = Date()
+        try store.upsertConversation(
+            makeConversation(
+                id: "Factory:latest",
+                sessionId: "session-latest",
+                projectName: "BurnBar",
+                startTime: now.addingTimeInterval(-60),
+                endTime: now,
+                title: "Auth refactor",
+                lastAssistantMessage: "Ship the auth patch after QA.",
+                fullText: String(repeating: "Large transcript block. ", count: 2_000)
+            )
+        )
+        store.replaceUsages([
+            TokenUsage(
+                provider: .factory,
+                sessionId: "session-latest",
+                projectName: "BurnBar",
+                model: "gpt-5.4-mini",
+                inputTokens: 120,
+                outputTokens: 40,
+                costUSD: 3.25,
+                startTime: now.addingTimeInterval(-120),
+                endTime: now.addingTimeInterval(-30)
+            )
+        ])
+
+        let snapshot = InsightBriefSnapshot.build(from: store, refreshRollups: false)
+
+        XCTAssertEqual(snapshot.whereLeftOff, "Ship the auth patch after QA.")
+        XCTAssertEqual(snapshot.whereLeftOffProject, "BurnBar")
+        XCTAssertEqual(snapshot.heaviestTaskTitle, "Auth refactor")
+        XCTAssertEqual(snapshot.heaviestTaskProject, "BurnBar")
+        XCTAssertEqual(snapshot.heaviestTaskCost ?? -1, 3.25, accuracy: 0.0001)
+    }
+
+    private func makeInMemoryStore() throws -> DataStore {
+        let queue = try DatabaseQueue(path: ":memory:")
+        return try DataStore(databaseQueue: queue, runMigrations: true, refreshOnInit: false)
+    }
+
+    private func makeConversation(
+        id: String,
+        sessionId: String = "session-1",
+        projectName: String = "BurnBar",
+        startTime: Date = Date(timeIntervalSince1970: 1_700_000_000),
+        endTime: Date = Date(timeIntervalSince1970: 1_700_000_060),
+        title: String,
+        lastAssistantMessage: String,
+        fullText: String
+    ) -> ConversationRecord {
+        ConversationRecord(
+            id: id,
+            provider: .factory,
+            sessionId: sessionId,
+            projectName: projectName,
+            startTime: startTime,
+            endTime: endTime,
+            messageCount: 2,
+            userWordCount: 4,
+            assistantWordCount: 5,
+            keyFiles: [],
+            keyCommands: [],
+            keyTools: [],
+            inferredTaskTitle: title,
+            lastAssistantMessage: lastAssistantMessage,
+            fullText: fullText,
+            indexedAt: endTime,
+            fileModifiedAt: endTime,
+            summary: nil
+        )
+    }
+}
+
+private final class SettingsManagerTestKeychainBackend: KeychainStoreBackend {
+    private var storage: [String: [String: Data]] = [:]
+
+    func set(_ value: Data, service: String, account: String) throws {
+        storage[service, default: [:]][account] = value
+    }
+
+    func data(for service: String, account: String, allowUserInteraction _: Bool) throws -> Data? {
+        storage[service]?[account]
+    }
+
+    func delete(service: String, account: String) throws {
+        storage[service]?[account] = nil
+    }
+}

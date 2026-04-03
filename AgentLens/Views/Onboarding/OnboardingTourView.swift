@@ -23,8 +23,8 @@ struct OnboardingTourView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
-            title: "Missions & Projects",
-            description: "Automated reviews that watch your agent workflows. Set cadence, get insights, track progress across projects."
+            title: "Projects",
+            description: "Organize work by project, see spend and activity in one place, and keep context tied to what you’re building."
         ),
         TourPage(
             icon: "wind",

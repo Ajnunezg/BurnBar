@@ -1349,30 +1349,7 @@ private extension ProviderQuotaService {
                 sourceLabel: "environment override"
             )
         }
-
-        let sessionURL = homeDirectoryURL
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("CodexBar", isDirectory: true)
-            .appendingPathComponent("factory-session.json")
-
-        guard let session = try? readJSONObject(from: sessionURL) else {
-            return nil
-        }
-
-        let cookieHeader = factoryCookieHeader(fromSessionJSON: session)
-        let bearerToken = nonEmpty(session["bearerToken"] as? String)
-            ?? factoryBearerToken(fromCookieHeader: cookieHeader)
-
-        guard cookieHeader != nil || bearerToken != nil else {
-            return nil
-        }
-
-        return FactorySessionCredentialEnvelope(
-            cookieHeader: cookieHeader,
-            bearerToken: bearerToken,
-            sourceLabel: "CodexBar session"
-        )
+        return nil
     }
 
     func fetchFactoryAuth(
@@ -1705,23 +1682,6 @@ private extension ProviderQuotaService {
     func inferPercent(usedValue: Double?, limitValue: Double?) -> Double? {
         guard let usedValue, let limitValue, limitValue > 0 else { return nil }
         return min(max((usedValue / limitValue) * 100, 0), 100)
-    }
-
-    func factoryCookieHeader(fromSessionJSON session: [String: Any]) -> String? {
-        guard let cookies = session["cookies"] as? [[String: Any]] else {
-            return nil
-        }
-        let pairs = cookies.compactMap { cookie -> String? in
-            guard
-                let name = cookie["Name"] as? String ?? cookie["name"] as? String,
-                let value = cookie["Value"] as? String ?? cookie["value"] as? String,
-                !name.isEmpty
-            else {
-                return nil
-            }
-            return "\(name)=\(value)"
-        }
-        return nonEmpty(pairs.joined(separator: "; "))
     }
 
     func factoryBearerToken(fromCookieHeader header: String?) -> String? {

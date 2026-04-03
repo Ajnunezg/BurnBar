@@ -6,16 +6,17 @@ enum BurnBarChatContextBudget {
     /// Persona + health + ephemeral usage rollup.
     static let maxBasePromptChars = 8_000
     /// Hybrid retrieval excerpts appended per user message.
-    static let maxEvidenceChars = 36_000
+    static let maxEvidenceChars = 18_000
     /// When the same session is already in retrieved evidence.
-    static let maxFocusWhenDuplicateChars = 4_000
+    static let maxFocusWhenDuplicateChars = 2_000
     /// User-picked session not present (or weakly present) in evidence.
-    static let maxFocusStandaloneChars = 12_000
+    static let maxFocusStandaloneChars = 6_000
     /// Wider funnel for hybrid retrieval (lexical + dense); still capped by `maxEvidenceChars`.
-    static let chatRetrievalResultLimit = 32
-    static let chatLexicalCandidateLimit = 140
-    static let chatSemanticCandidateLimit = 140
-    static let chatRerankCandidateLimit = 220
+    static let chatRetrievalResultLimit = 16
+    static let chatRetrievalMaxResultLimit = 48
+    static let chatLexicalCandidateLimit = 96
+    static let chatSemanticCandidateLimit = 96
+    static let chatRerankCandidateLimit = 144
 }
 
 // MARK: - Retrieved evidence pack (pure formatting for tests)
@@ -217,8 +218,7 @@ enum ContextBuilder {
         from dataStore: DataStore,
         intelligenceService: SearchService? = nil,
         indexingEnabled: Bool,
-        health: RetrievalSystemHealthSnapshot,
-        controllerRuntime: BurnBarControllerRuntimeSnapshot? = nil
+        health: RetrievalSystemHealthSnapshot
     ) -> String {
         let retrieval = intelligenceService ?? SearchService.makeConversationSearchService(dataStore: dataStore)
         let calendar = Calendar.current
@@ -323,34 +323,6 @@ enum ContextBuilder {
             lines.append(latest.lastAssistantMessage)
         } else {
             lines.append("(None yet.)")
-        }
-
-        // gstack: active missions and governance context
-        if let runtime = controllerRuntime, !runtime.missions.isEmpty || !runtime.questions.isEmpty {
-            lines.append("")
-            lines.append("## Active missions and gstack")
-            lines.append("Live operator governance state from BurnBar's mission control system (gstack).")
-            for mission in runtime.missions.prefix(10) {
-                let state = "\(mission.state)"
-                let burn = mission.burnCostUSD > 0 ? " · $\(String(format: "%.2f", mission.burnCostUSD))" : ""
-                lines.append("- [\(state)] \(mission.title) (\(mission.projectName))\(burn)")
-                if !mission.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    lines.append("  \(String(mission.summary.prefix(100)))")
-                }
-            }
-            let pending = runtime.pendingQuestions
-            if !pending.isEmpty {
-                lines.append("")
-                lines.append("Pending questions requiring operator answer:")
-                for q in pending.prefix(5) {
-                    lines.append("- \(q.title)")
-                }
-            }
-            let openFollowups = runtime.followups.filter { $0.state == .open || $0.state == .snoozed }
-            if !openFollowups.isEmpty {
-                lines.append("")
-                lines.append("Open followups: \(openFollowups.count)")
-            }
         }
 
         var result = lines.joined(separator: "\n")

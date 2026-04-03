@@ -131,5 +131,6 @@ public actor BurnBarUsageRecorder {
         } else {
             try encodedRecord.write(to: fileURL, options: .atomic)
         }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
     }
 }

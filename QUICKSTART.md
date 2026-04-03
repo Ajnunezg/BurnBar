@@ -2,6 +2,10 @@
 
 Get up and running with BurnBar in 5 minutes.
 
+Current release model: build from source. BurnBar does not currently publish a notarized app bundle, Homebrew package, or marketplace extension install.
+
+The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
+
 ## Prerequisites
 
 - macOS 14 Sonoma or later
@@ -15,15 +19,15 @@ Get up and running with BurnBar in 5 minutes.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Ajnunezg/BurnBar.git
 cd BurnBar
 
-# Generate the Xcode project (requires XcodeGen)
+# Open the checked-in Xcode project
+open BurnBar.xcodeproj
+
+# Optional: regenerate the Xcode project if you change project.yml
 brew install xcodegen
 xcodegen generate
-
-# Open in Xcode
-open BurnBar.xcodeproj
 ```
 
 ### Option 2: Swift Package Manager
@@ -35,6 +39,7 @@ swift run --package-path BurnBarDaemon BurnBarCLI -- help
 # Run tests
 swift test --package-path BurnBarCore
 swift test --package-path BurnBarDaemon
+./scripts/test-burnbar-app.sh
 ```
 
 ## Running the App
@@ -59,11 +64,11 @@ npm run build
 npm run test:unit
 ```
 
-To load the extension:
+To try the extension locally:
 1. Open VS Code or Cursor
-2. Go to Extensions (⇧⌘X)
-3. Click the "..." menu → "Install from VSIX" (or load unpacked)
-4. Select the `extensions/burnbar` folder
+2. Open the `extensions/burnbar` folder as an extension project
+3. Use your editor's local development / unpacked-extension flow to run or load it
+4. There is not currently a published marketplace build or signed VSIX in this repository
 
 ## First-Time Setup
 
@@ -71,9 +76,9 @@ To load the extension:
 
 1. Run BurnBar from Xcode
 2. The app will automatically detect AI agent session logs in:
-   - `~/.claude/sessions/`
+   - `~/.claude/projects/`
    - `~/.factory/sessions/`
-   - `~/.codex/data/`
+   - `~/.codex/` (including the local state database and rollout/session files)
 3. Watch your token usage appear in the menu bar!
 
 ### For Cloud Sync (Optional)
@@ -85,6 +90,8 @@ To load the extension:
 5. Download `GoogleService-Info.plist` → `AgentLens/Resources/GoogleService-Info.plist`
 6. Add your **DEVELOPMENT_TEAM** to `project.yml` under the BurnBar target
 7. Rebuild
+
+With cloud sync enabled today, BurnBar uploads usage rows and in-app BurnBar chat threads for cross-device resume. Conversation metadata backup and full session-log backup are controlled separately in Settings.
 
 ## Project Structure
 
@@ -104,6 +111,7 @@ To load the extension:
 # Swift tests
 swift test --package-path BurnBarCore
 swift test --package-path BurnBarDaemon
+./scripts/test-burnbar-app.sh
 
 # TypeScript tests
 cd extensions/burnbar && npm run test:ci
@@ -115,15 +123,21 @@ cd extensions/burnbar && npm run test:ci
 2. Register in `UsageAggregator.init()`
 3. Add provider colors to `DesignSystem.swift`
 
-### Lint and Type Check
+### Static Checks
 
 ```bash
-# Swift
-swiftlint
+# Swift practical verification
+./scripts/test-burnbar-swift.sh
+./scripts/test-burnbar-app.sh
+./scripts/test-burnbar-retrieval-evals.sh
 
 # TypeScript
 cd extensions/burnbar && npm run lint
 ```
+
+`swiftlint` is configured for maintainer cleanup, but the current source release is not yet fully SwiftLint-clean. Use the repo-native Swift test/eval scripts above as the practical verification path today.
+
+The authoritative app XCTest target is `BurnBarTests`, and it now includes the wider `AgentLensTests/` surface again. Optional real-provider smoke coverage remains opt-in via `BURNBAR_REAL_PROVIDER_SMOKE=1`.
 
 ## Troubleshooting
 
@@ -149,7 +163,7 @@ swift run --package-path BurnBarDaemon BurnBarDaemon
 
 ## Getting Help
 
-- **Bug reports:** use the GitHub Issues tab for this repository
+- **Bug reports:** https://github.com/Ajnunezg/BurnBar/issues
 - **Security issues:** See [SECURITY.md](SECURITY.md)
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Support expectations:** See [SUPPORT.md](SUPPORT.md)

@@ -5,7 +5,6 @@ import SwiftUI
 /// Used by `NavigationCoordinator` to signal which screen should be shown.
 enum NavigationDestination: Hashable, Sendable {
     case conversationSearch
-    case missions
     case chatPanel
     case settings
     case dashboard
@@ -34,7 +33,6 @@ final class NavigationCoordinator: Sendable {
         case overview
         case database
         case projects
-        case missions
         case sessionLogs
     }
     
@@ -45,8 +43,6 @@ final class NavigationCoordinator: Sendable {
         switch destination {
         case .conversationSearch:
             chatPanelOpen = true
-        case .missions:
-            dashboardRoute = .missions
         case .chatPanel:
             chatPanelOpen = true
         case .settings, .dashboard, .onboarding:
@@ -57,11 +53,6 @@ final class NavigationCoordinator: Sendable {
     func openConversationSearch() {
         pendingNavigation = .conversationSearch
         chatPanelOpen = true
-    }
-    
-    func openMissions() {
-        pendingNavigation = .missions
-        dashboardRoute = .missions
     }
     
     func openChatPanel() {

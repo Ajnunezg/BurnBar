@@ -11,7 +11,6 @@ struct MenuBarPopoverView: View {
     let settingsManager: SettingsManager
     @Bindable var operatingLayer: BurnBarOperatingLayer
     let onOpenDashboard: () -> Void
-    var onOpenMissions: (() -> Void)? = nil
     let onOpenSettings: () -> Void
     var chatController: ChatSessionController?
     var onOpenDashboardWithChat: (() -> Void)?
@@ -110,14 +109,6 @@ struct MenuBarPopoverView: View {
                                 onOpenDashboard: {
                                     dismiss()
                                     onOpenDashboard()
-                                },
-                                onOpenMissions: {
-                                    dismiss()
-                                    if let onOpenMissions {
-                                        onOpenMissions()
-                                    } else {
-                                        onOpenDashboard()
-                                    }
                                 }
                             )
                             .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -430,198 +421,20 @@ struct MenuBarPopoverView: View {
 
 }
 
-// MARK: - Popover operating tray (Missions / Dash)
-
-private enum PopoverTrayPane: String, CaseIterable, Identifiable {
-    case missions
-    case dash
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .missions: return "Missions"
-        case .dash: return "Dash"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .missions: return "flag.2.crossed"
-        case .dash: return "rectangle.split.2x1"
-        }
-    }
-}
+// MARK: - Popover operating tray
 
 private struct PopoverOperatingTray: View {
     @Bindable var operatingLayer: BurnBarOperatingLayer
     let onOpenDashboard: () -> Void
-    let onOpenMissions: () -> Void
-    @AppStorage("menuBarPopoverTrayPane") private var paneRaw: String = PopoverTrayPane.missions.rawValue
-
-    private var selectedPane: PopoverTrayPane {
-        PopoverTrayPane(rawValue: paneRaw) ?? .missions
-    }
-
-    private var sortedMissions: [BurnBarControllerMissionRecord] {
-        operatingLayer.snapshot.controllerRuntime.missions.sorted { $0.updatedAt > $1.updatedAt }
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
-            trayModeSwitcher
-
-            Group {
-                switch selectedPane {
-                case .missions:
-                    missionsBody
-                case .dash:
-                    BurnBarCompactOperatingHomeCard(
-                        layer: operatingLayer,
-                        onOpenDashboard: onOpenDashboard
-                    )
-                }
-            }
-            .frame(maxHeight: 280)
-            .clipped()
-            .animation(DesignSystem.Animation.standard, value: selectedPane)
-        }
+        BurnBarCompactOperatingHomeCard(
+            layer: operatingLayer,
+            onOpenDashboard: onOpenDashboard
+        )
+        .frame(maxHeight: 280)
+        .clipped()
     }
-
-    private var trayModeSwitcher: some View {
-        HStack {
-            Spacer(minLength: 0)
-            HStack(spacing: 2) {
-                ForEach(PopoverTrayPane.allCases) { pane in
-                    Button {
-                        withAnimation(DesignSystem.Animation.standard) {
-                            paneRaw = pane.rawValue
-                        }
-                    } label: {
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            Image(systemName: pane.icon)
-                                .font(.system(size: 10, weight: .medium))
-                            Text(pane.label)
-                                .font(DesignSystem.Typography.caption)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.85)
-                        }
-                        .foregroundStyle(selectedPane == pane ? DesignSystem.Colors.textPrimary : DesignSystem.Colors.textMuted)
-                        .padding(.horizontal, DesignSystem.Spacing.md)
-                        .padding(.vertical, DesignSystem.Spacing.xs)
-                        .background(
-                            Capsule().fill(selectedPane == pane ? DesignSystem.Colors.surfaceElevated : Color.clear)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .fixedSize(horizontal: true, vertical: false)
-            .layoutPriority(1)
-            .padding(2)
-            .background(Capsule().fill(DesignSystem.Colors.surface.opacity(0.6)))
-            .overlay(Capsule().stroke(DesignSystem.Colors.borderSubtle, lineWidth: 0.5))
-            Spacer(minLength: 0)
-        }
-    }
-
-    @ViewBuilder
-    private var missionsBody: some View {
-        if sortedMissions.isEmpty {
-            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                Text("No missions yet")
-                    .font(DesignSystem.Typography.body)
-                    .foregroundStyle(DesignSystem.Colors.textSecondary)
-                Text("Missions appear when the controller runtime has active work.")
-                    .font(DesignSystem.Typography.tiny)
-                    .foregroundStyle(DesignSystem.Colors.textMuted)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, DesignSystem.Spacing.sm)
-        } else {
-            ScrollView {
-                VStack(spacing: DesignSystem.Spacing.xs) {
-                    ForEach(Array(sortedMissions.prefix(8))) { mission in
-                        PopoverCompactMissionRow(mission: mission, onTap: onOpenMissions)
-                    }
-                }
-            }
-            .frame(maxHeight: 224)
-        }
-
-        Button {
-            onOpenMissions()
-        } label: {
-            HStack(spacing: 4) {
-                Text("All missions")
-                    .font(DesignSystem.Typography.tiny)
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 9, weight: .bold))
-            }
-            .foregroundStyle(DesignSystem.Colors.blaze)
-        }
-        .buttonStyle(.plain)
-        .padding(.top, 2)
-    }
-}
-
-private struct PopoverCompactMissionRow: View {
-    let mission: BurnBarControllerMissionRecord
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            GlassCard(interactive: true) {
-                HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(mission.title)
-                            .font(DesignSystem.Typography.body)
-                            .foregroundStyle(DesignSystem.Colors.textPrimary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-
-                        HStack(spacing: 4) {
-                            Text(mission.projectName)
-                                .font(DesignSystem.Typography.tiny)
-                                .foregroundStyle(DesignSystem.Colors.textMuted)
-                                .lineLimit(1)
-                            Text("·")
-                                .font(DesignSystem.Typography.tiny)
-                                .foregroundStyle(DesignSystem.Colors.textMuted)
-                            Text(mission.updatedAt, style: .relative)
-                                .font(DesignSystem.Typography.tiny)
-                                .foregroundStyle(DesignSystem.Colors.textMuted)
-                                .lineLimit(1)
-                        }
-
-                        HStack(spacing: DesignSystem.Spacing.xs) {
-                            popoverMissionBadge(title: mission.state.label, color: mission.state.color)
-                            popoverMissionBadge(title: mission.approval.label, color: mission.approval.color)
-                        }
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(DesignSystem.Colors.textMuted)
-                }
-                .padding(DesignSystem.Spacing.md)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private func popoverMissionBadge(title: String, color: Color) -> some View {
-    Text(title)
-        .font(DesignSystem.Typography.tiny)
-        .foregroundStyle(color)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-        .background(color.opacity(0.12))
-        .clipShape(Capsule())
 }
 
 // MARK: - Period Cost

@@ -56,14 +56,13 @@ This roadmap reflects BurnBar's current product direction: from local-first agen
 - Migration, backfill, rebuild, and recovery test coverage
 - Performance guardrails for large corpora and long transcripts
 
-### 7. BurnBarDist Mission-Control Parity
+### 7. Mission-Control Maturity
 
 - Move controller state from partial mirror/fallback into real ingestion from BurnBar activity
 - Add project registry and scheduled review automation
 - Launch real review runs from controller commands and UI actions
 - Deepen question workflow, auto-takeover, and mission execution linkage
 - Ship the connector/browser control plane and operator CLI over the daemon
-- Explicitly codify the local-first divergence from BurnBarDist's cloud-canonical memory-sync architecture
 
 ## Later
 

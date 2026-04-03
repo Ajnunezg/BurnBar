@@ -1,5 +1,5 @@
 import XCTest
-@testable import AgentLens
+@testable import BurnBar
 
 final class KimiParserTests: XCTestCase {
     func testParseEmptyDirectory() async throws {

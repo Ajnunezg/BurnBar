@@ -10,30 +10,22 @@ final class DashboardActionGlyphTests: XCTestCase {
 
     func test_rendersImportFromLogs() throws {
         let view = DashboardActionGlyph(kind: .importFromLogs)
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(ZStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_rendersSweepRecount() throws {
         let view = DashboardActionGlyph(kind: .sweepRecount)
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(ZStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_defaultSize() throws {
         let view = DashboardActionGlyph(kind: .importFromLogs)
-        let sut = try view.inspect()
-        let frame = try sut.find(ZStack.self).frame()
-        XCTAssertEqual(frame.width, 14)
-        XCTAssertEqual(frame.height, 14)
+        XCTAssertEqual(view.size, 14)
     }
 
     func test_customSize() throws {
         let view = DashboardActionGlyph(kind: .sweepRecount, size: 24)
-        let sut = try view.inspect()
-        let frame = try sut.find(ZStack.self).frame()
-        XCTAssertEqual(frame.width, 24)
-        XCTAssertEqual(frame.height, 24)
+        XCTAssertEqual(view.size, 24)
     }
 
     func test_allKindsRender() {

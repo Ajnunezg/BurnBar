@@ -32,15 +32,13 @@ struct ChatPanel: View {
             }
         }
         .onAppear {
-            brief = controller.buildInsightBriefSnapshot()
+            brief = controller.buildInsightBriefSnapshot(refreshRollups: false)
             controller.loadPersistedMessages()
-            controller.refreshHistory()
-            controller.refreshRetrievalHealth(sharedFeaturesAvailable: sharedFeaturesAvailable)
             controller.reclampPanelOffset(container: containerSize, padding: edgePadding)
         }
         .onChange(of: dataStore.lastRefresh) { _, _ in
             Task { @MainActor in
-                brief = controller.buildInsightBriefSnapshot()
+                brief = controller.buildInsightBriefSnapshot(refreshRollups: false)
                 controller.refreshRetrievalHealth(sharedFeaturesAvailable: sharedFeaturesAvailable)
             }
         }

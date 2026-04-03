@@ -1,6 +1,12 @@
 # macOS release checklist (drag-to-Applications)
 
-This is a manual maintainer checklist for future public releases. It does not imply that notarized binaries are currently published.
+This is a manual maintainer checklist for **future** packaged macOS releases. It does not imply that notarized binaries are currently published.
+
+Current public release model:
+
+- build BurnBar from source
+- treat this checklist as maintainer prep for a later binary release
+- do not assume a notarized app, Homebrew formula, marketplace extension, or other packaged artifact exists yet
 
 BurnBar ships as a Developer ID–signed app with the `BurnBarDaemon` helper embedded under `Contents/Helpers/` (see `BurnBarDaemonBinaryResolver`).
 

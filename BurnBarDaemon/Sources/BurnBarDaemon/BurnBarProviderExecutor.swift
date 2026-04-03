@@ -285,11 +285,15 @@ public actor BurnBarKeychainSecretStore: BurnBarProviderSecretStoring {
 
         if let secret, !secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let data = Data(secret.utf8)
-            let attributes = [kSecValueData as String: data]
+            let attributes: [String: Any] = [
+                kSecValueData as String: data,
+                kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            ]
             let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
             if updateStatus == errSecItemNotFound {
                 var createQuery = query
                 createQuery[kSecValueData as String] = data
+                createQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
                 let addStatus = SecItemAdd(createQuery as CFDictionary, nil)
                 guard addStatus == errSecSuccess else {
                     throw NSError(domain: NSOSStatusErrorDomain, code: Int(addStatus))

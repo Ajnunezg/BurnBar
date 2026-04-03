@@ -51,6 +51,9 @@ jobs:
       - name: Run BurnBar Swift tests
         run: ./scripts/test-burnbar-swift.sh
 
+      - name: Run BurnBar app tests
+        run: ./scripts/test-burnbar-app.sh
+
       - name: Run BurnBar retrieval replay evals
         run: ./scripts/test-burnbar-retrieval-evals.sh
 

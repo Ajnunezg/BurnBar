@@ -346,20 +346,6 @@ struct BurnBarApp: App {
                             navigationCoordinator: navigationCoordinator
                         )
                     },
-                    onOpenMissions: {
-                        windowManager.openDashboard(
-                            dataStore: dataStore,
-                            aggregator: aggregator,
-                            accountManager: accountManager,
-                            cloudSyncService: cloudSyncService,
-                            iCloudSessionMirrorService: iCloudSessionMirrorService,
-                            chatController: chatController,
-                            operatingLayer: operatingLayer,
-                            navigationCoordinator: navigationCoordinator
-                        )
-                        // Navigation now handled via NavigationCoordinator
-                        navigationCoordinator.openMissions()
-                    },
                     onOpenSettings: {
                         windowManager.openSettings(
                             settingsManager: settingsManager,

@@ -480,9 +480,9 @@ final class BurnBarDaemonManagerTests: XCTestCase {
     func test_makeControllerRuntimeSnapshot_filtersAppActivityQuestionsFromOperatorInbox() {
         let now = Date(timeIntervalSince1970: 1_773_200_000)
         let appActivityQuestionID = BurnBarQuestionID(rawValue: "question-app-activity")
-        let daemonQuestionID = BurnBarQuestionID(rawValue: "question-gstack")
+        let daemonQuestionID = BurnBarQuestionID(rawValue: "question-operator")
 
-        let snapshot = BurnBarDaemonManager.makeControllerRuntimeSnapshot(
+        let snapshot = BurnBarDaemonSocketClient.makeControllerRuntimeSnapshot(
             summary: BurnBarControllerSummary(
                 updatedAt: now,
                 counts: BurnBarControllerCounts(
@@ -527,16 +527,16 @@ final class BurnBarDaemonManagerTests: XCTestCase {
                     projectSlug: "apollo",
                     questionID: appActivityQuestionID,
                     title: "App activity followup",
-                    summary: "Should not appear in gstack queue.",
+                    summary: "Should not appear in missions queue.",
                     status: .open,
                     kind: .pendingQuestion,
                     createdAt: now
                 ),
                 BurnBarFollowupSnapshot(
-                    id: BurnBarFollowupID(rawValue: "followup-gstack"),
+                    id: BurnBarFollowupID(rawValue: "followup-operator"),
                     projectSlug: "apollo",
                     questionID: daemonQuestionID,
-                    title: "Gstack followup",
+                    title: "Operator followup",
                     summary: "Should stay in the queue.",
                     status: .open,
                     kind: .pendingQuestion,

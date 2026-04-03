@@ -219,7 +219,7 @@ struct TokenUsage: Codable, Identifiable, Hashable {
         self.outputTokens = outputTokens
         self.cacheCreationTokens = cacheCreationTokens
         self.cacheReadTokens = cacheReadTokens
-        self.totalTokens = inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
+        self.totalTokens = inputTokens + outputTokens + cacheCreationTokens
         self.cost = costUSD
         self.startTime = startTime
         self.endTime = endTime

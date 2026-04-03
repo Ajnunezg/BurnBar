@@ -102,4 +102,12 @@ final class CursorConnectorTests: XCTestCase {
         XCTAssertEqual(normalized.promptTokens + normalized.completionTokens, 200)
         XCTAssertEqual(normalized.totalTokens, 275)
     }
+
+    func test_proxyScript_resolvesProviderKeysFromKeychainMetadata() {
+        let script = CursorConnectorManager.proxyScript()
+
+        XCTAssertTrue(script.contains("keychain_service"))
+        XCTAssertTrue(script.contains("keychain_account"))
+        XCTAssertTrue(script.contains("find-generic-password"))
+    }
 }

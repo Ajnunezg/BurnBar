@@ -5,7 +5,7 @@
 
   > A native macOS app that watches your AI coding agents so you don't have to wonder where all your money went.
 
-  **Status:** Experimental source release (v0.1.0-beta) — best-effort support, feedback welcome.
+  **Status:** Experimental source release (`0.1.0-beta`) — best-effort support, feedback welcome.
 
 </div>
 
@@ -13,7 +13,7 @@ If you're the kind of person who has three AI agents running in parallel tabs an
 
 For the paranoid-and-proud crowd: analytics stay **local-first**. No API keys, no account, no cloud — unless you *want* cloud. BurnBar also ships a **Cursor / VS Code extension** that talks to a small **local daemon** so your editor and your meter can be friends.
 
-This repository is safe to inspect and build from source, but it should still be treated as an **experimental** project rather than a polished 1.0 release. Optional cloud sync, tunnels, and editor integration are provided on a best-effort basis.
+This repository is meant to be **built from source today**. Treat it as an **experimental** source release rather than a polished 1.0 or packaged distribution. Optional cloud sync, tunnels, and editor integration are provided on a best-effort basis.
 
 ## Architecture stance
 
@@ -45,7 +45,7 @@ The current architecture canon lives in [BURNBAR_RELEASE_ARCHITECTURE.md](docs/B
 - **Per-provider breakdown** — see which agent is winning the "most expensive hobby" award and whether it's gaining on yesterday's champion.
 - **Daily digest** — optional notification at a time you pick, because future-you deserves a single sentence of truth instead of a billing surprise.
 - **Chat panel** — ask questions about *your* usage data inside the dashboard. Meta? A little. Useful? Also a little. Delightful? We think so.
-- **Optional cloud sync** — sign in with **Google or Apple** (Firebase under the hood), and your totals can follow you across Macs. Fully opt-in; flip it off anytime and your local world keeps spinning.
+- **Optional cloud sync** — sign in with **Google or Apple** (Firebase under the hood), and selected BurnBar data can follow you across Macs. Today that can include usage rows, in-app BurnBar chat threads for cross-device resume, and any separately enabled conversation/session-log backups. Fully opt-in; flip it off anytime and your local world keeps spinning.
 - **Optional Cursor connector** — route selected **Z.ai** and **MiniMax** models through a local OpenAI-shaped router plus a tunnel, because Cursor is picky about BYOK targets. BurnBar logs those requests so you know where the bits actually went.
 - **Daemon-backed controller runtime** — project registry, questions, followups, missions, scheduled reviews, simulator replay, mission provenance, and auto-takeover now live behind the local daemon instead of a UI-only mirror.
 - **Operational tool plane** — BurnBar exposes daemon-owned connector status/actions for GitHub, Slack, Linear, PostHog, Sentry, and Gmail, plus browser tooling status/actions for the system browser and daemon-side fetch/link extraction.
@@ -133,10 +133,13 @@ CloudSyncService merge decision (local vs synced vs remote hash)
 ### Test and eval entrypoints
 
 - `scripts/test-burnbar-swift.sh` — Swift package tests (`BurnBarCore`, `BurnBarDaemon`)
+- `scripts/test-burnbar-app.sh` — authoritative Xcode app tests (`BurnBarTests`, including the wider `AgentLensTests/` surface)
 - `scripts/test-burnbar-retrieval-evals.sh` — retrieval + authoring replay/golden suites
 - `scripts/test-burnbar-release-smoke.sh` — end-to-end release smoke (Swift + retrieval evals + extension tests + daemon health)
 
 Implementation detail and rollout notes live in [`docs/BURNBAR_SEARCH_ARCHITECTURE_SPINE.md`](docs/BURNBAR_SEARCH_ARCHITECTURE_SPINE.md).
+
+The external launch settings that cannot be inferred from the working tree alone are tracked in [`docs/OSS_LAUNCH_CHECKLIST.md`](docs/OSS_LAUNCH_CHECKLIST.md). Re-check them immediately before making the repository public.
 
 ---
 
@@ -159,6 +162,8 @@ Implementation detail and rollout notes live in [`docs/BURNBAR_SEARCH_ARCHITECTU
 **Estimated** = we applied math and hope — e.g. Codex may only give totals without an input/output split, so BurnBar shrugs and assumes 50/50. Costs everywhere use **public pricing tables**, not your invoice. Good for trends; bad for tax audits.
 
 Quota reporting is separate from spend history. Codex quota comes from the latest local rollout/session snapshot, Claude Code quota comes from the local statusline bridge, MiniMax and Z.ai use official API responses, and Factory / Droid remaining is an explicit estimate from BurnBar-tracked raw monthly tokens rather than Factory billable tokens.
+
+Factory exact quota no longer reuses session state from other local apps in this source release. If you want BurnBar to call the official Factory quota API, provide explicit `FACTORY_COOKIE_HEADER` and/or `FACTORY_BEARER_TOKEN` environment overrides; otherwise BurnBar falls back to plan-tier estimation.
 
 ### Cursor agent provider scope (narrower on purpose)
 
@@ -209,6 +214,8 @@ The play:
 - A local **OpenAI-compatible router** wakes up.
 - A **public HTTPS tunnel** appears because Cursor blocks `localhost` and private IPs for BYOK — not our rule, just our problem to solve.
 - BurnBar writes Cursor's custom-model BYOK settings for you.
+- BurnBar temporarily swaps Cursor's local BYOK token field to a short-lived BurnBar session token while the connector is active, then restores the saved value on disconnect.
+- Routed provider API keys stay in Keychain; the local connector config stores Keychain lookup metadata plus the short-lived session token for the active bridge, not raw provider secrets.
 - Routed usage shows up as **`BurnBar Cursor Connector`** so your dashboard and your conscience stay aligned.
 
 **v1 scope:** `Z.ai`, `MiniMax`. **Tunnel flavor:** Cloudflare quick tunnel (bring `cloudflared`).
@@ -245,17 +252,30 @@ The Mac app sources live under **`AgentLens/`** because renaming folders is a pe
 
 ---
 
+## Release model
+
+BurnBar is currently a **source-release-first** project.
+
+- Build the macOS app, daemon, CLI, and extension from this repository.
+- The repo does **not** currently promise notarized macOS binaries, a Homebrew formula, or a public VS Marketplace / Open VSX release.
+- The visible release workflow and [macOS release checklist](docs/RELEASE_MACOS.md) are maintainer scaffolding for future packaged releases, not proof that those artifacts already ship.
+- The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
+
+---
+
 ## Build (Mac app)
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Ajnunezg/BurnBar.git
 cd BurnBar
 open BurnBar.xcodeproj
 ```
 
 Hit **⌘R**. The app shows up in your menu bar like a well-behaved utility.
 
-**xcodegen** fans:
+The checked-in Xcode project is buildable as-is. Regenerate it with XcodeGen only if you change `project.yml`.
+
+**Optional XcodeGen refresh:**
 
 ```bash
 brew install xcodegen
@@ -277,7 +297,7 @@ npm install
 npm run build
 ```
 
-Load the `extensions/burnbar` folder as an unpacked extension in Cursor or VS Code.
+This repo does not currently publish a signed VSIX or marketplace listing. Build the extension locally, then load `extensions/burnbar` through your editor's local development / unpacked-extension flow.
 
 **Tests** (for the statistically responsible):
 
@@ -295,10 +315,12 @@ BurnBar is a happy offline hermit by default. Cloud sync is for people who use m
 **Pieces:**
 
 - **Primary store:** GRDB + SQLite — fast, local, yours
-- **Sync store:** Firestore under `users/{uid}/` — `usage`, `conversations` (optional metadata backup), `session_logs` (+ `chunks` for full log backup when enabled)
+- **Sync store:** Firestore under `users/{uid}/` — `usage`, `chat_threads` (BurnBar in-app chat thread metadata + truncated messages for cross-device resume), `conversations` (optional metadata backup), `session_logs` (+ `chunks` for full log backup when enabled)
 - **Auth:** Firebase Auth — **Google** and/or **Sign in with Apple**
 - **Device identity:** random UUID stored in local app defaults and migrated from legacy BurnBar/AgentLens defaults keys
 - **iCloud mirror (optional):** copies parsed session log files into your **personal** iCloud Drive folder for the app (`Documents/BurnBar/SessionMirror/...`). Independent of Firebase; see below.
+
+**Current cloud behavior:** when cloud sync is enabled, BurnBar uploads usage rows and BurnBar chat threads for cross-device resume. Conversation metadata and full session-log backup remain separately gated by their own settings.
 
 **Setup:**
 
@@ -323,7 +345,7 @@ service cloud.firestore {
 5. Configure the **Google Sign-In** URL scheme / OAuth client as Firebase/Google Cloud demand (the app ships `BurnBar-Info.plist` entries for the bundled client; yours will differ in a fork).
 6. `xcodegen generate` and rebuild.
 
-**Privacy:** synced payloads can include **project directory names** and **model names** from sessions. You can disable sync in **Settings → Account** without sacrificing local history.
+**Privacy:** synced payloads can include **project directory names**, **model names**, and **BurnBar in-app chat thread content**. If you also enable conversation/session-log backup, synced data can additionally include conversation metadata and full Markdown session-log bodies that may contain prompts or code snippets. You can disable sync in **Settings → Account** without sacrificing local history.
 
 ### iCloud session file mirror (optional)
 
@@ -369,7 +391,7 @@ Support expectations live in [SUPPORT.md](SUPPORT.md).
 
 BurnBar intentionally runs **without macOS App Sandbox** (`com.apple.security.app-sandbox = false`). This is required because:
 
-1. **Log file access**: The app monitors AI agent usage by reading log files from directories like `~/.claude/sessions/`, `~/.codex/data/`, and `~/Library/Application Support/Cursor/` — none of which are accessible within a sandboxed app container.
+1. **Log file access**: The app monitors AI agent usage by reading log files from directories like `~/.claude/projects/`, `~/.factory/sessions/`, `~/.codex/`, `~/.kimi/sessions/`, and editor state under `~/Library/Application Support/` — none of which are accessible within a sandboxed app container.
 
 2. **Daemon architecture**: The BurnBarDaemon runs as a separate process that requires full filesystem access to scan and index conversation data across multiple locations.
 
@@ -379,13 +401,19 @@ BurnBar intentionally runs **without macOS App Sandbox** (`com.apple.security.ap
 
 **Security implications**: Without sandboxing, if BurnBar is compromised, the attacker has access to the user's home directory. However:
 
-- API keys are stored in the macOS Keychain (not plaintext)
+- Routed provider API keys and daemon-managed connector credentials use the macOS Keychain rather than plaintext files
+- Hermes/OpenClaw bearer tokens and the controller Telegram bot token now live in the macOS Keychain instead of app preferences
 - Network access is primarily to configured providers and optional user-enabled integrations; review connector, browser-tooling, and tunnel settings before enabling them
 - The app does not execute untrusted code
 
 ### Credential Storage
 
-API keys and authentication tokens are stored in the macOS Keychain using `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`. See `AgentLens/Services/CursorConnector/KeychainStore.swift` for implementation details.
+BurnBar currently uses a **mix** of macOS Keychain and on-device app preferences.
+
+- **Keychain-backed today:** routed provider API keys, Hermes/OpenClaw bearer tokens, the controller Telegram bot token, daemon-side provider secrets, daemon connector-plane credentials, and Cursor connector routed-provider secrets
+- **Still stored in local app preferences today:** non-secret local settings such as gateway URLs, chat model overrides, and controller chat IDs
+
+Keychain-backed secrets in this source release use a device-local accessibility class (`kSecAttrAccessibleWhenUnlockedThisDeviceOnly`). Cursor connector runtime state still writes a short-lived session token and non-secret route metadata into BurnBar's private support directory while the bridge is active, but routed provider API keys are resolved from Keychain at runtime instead of being written to plaintext config.
 
 ### Reporting Vulnerabilities
 

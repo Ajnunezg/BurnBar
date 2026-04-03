@@ -100,11 +100,15 @@ public actor BurnBarConnectorKeychainSecretStore: BurnBarConnectorSecretStoring 
 
         if let secret, secret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
             let data = Data(secret.utf8)
-            let attributes = [kSecValueData as String: data]
+            let attributes: [String: Any] = [
+                kSecValueData as String: data,
+                kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            ]
             let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
             if updateStatus == errSecItemNotFound {
                 var createQuery = query
                 createQuery[kSecValueData as String] = data
+                createQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
                 let addStatus = SecItemAdd(createQuery as CFDictionary, nil)
                 guard addStatus == errSecSuccess else {
                     throw NSError(domain: NSOSStatusErrorDomain, code: Int(addStatus))
@@ -415,6 +419,7 @@ public actor BurnBarConnectorPlaneService {
         )
         let data = try encoder.encode(state)
         try data.write(to: fileURL, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
         cachedState = state
     }
 
@@ -798,6 +803,7 @@ public actor BurnBarBrowserToolService {
         )
         let data = try encoder.encode(state)
         try data.write(to: fileURL, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
         cachedState = state
     }
 

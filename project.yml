@@ -123,11 +123,10 @@ targets:
     type: bundle.unit-test
     platform: macOS
     sources:
-      # Keep the active Xcode test target focused on the replay/eval harness that
-      # ships in public CI. Older app-specific XCTest files remain in the repo but
-      # are not compiled here until they are brought back in sync with the current app APIs.
-      - path: AgentLensTests/AgentLensTests.swift
-      - path: AgentLensTests/BurnBarSearchIntegrationHarness.swift
+      # Keep the full app XCTest surface authoritative in the checked-in project.
+      - path: AgentLensTests
+        excludes:
+          - "PerformanceTests.swift"
     settings:
       base:
         PRODUCT_NAME: BurnBarTests

@@ -610,11 +610,15 @@ final class ChatSessionController {
         searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func buildInsightBriefSnapshot() -> InsightBriefSnapshot {
+    func buildInsightBriefSnapshot(refreshRollups: Bool = true) -> InsightBriefSnapshot {
         if let typed = typedSearchService {
-            return InsightBriefSnapshot.build(from: dataStore, intelligenceService: typed)
+            return InsightBriefSnapshot.build(
+                from: dataStore,
+                intelligenceService: typed,
+                refreshRollups: refreshRollups
+            )
         }
-        return InsightBriefSnapshot()
+        return InsightBriefSnapshot.build(from: dataStore, refreshRollups: refreshRollups)
     }
 
     /// Fire-and-forget variant of `send()` — launches a Task not tied to any view lifecycle.
@@ -730,9 +734,12 @@ final class ChatSessionController {
         let retrievalText = Self.retrievalQueryText(for: trimmed, messages: messages)
         let retrievalPlan = BurnBarSearchPlan.plan(userText: retrievalText)
         let requestedJumpTargetCount = desiredJumpTargetCount(for: retrievalPlan)
-        let retrievalResultLimit = max(
-            BurnBarChatContextBudget.chatRetrievalResultLimit,
-            min(requestedJumpTargetCount * 4, 120)
+        let retrievalResultLimit = min(
+            max(
+                BurnBarChatContextBudget.chatRetrievalResultLimit,
+                requestedJumpTargetCount * 3
+            ),
+            BurnBarChatContextBudget.chatRetrievalMaxResultLimit
         )
 
         guard let searchSvc = typedSearchService else { return }
@@ -824,13 +831,11 @@ final class ChatSessionController {
             aggregateSection: aggregateSection
         )
 
-        let controllerRuntime = try? dataStore.fetchControllerRuntimeMirror()
         let basePrompt = ContextBuilder.buildDatabaseAnalystSystemPrompt(
             from: dataStore,
             intelligenceService: searchSvc,
             indexingEnabled: settingsManager.conversationIndexingEnabled,
-            health: retrievalHealthSnapshot,
-            controllerRuntime: controllerRuntime
+            health: retrievalHealthSnapshot
         )
 
         let focusSection: String

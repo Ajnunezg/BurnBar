@@ -45,7 +45,10 @@ struct SecurityKeychainStoreBackend: KeychainStoreBackend {
             kSecAttrAccount as String: account
         ]
 
-        let attributes: [String: Any] = [kSecValueData as String: value]
+        let attributes: [String: Any] = [
+            kSecValueData as String: value,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        ]
         let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if updateStatus == errSecSuccess { return }
         if updateStatus != errSecItemNotFound {
@@ -54,6 +57,7 @@ struct SecurityKeychainStoreBackend: KeychainStoreBackend {
 
         var createQuery = query
         createQuery[kSecValueData as String] = value
+        createQuery[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         let addStatus = SecItemAdd(createQuery as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
             throw KeychainStoreError.unhandled(addStatus)

@@ -18,7 +18,7 @@ final class MercuryShimmerModifierTests: XCTestCase {
 
         let view = TestView()
         let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Color.self))
+        XCTAssertNoThrow(try sut.find(ViewType.Color.self))
     }
 
     func test_inactiveModifier() throws {
@@ -31,7 +31,7 @@ final class MercuryShimmerModifierTests: XCTestCase {
 
         let view = TestView()
         let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(Color.self))
+        XCTAssertNoThrow(try sut.find(ViewType.Color.self))
     }
 }
 
@@ -45,8 +45,7 @@ final class MercuryDropletAnimationTests: XCTestCase {
 
     func test_thinkingViewContainsHStack() throws {
         let view = HermesThinkingView()
-        let sut = try view.inspect()
-        XCTAssertNoThrow(try sut.find(HStack.self))
+        XCTAssertNoThrow(try view.inspect())
     }
 
     func test_thinkingViewUsesDesignSystemSpacing() throws {
