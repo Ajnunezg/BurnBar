@@ -1,0 +1,83 @@
+name: OpenBurnBar Source Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: extensions/openburnbar/package-lock.json
+
+      - name: Install extension dependencies
+        run: npm ci --prefix extensions/openburnbar
+
+      - name: Run OpenBurnBar Swift tests
+        run: ./scripts/test-openburnbar-swift.sh
+
+      - name: Run OpenBurnBar app tests
+        run: ./scripts/test-openburnbar-app.sh
+
+      - name: Verify OpenBurnBar app SwiftPM lockfile
+        run: ./scripts/check-openburnbar-app-swiftpm-lock.sh
+
+      - name: Run OpenBurnBar TypeScript tests
+        run: ./scripts/test-openburnbar-ts.sh
+
+      - name: Run OpenBurnBar retrieval replay evals
+        run: ./scripts/test-openburnbar-retrieval-evals.sh
+
+      - name: Run OpenBurnBar replay evals
+        run: ./scripts/test-openburnbar-replay-evals.sh
+
+      - name: Run OpenBurnBar extension-host tests
+        run: ./scripts/test-openburnbar-extension-host.sh
+
+      - name: Verify extension package contents
+        run: |
+          cd extensions/openburnbar
+          npm pack --dry-run --json
+
+      - name: Verify daemon release build
+        run: swift build --package-path OpenBurnBarDaemon -c release
+
+      - name: Create source-release notes
+        run: |
+          cat > SOURCE_RELEASE_NOTES.md <<'EOF'
+          OpenBurnBar publishes source-first prereleases today.
+
+          Supported release artifact:
+          - GitHub's auto-generated source archive for this tag
+
+          Not published from this workflow:
+          - notarized macOS app bundle
+          - Homebrew formula
+          - packaged daemon tarball
+          - signed VSIX / marketplace extension build
+
+          Build and run from source using README.md and QUICKSTART.md.
+          EOF
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "OpenBurnBar ${GITHUB_REF_NAME#v}" \
+            --notes-file SOURCE_RELEASE_NOTES.md \
+            --draft

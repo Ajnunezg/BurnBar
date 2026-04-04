@@ -1,0 +1,53 @@
+rules_version = '2';
+// OpenBurnBar currently syncs:
+// - users/{uid}/usage, conversations, chat_threads, session_logs (+ chunks), devices
+// - workspaces/workspace-{uid}/teams/team-default/artifacts/{artifactID} (+ versions/{revisionID})
+// The shared-artifact rule below intentionally stays owner-scoped for this source release.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function requestWithinBasicLimits() {
+      return request.resource.size() < 1048576
+        && request.resource.data.keys().size() < 80;
+    }
+
+    function ownsUserNamespace(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function sharedArtifactOwnerRead() {
+      return isSignedIn()
+        && resource.data.ownerUserID is string
+        && resource.data.ownerUserID == request.auth.uid;
+    }
+
+    function sharedArtifactOwnerWrite(workspaceId, teamId) {
+      return isSignedIn()
+        && requestWithinBasicLimits()
+        && request.resource.data.ownerUserID is string
+        && request.resource.data.ownerUserID == request.auth.uid
+        && request.resource.data.workspaceID == workspaceId
+        && request.resource.data.teamID == teamId;
+    }
+
+    match /users/{userId}/{document=**} {
+      allow read: if ownsUserNamespace(userId);
+      allow write: if ownsUserNamespace(userId) && requestWithinBasicLimits();
+    }
+
+    match /workspaces/{workspaceId}/teams/{teamId}/artifacts/{artifactId} {
+      allow read: if sharedArtifactOwnerRead();
+      allow create, update: if sharedArtifactOwnerWrite(workspaceId, teamId);
+      allow delete: if sharedArtifactOwnerRead();
+
+      match /versions/{revisionId} {
+        allow read: if sharedArtifactOwnerRead();
+        allow create, update: if sharedArtifactOwnerWrite(workspaceId, teamId);
+        allow delete: if sharedArtifactOwnerRead();
+      }
+    }
+  }
+}

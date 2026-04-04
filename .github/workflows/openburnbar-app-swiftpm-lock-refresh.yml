@@ -1,0 +1,49 @@
+name: OpenBurnBar App SwiftPM Lock Refresh
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    - cron: "0 16 * * 1"
+  workflow_dispatch:
+
+jobs:
+  refresh-lockfile:
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Refresh app SwiftPM lockfile
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project OpenBurnBar.xcodeproj \
+            -scheme OpenBurnBar \
+            >/dev/null
+
+      - name: Create pull request when lockfile changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- OpenBurnBar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved; then
+            echo "No app SwiftPM lockfile changes detected."
+            exit 0
+          fi
+
+          branch_name="automation/app-swiftpm-lock-$(date +%Y%m%d-%H%M%S)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch_name"
+          git add OpenBurnBar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          git commit -m "deps: refresh app SwiftPM lockfile"
+          git push --set-upstream origin "$branch_name"
+
+          gh pr create \
+            --title "deps: refresh app SwiftPM lockfile" \
+            --body "Automated refresh of the checked-in Xcode workspace Package.resolved for the OpenBurnBar app surface."

@@ -1,0 +1,251 @@
+{
+  "name": "openburnbar",
+  "displayName": "OpenBurnBar",
+  "description": "OpenBurnBar sidebar shell for Cursor and VS Code.",
+  "version": "0.1.0-beta",
+  "publisher": "openburnbar",
+  "icon": "media/app-icon-128.png",
+  "license": "MIT",
+  "homepage": "https://github.com/Ajnunezg/OpenBurnBar/tree/main/extensions/openburnbar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ajnunezg/OpenBurnBar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ajnunezg/OpenBurnBar/issues"
+  },
+  "keywords": [
+    "openburnbar",
+    "cursor",
+    "vscode",
+    "ai",
+    "daemon",
+    "local-first"
+  ],
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "media/**",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "OpenBurnBar stays available in restricted mode, but apply_patch and run_terminal remain gated until the workspace is trusted. The sidebar explains any gated workspace features."
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:openburnbar.panel",
+    "onView:openburnbar.health",
+    "onView:openburnbar.runs",
+    "onView:openburnbar.runDetail",
+    "onCommand:openburnbar.reconnect",
+    "onCommand:openburnbar.repairDaemon",
+    "onCommand:openburnbar.refresh",
+    "onCommand:openburnbar.startRun",
+    "onCommand:openburnbar.cancelRun",
+    "onCommand:openburnbar.retryRun",
+    "onCommand:openburnbar.approveRun",
+    "onCommand:openburnbar.rejectRun",
+    "onCommand:openburnbar.private.workspace.rpc",
+    "onCommand:openburnbar.openWorkspace",
+    "onCommand:openburnbar.openConversationSearch"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "openburnbar",
+          "title": "OpenBurnBar",
+          "icon": "./media/openburnbar-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "openburnbar": [
+        {
+          "id": "openburnbar.panel",
+          "type": "webview",
+          "name": "OpenBurnBar"
+        },
+        {
+          "id": "openburnbar.health",
+          "name": "Health",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "openburnbar.runs",
+          "name": "Runs",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "openburnbar.runDetail",
+          "name": "Run Detail",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "openburnbar.reconnect",
+        "title": "OpenBurnBar: Reconnect"
+      },
+      {
+        "command": "openburnbar.repairDaemon",
+        "title": "OpenBurnBar: Repair Daemon"
+      },
+      {
+        "command": "openburnbar.refresh",
+        "title": "OpenBurnBar: Refresh"
+      },
+      {
+        "command": "openburnbar.startRun",
+        "title": "OpenBurnBar: Start Run"
+      },
+      {
+        "command": "openburnbar.cancelRun",
+        "title": "OpenBurnBar: Cancel Run"
+      },
+      {
+        "command": "openburnbar.retryRun",
+        "title": "OpenBurnBar: Retry Run"
+      },
+      {
+        "command": "openburnbar.approveRun",
+        "title": "OpenBurnBar: Approve Run"
+      },
+      {
+        "command": "openburnbar.rejectRun",
+        "title": "OpenBurnBar: Reject Run"
+      },
+      {
+        "command": "openburnbar.openWorkspace",
+        "title": "OpenBurnBar: Open Workspace"
+      },
+      {
+        "command": "openburnbar.openConversationSearch",
+        "title": "OpenBurnBar: Search Conversations"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "openburnbar.reconnect",
+          "when": "view == openburnbar.health",
+          "group": "navigation@1"
+        },
+        {
+          "command": "openburnbar.repairDaemon",
+          "when": "view == openburnbar.health",
+          "group": "navigation@2"
+        },
+        {
+          "command": "openburnbar.refresh",
+          "when": "view == openburnbar.runs",
+          "group": "navigation@1"
+        },
+        {
+          "command": "openburnbar.startRun",
+          "when": "view == openburnbar.runs",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "openburnbar.cancelRun",
+          "when": "view == openburnbar.runs && viewItem == openburnbar.run.daemon",
+          "group": "inline@1"
+        },
+        {
+          "command": "openburnbar.retryRun",
+          "when": "view == openburnbar.runs && viewItem == openburnbar.run.daemon",
+          "group": "inline@2"
+        },
+        {
+          "command": "openburnbar.approveRun",
+          "when": "view == openburnbar.runs && viewItem == openburnbar.run.daemon",
+          "group": "inline@3"
+        },
+        {
+          "command": "openburnbar.rejectRun",
+          "when": "view == openburnbar.runs && viewItem == openburnbar.run.daemon",
+          "group": "inline@4"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OpenBurnBar",
+      "properties": {
+        "openburnbar.cursorSmoke.outputPath": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test output path for OpenBurnBar Cursor validation."
+        },
+        "openburnbar.cursorSmoke.filePath": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test workspace file path for OpenBurnBar Cursor validation."
+        },
+        "openburnbar.cursorSmoke.modelID": {
+          "type": "string",
+          "default": "",
+          "description": "Internal smoke-test model identifier for OpenBurnBar Cursor validation."
+        },
+        "openburnbar.sidebar.statusLine": {
+          "type": "string",
+          "enum": ["smart", "workspace", "models", "activeRun", "socket", "off"],
+          "default": "smart",
+          "description": "Controls what OpenBurnBar shows in the sidebar status line."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./tsconfig.json && node ./scripts/copy-webview-assets.mjs",
+    "build:extension-host": "tsc -p ./tsconfig.extension-host.json",
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "prepack": "npm run build",
+    "pretest": "npm run build",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run --coverage.enabled false",
+    "test:replay": "vitest run --coverage.enabled false test/replayEval.test.ts",
+    "test:extension-host": "npm run build && npm run build:extension-host && node ./test/extensionHost/runTest.mjs",
+    "test:cursor-smoke": "node ./test/cursorSmoke/runSmoke.mjs",
+    "test:ci": "npm run test:unit && npm run test:replay && npm run test:extension-host",
+    "watch": "tsc -w -p ./tsconfig.json"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.6.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.22.0",
+    "mocha": "^11.7.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "globals": "^17.4.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.0"
+  }
+}

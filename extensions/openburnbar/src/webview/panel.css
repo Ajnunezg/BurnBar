@@ -1,0 +1,418 @@
+/* ============================================================
+   BurnBar Sidebar Companion — Compact launcher + status
+   Botanical cream (light) / bark (dark)
+   ============================================================ */
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  --bb-bg:          #EDF0E5;
+  --bb-glass:       rgba(244, 246, 238, 0.72);
+  --bb-glass-hi:    rgba(250, 250, 245, 0.85);
+  --bb-border:      #C5CEB6;
+  --bb-border-subtle: #D8E2CA;
+
+  --bb-text:        #1C2014;
+  --bb-text-2:      #4A5442;
+  --bb-text-3:      #7A8572;
+
+  --bb-coral:       #C8604E;
+  --bb-coral-dim:   rgba(200, 96, 78, 0.10);
+  --bb-gold:        #A47A1E;
+  --bb-gold-dim:    rgba(164, 122, 30, 0.10);
+  --bb-teal:        #1A9A8C;
+  --bb-success:     #3A7835;
+  --bb-success-dim: rgba(58, 120, 53, 0.09);
+  --bb-warning:     #A87018;
+  --bb-error:       #BF3030;
+  --bb-error-dim:   rgba(191, 48, 48, 0.08);
+
+  --bb-shadow:      0 2px 8px rgba(28, 32, 20, 0.06);
+  --bb-shadow-coral: 0 3px 14px rgba(200, 96, 78, 0.18);
+
+  --bb-blur:        blur(16px) saturate(1.4);
+
+  --bb-r-sm:  6px;
+  --bb-r-md:  10px;
+  --bb-r-lg:  14px;
+  --bb-r-pill: 999px;
+}
+
+.vscode-dark,
+.vscode-high-contrast {
+  --bb-bg:          #0E0D0B;
+  --bb-glass:       rgba(23, 21, 16, 0.68);
+  --bb-glass-hi:    rgba(32, 30, 24, 0.80);
+  --bb-border:      #302C22;
+  --bb-border-subtle: #1E1C16;
+
+  --bb-text:        #F0EBE2;
+  --bb-text-2:      #9A9088;
+  --bb-text-3:      #7A7268;
+
+  --bb-coral:       #E87060;
+  --bb-coral-dim:   rgba(232, 112, 96, 0.11);
+  --bb-gold:        #E0A030;
+  --bb-gold-dim:    rgba(224, 160, 48, 0.11);
+  --bb-teal:        #2CCAC0;
+  --bb-success:     #38D898;
+  --bb-success-dim: rgba(56, 216, 152, 0.10);
+  --bb-warning:     #F0C040;
+  --bb-error:       #F06070;
+  --bb-error-dim:   rgba(240, 96, 112, 0.10);
+
+  --bb-shadow:      0 2px 10px rgba(0, 0, 0, 0.22);
+  --bb-shadow-coral: 0 3px 16px rgba(232, 112, 96, 0.22);
+}
+
+/* ── Keyframes ─────────────────────────────────────────────── */
+@keyframes bb-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+@keyframes bb-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bb-bg);
+  color: var(--bb-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+#bb-root {
+  padding: 10px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-visible="false"] { display: none !important; }
+
+/* ── Header ───────────────────────────────────────────────── */
+.bb-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bb-glass);
+  backdrop-filter: var(--bb-blur);
+  -webkit-backdrop-filter: var(--bb-blur);
+  border: 1px solid var(--bb-border-subtle);
+  border-radius: var(--bb-r-lg);
+  box-shadow: var(--bb-shadow);
+}
+
+.bb-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.bb-header-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.bb-wordmark {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(120deg, var(--bb-coral) 0%, var(--bb-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.bb-header-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bb-status-text {
+  font-size: 11px;
+  color: var(--bb-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Status orb ───────────────────────────────────────────── */
+.bb-orb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bb-orb--connected {
+  background: var(--bb-success);
+  box-shadow: 0 0 0 3px var(--bb-success-dim);
+}
+
+.bb-orb--connecting,
+.bb-orb--repairing {
+  background: var(--bb-gold);
+  box-shadow: 0 0 0 3px var(--bb-gold-dim);
+  animation: bb-pulse 2s ease-in-out infinite;
+}
+
+.bb-orb--disconnected {
+  background: var(--bb-error);
+  box-shadow: 0 0 0 3px var(--bb-error-dim);
+}
+
+/* ── Recovery ─────────────────────────────────────────────── */
+.bb-recovery {
+  background: var(--bb-error-dim);
+  border: 1px solid rgba(191, 48, 48, 0.18);
+  border-radius: var(--bb-r-md);
+  padding: 10px 12px;
+  animation: bb-slide-in 180ms ease-out;
+}
+
+.vscode-dark .bb-recovery {
+  border-color: rgba(240, 96, 112, 0.18);
+}
+
+.bb-recovery-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.bb-recovery-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.bb-recovery-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bb-error);
+}
+
+.bb-recovery-msg {
+  font-size: 11px;
+  color: var(--bb-text-2);
+  line-height: 1.5;
+}
+
+/* ── Active run summary ───────────────────────────────────── */
+.bb-active-summary {
+  padding: 10px 12px;
+  background: var(--bb-glass);
+  backdrop-filter: var(--bb-blur);
+  -webkit-backdrop-filter: var(--bb-blur);
+  border: 1px solid var(--bb-border-subtle);
+  border-radius: var(--bb-r-md);
+  animation: bb-slide-in 180ms ease-out;
+}
+
+.bb-active-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bb-active-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bb-active-dot--active {
+  background: var(--bb-coral);
+  animation: bb-pulse 2.5s ease-in-out infinite;
+}
+
+.bb-active-dot--success { background: var(--bb-success); }
+.bb-active-dot--error   { background: var(--bb-error); }
+.bb-active-dot--warning { background: var(--bb-gold); }
+.bb-active-dot--muted   { background: var(--bb-text-3); opacity: 0.5; }
+
+.bb-active-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bb-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bb-active-meta {
+  font-size: 11px;
+  color: var(--bb-text-3);
+  margin-top: 3px;
+  padding-left: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Launchers ────────────────────────────────────────────── */
+.bb-launchers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bb-launcher {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Compact actions row ──────────────────────────────────── */
+.bb-compact-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.bb-status-line {
+  min-height: 18px;
+  padding-top: 2px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--bb-text-3);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.bb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: var(--bb-r-md);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 7px 14px;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.bb-btn:focus-visible {
+  outline: 2px solid var(--bb-coral);
+  outline-offset: 1px;
+}
+
+.bb-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.bb-btn--primary {
+  background: linear-gradient(130deg, var(--bb-coral) 0%, var(--bb-gold) 100%);
+  color: #fff;
+  border: none;
+  box-shadow: var(--bb-shadow-coral);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.bb-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 5px 20px rgba(200, 96, 78, 0.28);
+  transform: translateY(-1px);
+}
+
+.bb-btn--primary:active:not(:disabled) {
+  transform: none;
+  filter: brightness(0.96);
+}
+
+.bb-btn--secondary {
+  background: var(--bb-glass);
+  backdrop-filter: var(--bb-blur);
+  -webkit-backdrop-filter: var(--bb-blur);
+  color: var(--bb-text);
+  border: 1px solid var(--bb-border);
+}
+
+.bb-btn--secondary:hover:not(:disabled) {
+  border-color: var(--bb-coral);
+  color: var(--bb-coral);
+}
+
+/* ── Icon buttons ─────────────────────────────────────────── */
+.bb-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--bb-text-3);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--bb-r-sm);
+  font-size: 14px;
+  line-height: 1;
+  transition: all 150ms ease;
+}
+
+.bb-icon-btn:hover {
+  color: var(--bb-text);
+  background: var(--bb-glass-hi);
+  border-color: var(--bb-border);
+}
+
+.bb-icon-btn:focus-visible {
+  outline: 2px solid var(--bb-coral);
+  outline-offset: 2px;
+}
+
+/* macOS app button */
+.bb-header-app-btn {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: var(--bb-r-sm);
+  border: 1px solid var(--bb-border);
+  background: var(--bb-glass-hi);
+  color: var(--bb-text-3);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.bb-header-app-btn:hover {
+  color: var(--bb-text);
+  border-color: var(--bb-coral);
+}
+
+/* ── Error banner ─────────────────────────────────────────── */
+.bb-error-banner {
+  background: var(--bb-error-dim);
+  border: 1px solid rgba(191, 48, 48, 0.22);
+  border-radius: var(--bb-r-md);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--bb-error);
+  animation: bb-slide-in 150ms ease-out;
+}

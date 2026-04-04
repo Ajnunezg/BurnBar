@@ -1,0 +1,22 @@
+# CODEOWNERS — OpenBurnBar
+
+# Default owner for everything
+* @Ajnunezg
+
+# Swift app
+AgentLens/ @Ajnunezg
+
+# Swift packages
+OpenBurnBarCore/ @Ajnunezg
+OpenBurnBarDaemon/ @Ajnunezg
+OpenBurnBarDaemon/Sources/OpenBurnBarDaemonExecutable/ @Ajnunezg
+
+# Editor extension
+extensions/openburnbar/ @Ajnunezg
+
+# CI/CD
+.github/workflows/ @Ajnunezg
+
+# Infrastructure
+firestore.rules @Ajnunezg
+project.yml @Ajnunezg

@@ -1,0 +1,104 @@
+{
+  "annTopCandidates" : [
+    {
+      "score" : 0.24893,
+      "sourceID" : "artifact-ann-15"
+    },
+    {
+      "score" : 0.230227,
+      "sourceID" : "artifact-ann-16"
+    },
+    {
+      "score" : 0.225981,
+      "sourceID" : "artifact-ann-1"
+    },
+    {
+      "score" : 0.224105,
+      "sourceID" : "artifact-ann-23"
+    },
+    {
+      "score" : 0.212789,
+      "sourceID" : "artifact-ann-36"
+    },
+    {
+      "score" : 0.212723,
+      "sourceID" : "artifact-ann-19"
+    },
+    {
+      "score" : 0.212184,
+      "sourceID" : "artifact-ann-5"
+    },
+    {
+      "score" : 0.212132,
+      "sourceID" : "artifact-ann-30"
+    },
+    {
+      "score" : 0.211561,
+      "sourceID" : "artifact-ann-24"
+    },
+    {
+      "score" : 0.211324,
+      "sourceID" : "artifact-ann-10"
+    },
+    {
+      "score" : 0.207265,
+      "sourceID" : "artifact-ann-44"
+    },
+    {
+      "score" : 0.199129,
+      "sourceID" : "artifact-ann-39"
+    }
+  ],
+  "exactTopCandidates" : [
+    {
+      "score" : 0.24893,
+      "sourceID" : "artifact-ann-15"
+    },
+    {
+      "score" : 0.230227,
+      "sourceID" : "artifact-ann-16"
+    },
+    {
+      "score" : 0.225981,
+      "sourceID" : "artifact-ann-1"
+    },
+    {
+      "score" : 0.224105,
+      "sourceID" : "artifact-ann-23"
+    },
+    {
+      "score" : 0.212789,
+      "sourceID" : "artifact-ann-36"
+    },
+    {
+      "score" : 0.212723,
+      "sourceID" : "artifact-ann-19"
+    },
+    {
+      "score" : 0.212184,
+      "sourceID" : "artifact-ann-5"
+    },
+    {
+      "score" : 0.212132,
+      "sourceID" : "artifact-ann-30"
+    },
+    {
+      "score" : 0.211561,
+      "sourceID" : "artifact-ann-24"
+    },
+    {
+      "score" : 0.211324,
+      "sourceID" : "artifact-ann-10"
+    },
+    {
+      "score" : 0.207265,
+      "sourceID" : "artifact-ann-44"
+    },
+    {
+      "score" : 0.199129,
+      "sourceID" : "artifact-ann-39"
+    }
+  ],
+  "query" : "reliability hardening checklist rollout",
+  "scenario" : "ann-vs-exact-rerank"
+}

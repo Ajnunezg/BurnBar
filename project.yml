@@ -1,0 +1,155 @@
+name: OpenBurnBar
+options:
+  bundleIdPrefix: com.openburnbar
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_PREVIEWS: YES
+    MARKETING_VERSION: "0.1.0-beta"
+    CURRENT_PROJECT_VERSION: 1
+    CODE_SIGN_STYLE: Automatic
+    INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
+    INFOPLIST_KEY_LSUIElement: true
+    GENERATE_INFOPLIST_FILE: YES
+
+# macOS Debug: the OpenBurnBar target uses keychain-access-groups (Firebase Auth). Xcode must sign with a
+# development identity. Under targets.OpenBurnBar.settings.base add:
+#   DEVELOPMENT_TEAM: <your 10-character Team ID>
+# (Xcode → Settings → Accounts → your Apple ID → Team ID; or developer.apple.com → Membership.)
+
+packages:
+  OpenBurnBarCore:
+    path: OpenBurnBarCore
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "7.0.0"
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "11.0.0"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: "8.0.0"
+  ViewInspector:
+    url: https://github.com/nalexn/ViewInspector
+    from: "0.10.0"
+
+targets:
+  OpenBurnBar:
+    type: application
+    platform: macOS
+    # CFBundleURLTypes does not reliably merge via INFOPLIST_KEY_* with GENERATE_INFOPLIST_FILE.
+    # XcodeGen regenerates this plist on `xcodegen generate`, so keep it aligned with
+    # AgentLens/Resources/OpenBurnBar-Info.plist.
+    info:
+      path: AgentLens/Resources/OpenBurnBar-Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.openburnbar.app
+            CFBundleURLSchemes:
+              - openburnbar
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.openburnbar.app.google-sign-in
+            CFBundleURLSchemes:
+              # IMPORTANT: Replace YOUR_CLIENT_ID_SUFFIX with your actual reversed Firebase client ID suffix.
+              # Obtain from: GoogleService-Info.plist -> REVERSED_CLIENT_ID
+              - com.googleusercontent.apps.YOUR_CLIENT_ID_SUFFIX
+    sources:
+      - path: AgentLens
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_NAME: OpenBurnBar
+        PRODUCT_BUNDLE_IDENTIFIER: com.openburnbar.app
+        CODE_SIGN_ENTITLEMENTS: AgentLens/Resources/OpenBurnBar.entitlements
+        INFOPLIST_KEY_CFBundleDisplayName: OpenBurnBar
+        INFOPLIST_KEY_CFBundleName: OpenBurnBar
+    dependencies:
+      - target: OpenBurnBarDaemonExecutable
+        link: false
+        embed: false
+      - package: OpenBurnBarCore
+        product: OpenBurnBarCore
+      - package: GRDB
+        product: GRDB
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    scheme:
+      testTargets:
+        - OpenBurnBarTests
+        - OpenBurnBarDaemonTests
+
+  OpenBurnBarDaemon:
+    type: library.static
+    platform: macOS
+    sources:
+      - path: OpenBurnBarDaemon/Sources/OpenBurnBarDaemon
+    settings:
+      base:
+        PRODUCT_NAME: OpenBurnBarDaemon
+    dependencies:
+      - package: OpenBurnBarCore
+        product: OpenBurnBarCore
+        link: false
+      - sdk: UserNotifications.framework
+
+  OpenBurnBarDaemonExecutable:
+    type: tool
+    platform: macOS
+    sources:
+      - path: OpenBurnBarDaemon/Sources/OpenBurnBarDaemonExecutable/OpenBurnBarDaemonMain.swift
+    settings:
+      base:
+        PRODUCT_NAME: OpenBurnBarDaemon
+        PRODUCT_MODULE_NAME: OpenBurnBarDaemonExecutable
+        PRODUCT_BUNDLE_IDENTIFIER: com.openburnbar.daemon
+    dependencies:
+      - target: OpenBurnBarDaemon
+      - package: OpenBurnBarCore
+        product: OpenBurnBarCore
+
+  OpenBurnBarTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: AgentLensTests/Active
+      - path: AgentLensTests/Support
+    settings:
+      base:
+        PRODUCT_NAME: OpenBurnBarTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.openburnbar.tests
+        BUNDLE_LOADER: "$(BUILT_PRODUCTS_DIR)/OpenBurnBar.app/Contents/MacOS/OpenBurnBar"
+        TEST_HOST: "$(BUNDLE_LOADER)"
+    dependencies:
+      - target: OpenBurnBar
+      - package: ViewInspector
+        product: ViewInspector
+
+  OpenBurnBarDaemonTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OpenBurnBarDaemon/Tests/OpenBurnBarDaemonTests
+    settings:
+      base:
+        PRODUCT_NAME: OpenBurnBarDaemonTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.openburnbar.daemon.tests
+    dependencies:
+      - target: OpenBurnBarDaemon
+      - target: OpenBurnBarDaemonExecutable
+        link: false
+        embed: false
+      - package: OpenBurnBarCore
+        product: OpenBurnBarCore

@@ -1,0 +1,158 @@
+import SwiftUI
+
+struct DaemonSettingsView: View {
+    @Bindable var settingsManager: SettingsManager
+    @Bindable var daemonManager: OpenBurnBarDaemonManager
+    let dataStore: DataStore
+
+    init(
+        settingsManager: SettingsManager,
+        daemonManager: OpenBurnBarDaemonManager = .shared,
+        dataStore: DataStore
+    ) {
+        self._settingsManager = Bindable(settingsManager)
+        self._daemonManager = Bindable(daemonManager)
+        self.dataStore = dataStore
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
+                SettingsSectionHeader(title: "Daemon Lifecycle")
+
+                GlassCard {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(daemonManager.status.label)
+                                    .font(DesignSystem.Typography.body)
+                                    .foregroundStyle(DesignSystem.Colors.textPrimary)
+                                Text(daemonManager.detailText)
+                                    .font(DesignSystem.Typography.tiny)
+                                    .foregroundStyle(DesignSystem.Colors.textMuted)
+                            }
+                            Spacer()
+                            HStack(spacing: DesignSystem.Spacing.sm) {
+                                Button("Refresh") {
+                                    Task { await daemonManager.refreshHealth() }
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button(primaryActionTitle) {
+                                    Task {
+                                        switch daemonManager.status {
+                                        case .healthy:
+                                            await daemonManager.repair()
+                                        case .checking:
+                                            await daemonManager.refreshHealth()
+                                        case .notInstalled, .unhealthy:
+                                            await daemonManager.installAndStart()
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+
+                        Divider().background(DesignSystem.Colors.border)
+
+                        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                            detailRow(label: "Socket", value: daemonManager.socketPathDisplay)
+                            detailRow(label: "Runtime source", value: daemonManager.runtimeStateSource.detailText)
+                            detailRow(label: "Recent daemon events", value: daemonManager.recentEvents.isEmpty ? "No recent log lines." : daemonManager.recentEvents.joined(separator: "\n"))
+                        }
+
+                        if let lastError = daemonManager.lastError, lastError.isEmpty == false {
+                            Divider().background(DesignSystem.Colors.border)
+                            Text(lastError)
+                                .font(DesignSystem.Typography.tiny)
+                                .foregroundStyle(DesignSystem.Colors.error)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .padding(DesignSystem.Spacing.lg)
+                }
+
+                SettingsSectionHeader(title: "Controller Runtime")
+
+                GlassCard {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+                        SettingsToggle(
+                            title: "Enable controller runtime",
+                            subtitle: "Keep the daemon-backed missions, followups, questions, and replay state active in OpenBurnBar.",
+                            icon: "cpu",
+                            isOn: $settingsManager.controllerRuntimeEnabled
+                        )
+
+                        Divider().background(DesignSystem.Colors.border)
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Refresh cadence")
+                                    .font(DesignSystem.Typography.caption)
+                                    .foregroundStyle(DesignSystem.Colors.textSecondary)
+                                Text("How often OpenBurnBar refreshes the mirrored controller runtime.")
+                                    .font(DesignSystem.Typography.tiny)
+                                    .foregroundStyle(DesignSystem.Colors.textMuted)
+                            }
+                            Spacer()
+                            Picker("", selection: $settingsManager.controllerRuntimeRefreshMinutes) {
+                                ForEach([1, 2, 5, 10, 15, 30], id: \.self) { minutes in
+                                    Text("\(minutes) min").tag(minutes)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 110)
+                        }
+
+                        Divider().background(DesignSystem.Colors.border)
+
+                        SettingsToggle(
+                            title: "Simulator tools",
+                            subtitle: "Expose replay and simulator controls in operator surfaces.",
+                            icon: "play.square.stack",
+                            isOn: $settingsManager.controllerSimulatorToolsEnabled
+                        )
+                    }
+                    .padding(DesignSystem.Spacing.lg)
+                }
+            }
+            .padding(DesignSystem.Spacing.lg)
+        }
+        .background(DesignSystem.Colors.background)
+        .scrollContentBackground(.hidden)
+        .task {
+            daemonManager.attach(dataStore: dataStore)
+            await daemonManager.refreshHealth()
+        }
+    }
+
+    private var primaryActionTitle: String {
+        switch daemonManager.status {
+        case .healthy:
+            return "Repair"
+        case .checking:
+            return "Check"
+        case .notInstalled:
+            return "Install"
+        case .unhealthy:
+            return "Repair"
+        }
+    }
+}
+
+private func detailRow(label: String, value: String) -> some View {
+    HStack(alignment: .top, spacing: DesignSystem.Spacing.sm) {
+        Text(label)
+            .font(DesignSystem.Typography.tiny)
+            .foregroundStyle(DesignSystem.Colors.textSecondary)
+            .frame(width: 88, alignment: .leading)
+
+        Text(value)
+            .font(DesignSystem.Typography.tiny)
+            .foregroundStyle(DesignSystem.Colors.textMuted)
+            .textSelection(.enabled)
+
+        Spacer(minLength: 0)
+    }
+}
