@@ -263,20 +263,24 @@ The Mac app sources live under **`AgentLens/`** because renaming folders is a pe
 
 ## Release model
 
-BurnBar is currently a **source-release-first** project.
-
-- Build the macOS app, daemon, CLI, and extension from this repository.
-- The repo does **not** currently promise notarized macOS binaries, a Homebrew formula, or a public VS Marketplace / Open VSX release.
-- The visible release workflow and [macOS release checklist](docs/RELEASE_MACOS.md) are maintainer scaffolding for future packaged releases, not proof that those artifacts already ship.
-- The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
-
----
-
-## Build (Mac app)
+## Install
 
 ```bash
 git clone https://github.com/Ajnunezg/BurnBar.git
 cd BurnBar
+make install    # builds Release .app → /Applications
+open -a BurnBar
+```
+
+Or grab the `.dmg` from [GitHub Releases](https://github.com/Ajnunezg/BurnBar/releases) and drag to Applications.
+
+See [QUICKSTART.md](QUICKSTART.md) for all options (Homebrew Cask, DMG, build from source, Xcode).
+
+---
+
+## Build (Mac app — development)
+
+```bash
 open BurnBar.xcodeproj
 ```
 

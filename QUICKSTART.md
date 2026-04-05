@@ -1,36 +1,54 @@
 # BurnBar Quick Start Guide
 
-Get up and running with BurnBar in 5 minutes.
-
-Current release model: build from source. BurnBar does not currently publish a notarized app bundle, Homebrew package, or marketplace extension install.
-
-The repo metadata currently declares version `0.1.0-beta`. Create `v0.1.0-beta` as the first public git tag if you want public tag/version support language to match reality.
+Get up and running with BurnBar in under 2 minutes.
 
 ## Prerequisites
 
 - macOS 14 Sonoma or later
-- Xcode 16+ (for building)
-- Swift 5.10+
-- Node.js 18+ and npm (for editor extension development only)
+- Xcode 16+ command line tools (`xcode-select --install`)
 
 ## Installation
 
-### Option 1: Build from Source
+### Option 1: Homebrew Cask (recommended, once notarized builds are available)
 
 ```bash
-# Clone the repository
-git clone https://github.com/Ajnunezg/BurnBar.git
-cd BurnBar
-
-# Open the checked-in Xcode project
-open BurnBar.xcodeproj
-
-# Optional: regenerate the Xcode project if you change project.yml
-brew install xcodegen
-xcodegen generate
+brew install --cask Ajnunezg/tap/burnbar
 ```
 
-### Option 2: Swift Package Manager
+### Option 2: Download from GitHub Releases
+
+1. Go to [Releases](https://github.com/Ajnunezg/BurnBar/releases)
+2. Download the latest `.dmg`
+3. Open the DMG and drag **BurnBar** to **Applications**
+4. Launch BurnBar — look for it in your menu bar
+
+### Option 3: Build from Source (one command)
+
+```bash
+git clone https://github.com/Ajnunezg/BurnBar.git
+cd BurnBar
+make install
+```
+
+This builds a Release .app and copies it to `/Applications`. Then run:
+
+```bash
+open -a BurnBar
+```
+
+To uninstall: `make uninstall`
+
+### Option 4: Open in Xcode (for development)
+
+```bash
+git clone https://github.com/Ajnunezg/BurnBar.git
+cd BurnBar
+open BurnBar.xcodeproj
+```
+
+Select the **BurnBar** scheme, press **⌘R** to build and run.
+
+### Building the Daemon Separately
 
 ```bash
 # Build the daemon CLI
@@ -41,13 +59,6 @@ swift test --package-path BurnBarCore
 swift test --package-path BurnBarDaemon
 ./scripts/test-burnbar-app.sh
 ```
-
-## Running the App
-
-1. Open `BurnBar.xcodeproj` in Xcode
-2. Select the **BurnBar** scheme
-3. Press **⌘R** to build and run
-4. Look for the BurnBar icon in your menu bar
 
 ## Running the Editor Extension
 
