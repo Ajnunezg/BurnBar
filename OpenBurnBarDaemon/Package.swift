@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../OpenBurnBarCore"),
-        .package(url: "https://github.com/groue/GRDB.swift", from: "6.29.3")
+        .package(url: "https://github.com/groue/GRDB.swift", from: "7.10.0")
     ],
     targets: [
         .target(
