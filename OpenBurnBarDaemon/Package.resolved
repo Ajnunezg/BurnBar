@@ -1,5 +1,5 @@
 {
-  "originHash" : "7e9aab7d0cb91ac6bbdacd0915a8a11c388b96a21632a438e24b77491962cd87",
+  "originHash" : "2213ae4e63cb797f40ce21c55b92a243e739e5b4ad28468a8300799312433ca8",
   "pins" : [
     {
       "identity" : "grdb-sqlcipher",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa",
       "state" : {
-        "revision" : "cf44aa8cb4147f39e698c1f28be0b6b2c89f79d2",
-        "version" : "8.58.2"
+        "revision" : "64c9c5cc401aefde0eda46a9192b36082533a79d",
+        "version" : "9.13.0"
       }
     }
   ],
