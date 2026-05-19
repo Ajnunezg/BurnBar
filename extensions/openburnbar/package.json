@@ -243,7 +243,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "globals": "^17.4.0"
+    "globals": "^17.6.0"
   },
   "overrides": {
     "serialize-javascript": "^7.0.0",
